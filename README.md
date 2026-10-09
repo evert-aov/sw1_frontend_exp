@@ -4,6 +4,21 @@ Aplicación Web desarrollada en **Angular 22** con **Tailwind CSS**, orientada a
 
 ---
 
+## 🎨 Características UI/UX Incorporadas
+
+- **Tailwind CSS v4** integrado con utilidades modernas.
+- **Temas Claro y Oscuro (Light & Dark Mode)**:
+  - Gestionado a través de `ThemeService` con persistencia en `localStorage`.
+  - Soporte de variante `@custom-variant dark (&:where(.dark, .dark *))` para adaptación dinámica de clases (`dark:bg-...`, `dark:text-...`).
+- **Internacionalización (i18n)**:
+  - Soporte bilingüe en **Inglés y Español** mediante `I18nService`, diccionarios en `translations.ts` y pipe reactivo `TranslatePipe`.
+- **Barra de Navegación (`NavbarComponent`)**:
+  - Selector de idioma dinámico (🇪🇸 ES / 🇺🇸 EN).
+  - Selector de tema con icono de sol/luna (☀️ / 🌙).
+  - Enlaces a los módulos principales del ecosistema.
+
+---
+
 ## 🏛️ Arquitectura del Proyecto
 
 El código fuente en `src/app/` sigue una estructura modular limpia en capas y alineada con los paquetes del Backend:
@@ -11,8 +26,9 @@ El código fuente en `src/app/` sigue una estructura modular limpia en capas y a
 ```text
 src/app/
 ├── core/                                 # Capa central compartida
+│   ├── i18n/translations.ts              # Diccionarios de traducción (English & Spanish)
 │   ├── models/models.ts                  # Interfaces TypeScript alineadas a los DTOs del Backend
-│   ├── services/                         # Servicios con firmas Observable (Auth, Experience, Booking, Matching, Live)
+│   ├── services/                         # Servicios (ThemeService, I18nService, AuthService, ExperienceService, etc.)
 │   └── guards/                           # Guards de autenticación y roles
 │
 ├── features/                             # Módulos de funcionalidad por paquete
@@ -40,30 +56,12 @@ src/app/
 │       ├── dj-mc-assistant/              # Tarjetas interactivas de dinámicas y control de BPM
 │       └── post-event-report/            # Gráficas analíticas de atención y descarga en PDF
 │
-├── shared/                               # Componentes y pipes reutilizables
+├── shared/                               # Componentes y pipes compartidos
+│   ├── components/navbar/                # Navbar con toggle de tema e idioma
+│   └── pipes/translate.pipe.ts           # Pipe para traducir textos en plantillas
+│
 └── app.routes.ts                         # Configuración de enrutamiento con Lazy Loading
 ```
-
----
-
-## 🗺️ Rutas de Navegación Configuradas
-
-| Ruta | Componente | Descripción |
-| :--- | :--- | :--- |
-| `/catalog` | `CatalogComponent` | Catálogo interactivo de experiencias |
-| `/experiences/create` | `CreateExperienceComponent` | Formulario de publicación |
-| `/experiences/:id` | `ExperienceDetailComponent` | Vista detallada de la experiencia |
-| `/auth/login` | `LoginComponent` | Autenticación de usuarios |
-| `/auth/register` | `RegisterComponent` | Registro de cuentas |
-| `/profile` | `ProfileComponent` | Perfil y preferencias de usuario |
-| `/checkout/:id` | `CheckoutComponent` | Pasarela de reserva y pago |
-| `/my-tickets` | `MyTicketsComponent` | Historial y tickets con QR |
-| `/saas-plans` | `SaasPlansComponent` | Planes de suscripción Pro |
-| `/matching/:id` | `MatchingGroupsComponent` | Postulación a grupos dinámicos |
-| `/demand-insights` | `DemandDashboardComponent` | Panel de tendencias para negocios |
-| `/live/:sessionId` | `LiveHostDashboardComponent` | Dashboard en vivo con cámara y telemetría |
-| `/live/:sessionId/assistant`| `DjMcAssistantComponent` | Asistente de dinámicas MC y DJ Virtual |
-| `/reports/:sessionId` | `PostEventReportComponent` | Curvas de engagement post-evento |
 
 ---
 
@@ -90,6 +88,6 @@ Disponible en `http://localhost:4200/`.
 # Chequeo estricto de tipos de TypeScript
 npx tsc --noEmit
 
-# Compilación para producción
+# Compilación para producción con Tailwind y Chunks optimizados
 npm run build
 ```
