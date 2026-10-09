@@ -1,59 +1,95 @@
-# ExperienciaFront
+# EXPERIENCIA — Frontend Web (Angular)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.5.
+Aplicación Web desarrollada en **Angular 22** con **Tailwind CSS**, orientada a anfitriones, establecimientos y moderadores de eventos en vivo.
 
-## Development server
+---
 
-To start a local development server, run:
+## 🏛️ Arquitectura del Proyecto
 
-```bash
-ng serve
+El código fuente en `src/app/` sigue una estructura modular limpia en capas y alineada con los paquetes del Backend:
+
+```text
+src/app/
+├── core/                                 # Capa central compartida
+│   ├── models/models.ts                  # Interfaces TypeScript alineadas a los DTOs del Backend
+│   ├── services/                         # Servicios con firmas Observable (Auth, Experience, Booking, Matching, Live)
+│   └── guards/                           # Guards de autenticación y roles
+│
+├── features/                             # Módulos de funcionalidad por paquete
+│   ├── auth/                             # Seguridad y Perfiles (CU-01, CU-02)
+│   │   ├── login/                        # Inicio de sesión con JWT
+│   │   ├── register/                     # Registro de usuarios
+│   │   └── profile/                      # Perfil y preferencias
+│   │
+│   ├── experience/                       # Catálogo y Publicación (CU-03, CU-04)
+│   │   ├── catalog/                      # Exploración y filtros geográficos
+│   │   ├── experience-detail/            # Detalle del evento y quórum
+│   │   └── create-experience/            # Publicación con aforo mínimo y precios
+│   │
+│   ├── booking/                          # Reservas y Pagos (CU-05, CU-06, CU-14)
+│   │   ├── checkout/                     # Integración con Stripe Checkout
+│   │   ├── my-tickets/                   # Historial de entradas con visualización de QR
+│   │   └── saas-plans/                   # Planes Pro para anfitriones
+│   │
+│   ├── matching/                         # Inteligencia y Demanda Urbana (CU-07, CU-08)
+│   │   ├── matching-groups/              # Consolidación de quórum grupal
+│   │   └── demand-dashboard/             # Panel y mapa de calor de demanda desatendida
+│   │
+│   └── live/                             # Live Experience & Smart Host (CU-09..CU-13)
+│       ├── live-host-dashboard/          # Canvas HTML5 (muestreo 2-3 s) y semáforos de energía
+│       ├── dj-mc-assistant/              # Tarjetas interactivas de dinámicas y control de BPM
+│       └── post-event-report/            # Gráficas analíticas de atención y descarga en PDF
+│
+├── shared/                               # Componentes y pipes reutilizables
+└── app.routes.ts                         # Configuración de enrutamiento con Lazy Loading
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+---
 
-## Code scaffolding
+## 🗺️ Rutas de Navegación Configuradas
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+| Ruta | Componente | Descripción |
+| :--- | :--- | :--- |
+| `/catalog` | `CatalogComponent` | Catálogo interactivo de experiencias |
+| `/experiences/create` | `CreateExperienceComponent` | Formulario de publicación |
+| `/experiences/:id` | `ExperienceDetailComponent` | Vista detallada de la experiencia |
+| `/auth/login` | `LoginComponent` | Autenticación de usuarios |
+| `/auth/register` | `RegisterComponent` | Registro de cuentas |
+| `/profile` | `ProfileComponent` | Perfil y preferencias de usuario |
+| `/checkout/:id` | `CheckoutComponent` | Pasarela de reserva y pago |
+| `/my-tickets` | `MyTicketsComponent` | Historial y tickets con QR |
+| `/saas-plans` | `SaasPlansComponent` | Planes de suscripción Pro |
+| `/matching/:id` | `MatchingGroupsComponent` | Postulación a grupos dinámicos |
+| `/demand-insights` | `DemandDashboardComponent` | Panel de tendencias para negocios |
+| `/live/:sessionId` | `LiveHostDashboardComponent` | Dashboard en vivo con cámara y telemetría |
+| `/live/:sessionId/assistant`| `DjMcAssistantComponent` | Asistente de dinámicas MC y DJ Virtual |
+| `/reports/:sessionId` | `PostEventReportComponent` | Curvas de engagement post-evento |
 
+---
+
+## 🚀 Puesta en Marcha
+
+### 1. Requisitos Previos
+- Node.js 18+
+- Angular CLI 22 (`npm install -g @angular/cli`)
+
+### 2. Instalación y Servidor de Desarrollo
 ```bash
-ng generate component component-name
+# Instalar dependencias
+npm install
+
+# Iniciar servidor local
+npm start
+# o: ng serve --open
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Disponible en `http://localhost:4200/`.
 
+### 3. Verificación de Tipos y Compilación
 ```bash
-ng generate --help
+# Chequeo estricto de tipos de TypeScript
+npx tsc --noEmit
+
+# Compilación para producción
+npm run build
 ```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
