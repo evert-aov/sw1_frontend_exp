@@ -38,18 +38,20 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Catalog
     'catalog.badge': 'Discovery Engine • Sprint 1 (CU-05 / HU-05)',
-    'catalog.heroTitle': 'Discover & Activate Limited Experiences',
-    'catalog.heroSubtitle': 'Join intimate small-group workshops, culinary tastings and masterclasses. Each reservation helps reach the minimum quorum so activities become reality.',
+    'catalog.heroTitle': 'Discover & Activate Limited Events',
+    'catalog.heroSubtitle': 'Private or public workshops, culinary tastings and masterclasses. Each reservation helps reach the minimum attendance needed so activities become reality.',
+    'catalog.quorumInfoTitle': 'What is the Minimum Quorum?',
+    'catalog.quorumInfoText': 'It is the minimum number of participants required by the host so the event is financially viable and confirmed. If the quorum is not met, the event is not held and your payment is fully protected.',
     'catalog.all': 'All Categories',
-    'catalog.searchPlaceholder': 'Search by keyword, workshop, dish...',
+    'catalog.searchPlaceholder': 'Search by keyword, event, workshop, dish...',
     'catalog.modAll': 'All Modalities',
     'catalog.spotsLeft': 'spots left',
     'catalog.quorumNeeded': 'Needed to confirm event:',
     'catalog.quorumReached': 'Quorum reached • Event Confirmed!',
     'catalog.reserveBtn': 'Reserve Spot',
-    'catalog.emptyTitle': 'No experiences found',
-    'catalog.emptyDesc': 'Try adjusting your filters or be the first to publish a new experience!',
-    'catalog.publishNow': 'Publish New Experience',
+    'catalog.emptyTitle': 'No events found',
+    'catalog.emptyDesc': 'Try adjusting your filters or be the first to publish a new event!',
+    'catalog.publishNow': 'Publish New Event',
 
     // Modules
     'module.auth.title': 'Authentication & Security',
@@ -60,8 +62,8 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // CU-04 / HU-04 & HU-07: Create Experience
     'exp.create.badge': 'Host Console • Sprint 1 (CU-04 / HU-04 & HU-07)',
-    'exp.create.title': 'Publish New Experience',
-    'exp.create.subtitle': 'Set up your limited-spot activity. Establish your minimum quorum to ensure financial profitability before confirming the event.',
+    'exp.create.title': 'Publish New Event',
+    'exp.create.subtitle': 'Set up your limited-spot activity. Establish your minimum quorum (required attendees) to ensure profitability before confirming the event.',
     'exp.create.demoBtn': '⚡ Fill Demo Data',
     
     // Form Sections
@@ -166,18 +168,20 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Catálogo
     'catalog.badge': 'Motor de Descubrimiento • Sprint 1 (CU-05 / HU-05)',
-    'catalog.heroTitle': 'Descubre y Activa Experiencias de Cupo Limitado',
-    'catalog.heroSubtitle': 'Talleres íntimos, degustaciones culinarias y masterclasses. Cada reserva ayuda a alcanzar el quórum mínimo necesario para que la actividad se haga realidad.',
+    'catalog.heroTitle': 'Descubre y Activa Eventos de Cupo Limitado',
+    'catalog.heroSubtitle': 'Talleres privados o públicos, degustaciones culinarias y actividades prácticas. Cada reserva ayuda a alcanzar el cupo mínimo necesario para que el evento se haga realidad.',
+    'catalog.quorumInfoTitle': '¿Qué es el Quórum Mínimo?',
+    'catalog.quorumInfoText': 'Es la cantidad mínima de personas que el anfitrión necesita para confirmar la actividad y garantizar que no se cancele. Si no se alcanza la meta, tu dinero está 100% protegido y no se cobra.',
     'catalog.all': 'Todas las Categorías',
-    'catalog.searchPlaceholder': 'Buscar por palabra clave, taller, plato...',
+    'catalog.searchPlaceholder': 'Buscar por palabra clave, evento, taller, plato...',
     'catalog.modAll': 'Todas las Modalidades',
     'catalog.spotsLeft': 'cupos restantes',
     'catalog.quorumNeeded': 'Faltan para confirmar evento:',
     'catalog.quorumReached': '¡Quórum alcanzado • Evento Confirmado!',
     'catalog.reserveBtn': 'Reservar Cupo',
-    'catalog.emptyTitle': 'No se encontraron experiencias',
-    'catalog.emptyDesc': 'Intenta ajustar tus filtros de búsqueda o ¡sé el primero en publicar una nueva experiencia!',
-    'catalog.publishNow': 'Publicar Nueva Experiencia',
+    'catalog.emptyTitle': 'No se encontraron eventos',
+    'catalog.emptyDesc': 'Intenta ajustar tus filtros de búsqueda o ¡sé el primero en publicar un nuevo evento!',
+    'catalog.publishNow': 'Publicar Nuevo Evento',
 
     // Módulos
     'module.auth.title': 'Autenticación y Seguridad',
@@ -188,8 +192,8 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // CU-04 / HU-04 & HU-07: Create Experience
     'exp.create.badge': 'Consola de Anfitrión • Sprint 1 (CU-04 / HU-04 & HU-07)',
-    'exp.create.title': 'Publicar Nueva Experiencia',
-    'exp.create.subtitle': 'Crea tu actividad de cupo limitado. Configura el aforo mínimo (quórum) indispensable para que sea rentable antes de confirmarla.',
+    'exp.create.title': 'Publicar Nuevo Evento',
+    'exp.create.subtitle': 'Crea tu actividad de cupo limitado. Configura el quórum mínimo (asistentes requeridos) indispensable para que sea rentable antes de confirmarla.',
     'exp.create.demoBtn': '⚡ Rellenar Datos Demo',
 
     // Form Sections

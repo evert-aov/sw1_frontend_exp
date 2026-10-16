@@ -42,6 +42,21 @@ import { Experience, Category } from '../../../core/models/models';
         <div class="absolute -right-10 -bottom-10 w-96 h-96 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none"></div>
       </div>
 
+      <!-- EXPLICACIÓN CLAVE DE QUÓRUM PARA PRIMEROS USUARIOS -->
+      <div class="p-4 sm:p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 shadow-sm flex items-start gap-3.5">
+        <div class="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center text-lg font-bold shrink-0 shadow-sm">
+          💡
+        </div>
+        <div>
+          <h4 class="text-xs sm:text-sm font-extrabold text-amber-900 dark:text-amber-200">
+            {{ 'catalog.quorumInfoTitle' | translate }}
+          </h4>
+          <p class="text-xs text-amber-800 dark:text-amber-300/90 mt-1 leading-relaxed">
+            {{ 'catalog.quorumInfoText' | translate }}
+          </p>
+        </div>
+      </div>
+
       <!-- BARRA DE FILTROS Y BÚSQUEDA -->
       <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
         
@@ -190,6 +205,11 @@ import { Experience, Category } from '../../../core/models/models';
                         [ngClass]="exp.reserved_slots >= exp.min_capacity ? 'bg-emerald-500' : 'bg-gradient-to-r from-amber-500 to-indigo-500'"
                         [style.width.%]="Math.min(100, (exp.reserved_slots / exp.max_capacity) * 100)"
                       ></div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1">
+                      <span>Meta de confirmación: <strong class="text-amber-600 dark:text-amber-400">{{ exp.min_capacity }} cupos</strong></span>
+                      <span>Capacidad máx: {{ exp.max_capacity }}</span>
                     </div>
                   </div>
                 </div>
