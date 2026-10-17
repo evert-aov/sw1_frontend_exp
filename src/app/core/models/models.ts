@@ -46,7 +46,11 @@ export interface Experience {
   id: number;
   host_id: number;
   category_id: number;
+  category_name?: string;
   venue_id?: number;
+  venue_name?: string;
+  zone?: string;
+  address?: string;
   title: string;
   description: string;
   cover_image_url?: string;
