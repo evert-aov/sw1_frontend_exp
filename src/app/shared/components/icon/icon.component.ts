@@ -36,7 +36,10 @@ export type HeroIconName =
   | 'currency-dollar'
   | 'adjustments-horizontal'
   | 'eye'
-  | 'eye-slash';
+  | 'eye-slash'
+  | 'device-phone-mobile'
+  | 'bell'
+  | 'qr-code';
 
 /**
  * Componente Reutilizable de Iconografía Vectorial SVG (Heroicons v2).

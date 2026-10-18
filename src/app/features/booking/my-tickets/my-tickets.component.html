@@ -59,4 +59,31 @@
       }
     </div>
   }
+
+  <!-- Mobile App for Attendees Banner -->
+  <div class="p-6 rounded-3xl bg-gradient-to-r from-violet-900/80 to-[#181329] text-white border border-violet-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+    <div class="flex items-start gap-4">
+      <div class="w-11 h-11 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+        <app-icon name="device-phone-mobile" sizeClass="w-6 h-6" />
+      </div>
+      <div>
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <span>{{ 'exp.create.attendeeAppHeading' | translate }}</span>
+          <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-emerald-500/20 text-emerald-300">
+            QR Offline
+          </span>
+        </h3>
+        <p class="mt-1 text-xs text-violet-200/80 max-w-xl leading-relaxed">
+          {{ 'exp.create.featTicketsDesc' | translate }} Escanea tus entradas en puerta de local sin conexión y recibe avisos de quórum instantáneos.
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3 shrink-0">
+      <div class="px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-xs font-semibold inline-flex items-center gap-2">
+        <app-icon name="qr-code" sizeClass="w-4 h-4 text-violet-300" />
+        <span class="text-[11px] text-slate-200">Google Play & App Store</span>
+      </div>
+    </div>
+  </div>
 </div>

@@ -263,4 +263,34 @@
       }
     </div>
   }
+
+  <!-- Attendee Mobile App Feature Card -->
+  <div class="mt-8 p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-violet-900/60 via-[#181329] to-[#0d0b16] border border-violet-500/20 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+    <div class="space-y-2 max-w-xl">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/20 text-emerald-300 text-[11px] font-bold uppercase tracking-wider">
+        <app-icon name="device-phone-mobile" sizeClass="w-3.5 h-3.5" />
+        <span>{{ 'role.attendeeBadge' | translate }}</span>
+      </div>
+      <h3 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white">
+        {{ 'exp.create.attendeeAppHeading' | translate }}
+      </h3>
+      <p class="text-xs text-violet-200/80 leading-relaxed">
+        {{ 'exp.create.attendeeAppSubheading' | translate }} Entradas offline por QR, alertas push de quórum y matching grupal.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3 shrink-0">
+      <div class="px-3.5 py-2 rounded-xl bg-black/60 border border-white/10 text-xs font-semibold inline-flex items-center gap-2">
+        <app-icon name="qr-code" sizeClass="w-4 h-4 text-emerald-400" />
+        <span class="text-slate-200 text-xs">Google Play & App Store</span>
+      </div>
+      <a
+        routerLink="/my-tickets"
+        class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5"
+      >
+        <app-icon name="ticket" sizeClass="w-4 h-4" />
+        <span>{{ 'exp.create.ticketsBtn' | translate }}</span>
+      </a>
+    </div>
+  </div>
 </div>

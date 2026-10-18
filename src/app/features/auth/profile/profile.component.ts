@@ -57,6 +57,12 @@ export class ProfileComponent implements OnInit {
   /** Estado de guardado en curso */
   readonly saving = signal<boolean>(false);
 
+  /** Bandera indicadora de proceso de cambio de rol */
+  readonly switchingRole = signal<boolean>(false);
+
+  /** Mensaje de éxito de cambio de rol */
+  readonly roleChangeSuccess = signal<string | null>(null);
+
   /** Bandera indicadora de guardado exitoso */
   readonly saved = signal<boolean>(false);
 
@@ -166,6 +172,29 @@ export class ProfileComponent implements OnInit {
       this.interests.update((list) => [...list, value]);
     }
     input.value = '';
+  }
+
+  /**
+   * Cambia el rol de la cuenta entre Asistente y Anfitrión.
+   *
+   * @param {'HOST' | 'ATTENDEE'} targetRole - Rol de destino.
+   * @returns {void}
+   */
+  onSwitchRole(targetRole: 'HOST' | 'ATTENDEE'): void {
+    this.switchingRole.set(true);
+    this.roleChangeSuccess.set(null);
+    this.auth.switchRole(targetRole).subscribe({
+      next: (u) => {
+        this.user.set(u);
+        this.switchingRole.set(false);
+        this.roleChangeSuccess.set(
+          targetRole === 'HOST' ? 'role.switchSuccess' : 'profile.alert.saved'
+        );
+      },
+      error: () => {
+        this.switchingRole.set(false);
+      },
+    });
   }
 
   /**

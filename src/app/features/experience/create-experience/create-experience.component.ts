@@ -70,6 +70,9 @@ export class CreateExperienceComponent implements OnInit {
   /** Bandera indicadora de si se requiere inicio de sesión para publicar */
   readonly requiresAuthPrompt = signal<boolean>(false);
 
+  /** Bandera indicadora de proceso de ascenso a rol Anfitrión */
+  readonly switchingToHost = signal<boolean>(false);
+
   /** Configuración de navegación por pasos */
   readonly steps: { step: WizardStep; code: string; labelKey: string }[] = [
     { step: 1, code: '01', labelKey: 'exp.step1.nav' },
@@ -270,6 +273,11 @@ export class CreateExperienceComponent implements OnInit {
       return;
     }
 
+    if (this.auth.isAttendee()) {
+      this.submitError.set(this.i18n.translate('exp.create.attendeeBlockedDesc'));
+      return;
+    }
+
     if (!this.validateStep1()) {
       this.currentStep.set(1);
       return;
@@ -325,6 +333,24 @@ export class CreateExperienceComponent implements OnInit {
         const parsed = getFriendlyErrorMessage(err, (k) => this.i18n.translate(k));
         this.requiresAuthPrompt.set(parsed.requiresAuth);
         this.submitError.set(parsed.message);
+      },
+    });
+  }
+
+  /**
+   * Actualiza la cuenta del usuario de Asistente a Anfitrión para permitirle publicar experiencias.
+   *
+   * @returns {void}
+   */
+  onUpgradeToHost(): void {
+    this.switchingToHost.set(true);
+    this.auth.switchRole('HOST').subscribe({
+      next: () => {
+        this.switchingToHost.set(false);
+        this.submitError.set(null);
+      },
+      error: () => {
+        this.switchingToHost.set(false);
       },
     });
   }

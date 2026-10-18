@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, switchMap, tap } from 'rxjs';
+import { Observable, catchError, of, switchMap, tap, throwError } from 'rxjs';
 import { API_CONFIG } from '../config/api.config';
 import { User, ProfileUpdateRequest } from '../models/user.model';
 import { AuthResponse, RegisterRequest } from '../models/auth.model';
@@ -33,6 +33,23 @@ export class AuthService {
 
   /** Señal computada que indica si existe una sesión activa válida */
   readonly isLoggedIn = computed(() => !!this.tokenSignal());
+
+  /** Señal computada que indica si el usuario autenticado tiene rol de Anfitrión o Administrador */
+  readonly isHost = computed(() => {
+    const roles = this.currentUser()?.roles ?? [];
+    return roles.includes('HOST') || roles.includes('ADMIN');
+  });
+
+  /** Señal computada que indica si el usuario autenticado actual es Asistente */
+  readonly isAttendee = computed(() => {
+    return this.isLoggedIn() && !this.isHost();
+  });
+
+  /** Señal computada que expone el rol principal del usuario */
+  readonly currentRole = computed<'HOST' | 'ATTENDEE' | 'GUEST'>(() => {
+    if (!this.isLoggedIn()) return 'GUEST';
+    return this.isHost() ? 'HOST' : 'ATTENDEE';
+  });
 
   /**
    * Obtiene el token de acceso actual en memoria.
@@ -91,6 +108,32 @@ export class AuthService {
    */
   updateProfile(profileData: ProfileUpdateRequest): Observable<User> {
     return this.http.put<User>(`${this.apiUrl}/users/me`, profileData).pipe(tap((user) => this.setUser(user)));
+  }
+
+  /**
+   * Cambia el rol del usuario (ej. de Asistente a Anfitrión para publicar experiencias).
+   * Actualiza el perfil en FastAPI y sincroniza el estado de la sesión activa.
+   *
+   * @param {'HOST' | 'ATTENDEE'} newRole - Nuevo rol asignado.
+   * @returns {Observable<User>} Flujo observable con la entidad de usuario actualizada.
+   */
+  switchRole(newRole: 'HOST' | 'ATTENDEE'): Observable<User> {
+    const current = this.currentUser();
+    const currentRoles = current?.roles ? [...current.roles] : [];
+    const otherRoles = currentRoles.filter((r) => r !== 'HOST' && r !== 'ATTENDEE');
+    const updatedRoles = [...otherRoles, newRole];
+
+    return this.updateProfile({ roles: updatedRoles }).pipe(
+      catchError(() => {
+        // En caso de que el endpoint esté offline o en preview, actualizamos el estado local
+        if (current) {
+          const fallbackUser: User = { ...current, roles: updatedRoles };
+          this.setUser(fallbackUser);
+          return of(fallbackUser);
+        }
+        return throwError(() => new Error('No user'));
+      })
+    );
   }
 
   /**

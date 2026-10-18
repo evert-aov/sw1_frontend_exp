@@ -58,4 +58,6 @@ export interface ProfileUpdateRequest {
   bio?: string;
   /** Lista de intereses actualizados */
   interests?: string[];
+  /** Roles asignados al usuario (ej. ['HOST'], ['ATTENDEE']) */
+  roles?: string[];
 }

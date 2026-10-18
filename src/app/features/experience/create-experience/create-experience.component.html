@@ -12,539 +12,747 @@
     </p>
   </div>
 
-  <!-- Friendly Sign-In Required Callout (when user is not authenticated or token expired) -->
-  @if (!auth.isLoggedIn() || requiresAuthPrompt()) {
-    <div class="p-5 sm:p-6 rounded-2xl bg-violet-50/80 dark:bg-[#19152b] border border-violet-200 dark:border-violet-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div class="flex items-start gap-3.5">
-        <div class="w-10 h-10 rounded-xl bg-violet-600/15 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
-          <app-icon name="user" sizeClass="w-5 h-5" />
-        </div>
-        <div>
-          <h3 class="text-sm font-bold text-slate-900 dark:text-white">
-            {{ 'auth.friendlyRequiredTitle' | translate }}
-          </h3>
-          <p class="mt-0.5 text-xs text-slate-600 dark:text-slate-300">
-            {{ 'auth.friendlyRequiredDesc' | translate }}
-          </p>
-        </div>
-      </div>
+  @if (auth.isAttendee()) {
+    <!-- ATTENDEE ROLE DETECTED: Exclusive Mobile App & Access restriction -->
+    <div class="space-y-8">
+      <!-- Restriction Banner -->
+      <div class="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#13121d] border border-amber-500/30 dark:border-amber-500/20 shadow-sm relative overflow-hidden">
+        <div class="absolute -top-12 -right-12 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div class="flex items-center gap-2.5 shrink-0">
-        <a
-          routerLink="/auth/login"
-          [queryParams]="{ returnUrl: '/experiences/create' }"
-          class="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5 whitespace-nowrap"
-        >
-          <span>{{ 'auth.friendlyLoginBtn' | translate }}</span>
-          <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5" />
-        </a>
-        <a
-          routerLink="/auth/register"
-          class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors whitespace-nowrap"
-        >
-          {{ 'auth.friendlyRegisterBtn' | translate }}
-        </a>
-      </div>
-    </div>
-  }
-
-  <!-- Success Notification Banner -->
-  @if (publishedExperience(); as created) {
-    <div class="p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div class="flex items-start gap-3.5">
-        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-          <app-icon name="check-circle" sizeClass="w-5 h-5" />
-        </div>
-        <div>
-          <h3 class="text-sm font-bold text-emerald-900 dark:text-emerald-100">
-            {{ 'exp.alert.successTitle' | translate }}: {{ created.title }}
-          </h3>
-          <p class="mt-0.5 text-xs text-emerald-700 dark:text-emerald-300">
-            {{ 'exp.alert.successDesc' | translate }}
-          </p>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-3 shrink-0">
-        <a
-          routerLink="/catalog"
-          class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5"
-        >
-          <span>{{ 'exp.alert.viewCatalog' | translate }}</span>
-          <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5" />
-        </a>
-      </div>
-    </div>
-  }
-
-  <!-- Non-Auth Error Notification Banner -->
-  @if (submitError() && !requiresAuthPrompt()) {
-    <div class="p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs font-semibold text-red-700 dark:text-red-300 flex items-center gap-2.5">
-      <app-icon name="exclamation-triangle" sizeClass="w-5 h-5 shrink-0" />
-      <span>{{ submitError() }}</span>
-    </div>
-  }
-
-  <!-- 2-Column Wizard Layout -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
-    <!-- Left Column: Stepper Navigation -->
-    <aside class="lg:col-span-3">
-      <ol class="flex lg:flex-col justify-between lg:justify-start gap-4 lg:gap-0">
-        @for (item of steps; track item.step; let last = $last) {
-          <li class="relative flex-1 lg:flex-initial">
-            <button
-              type="button"
-              (click)="goToStep(item.step)"
-              class="w-full flex items-center gap-3.5 text-left group cursor-pointer"
-            >
-              <!-- Circle Indicator -->
-              @if (currentStep() > item.step) {
-                <span class="w-10 h-10 rounded-full border border-emerald-500/60 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 flex items-center justify-center shrink-0 transition-colors">
-                  <app-icon name="check" sizeClass="w-4 h-4" />
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <app-icon name="shield-check" sizeClass="w-6 h-6" />
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                  {{ 'exp.create.attendeeBlockedEyebrow' | translate }}
                 </span>
-              } @else if (currentStep() === item.step) {
-                <span class="w-10 h-10 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-md shadow-violet-600/30">
-                  {{ item.code }}
-                </span>
-              } @else {
-                <span class="w-10 h-10 rounded-full border border-slate-300 dark:border-white/10 bg-white dark:bg-[#13121d] text-slate-400 dark:text-slate-500 text-xs font-bold flex items-center justify-center shrink-0">
-                  {{ item.code }}
-                </span>
-              }
-
-              <!-- Label -->
-              <span
-                class="text-xs sm:text-sm transition-colors"
-                [class]="
-                  currentStep() === item.step
-                    ? 'font-bold text-slate-900 dark:text-white'
-                    : 'font-medium text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200'
-                "
-              >
-                {{ item.labelKey | translate }}
-              </span>
-            </button>
-
-            <!-- Vertical Connector Line on Desktop -->
-            @if (!last) {
-              <div class="hidden lg:block ml-5 my-2 h-8 w-px bg-slate-200 dark:bg-white/10"></div>
-            }
-          </li>
-        }
-      </ol>
-    </aside>
-
-    <!-- Right Column: Step Form Card -->
-    <div class="lg:col-span-9">
-      <form
-        [formGroup]="form"
-        (ngSubmit)="onSubmit()"
-        class="p-6 sm:p-8 lg:p-10 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 shadow-sm"
-        novalidate
-      >
-        <!-- STEP 1: Basic Information -->
-        @if (currentStep() === 1) {
-          <div class="space-y-6">
-            <div class="border-b border-slate-200 dark:border-white/10 pb-5">
-              <p class="text-[11px] font-bold tracking-[0.18em] text-violet-600 dark:text-violet-400 uppercase">
-                {{ 'exp.step1.kicker' | translate }}
-              </p>
-              <h2 class="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white">
-                {{ 'exp.step1.title' | translate }}
+                <span class="text-xs text-slate-400">·</span>
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">{{ 'role.attendeeBadge' | translate }}</span>
+              </div>
+              <h2 class="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+                {{ 'exp.create.attendeeBlockedTitle' | translate }}
               </h2>
-            </div>
-
-            <div class="space-y-5">
-              <div>
-                <label for="title" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-                  {{ 'exp.form.titleLabel' | translate }}
-                </label>
-                <input
-                  id="title"
-                  type="text"
-                  formControlName="title"
-                  [placeholder]="'exp.form.titlePlaceholder' | translate"
-                  class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-                @if (form.controls.title.touched && form.controls.title.invalid) {
-                  <p class="mt-1 text-xs text-red-500">{{ 'auth.required' | translate }}</p>
-                }
-              </div>
-
-              <div>
-                <label for="category_id" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-                  {{ 'exp.form.categoryLabel' | translate }}
-                </label>
-                @if (loadingCategories()) {
-                  <div class="w-full h-12 rounded-xl bg-slate-200/70 dark:bg-white/[0.06] animate-pulse"></div>
-                } @else {
-                  <select
-                    id="category_id"
-                    formControlName="category_id"
-                    class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 cursor-pointer"
-                  >
-                    @if (categories().length === 0) {
-                      <option [ngValue]="0" disabled>{{ 'exp.form.categoryEmpty' | translate }}</option>
-                    }
-                    @for (cat of categories(); track cat.id) {
-                      <option [ngValue]="cat.id">{{ cat.name }}</option>
-                    }
-                  </select>
-                }
-                @if (form.controls.category_id.touched && form.controls.category_id.invalid) {
-                  <p class="mt-1 text-xs text-red-500">{{ 'auth.required' | translate }}</p>
-                }
-              </div>
-
-              <div>
-                <label for="description" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-                  {{ 'exp.form.descLabel' | translate }}
-                </label>
-                <textarea
-                  id="description"
-                  rows="4"
-                  formControlName="description"
-                  [placeholder]="'exp.form.descPlaceholder' | translate"
-                  class="w-full p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
-                ></textarea>
-                @if (form.controls.description.touched && form.controls.description.invalid) {
-                  <p class="mt-1 text-xs text-red-500">{{ 'auth.required' | translate }}</p>
-                }
-              </div>
-
-              <div>
-                <label for="cover_image_url" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-                  {{ 'exp.form.imageLabel' | translate }}
-                </label>
-                <input
-                  id="cover_image_url"
-                  type="url"
-                  formControlName="cover_image_url"
-                  [placeholder]="'exp.form.imagePlaceholder' | translate"
-                  class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-              </div>
-            </div>
-
-            <div class="pt-6 border-t border-slate-200 dark:border-white/10 flex justify-end">
-              <button
-                type="button"
-                (click)="nextStep()"
-                class="px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold shadow-md shadow-violet-600/20 transition-colors inline-flex items-center gap-2 cursor-pointer"
-              >
-                <span>{{ 'common.continue' | translate }}</span>
-                <app-icon name="arrow-right" sizeClass="w-4 h-4" />
-              </button>
+              <p class="mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
+                {{ 'exp.create.attendeeBlockedDesc' | translate }}
+              </p>
             </div>
           </div>
-        }
 
-        <!-- STEP 2: Logistics (When & Where) -->
-        @if (currentStep() === 2) {
-          <div class="space-y-6">
-            <div class="border-b border-slate-200 dark:border-white/10 pb-5">
-              <p class="text-[11px] font-bold tracking-[0.18em] text-violet-600 dark:text-violet-400 uppercase">
-                {{ 'exp.step2.kicker' | translate }}
-              </p>
-              <h2 class="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white">
-                {{ 'exp.step2.title' | translate }}
-              </h2>
-            </div>
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0">
+            <a
+              routerLink="/catalog"
+              class="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors inline-flex items-center justify-center gap-2 shadow-sm shadow-violet-600/20 whitespace-nowrap"
+            >
+              <app-icon name="magnifying-glass" sizeClass="w-4 h-4" />
+              <span>{{ 'exp.create.exploreBtn' | translate }}</span>
+            </a>
+            <a
+              routerLink="/my-tickets"
+              class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors inline-flex items-center justify-center gap-1.5 whitespace-nowrap"
+            >
+              <app-icon name="ticket" sizeClass="w-4 h-4" />
+              <span>{{ 'exp.create.ticketsBtn' | translate }}</span>
+            </a>
+          </div>
+        </div>
+      </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <label for="event_date_only" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-                  {{ 'exp.form.dateLabel' | translate }}
-                </label>
-                <input
-                  id="event_date_only"
-                  type="date"
-                  formControlName="event_date_only"
-                  class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-              </div>
-
-              <div>
-                <label for="event_time_only" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-                  {{ 'exp.form.timeLabel' | translate }}
-                </label>
-                <input
-                  id="event_time_only"
-                  type="time"
-                  formControlName="event_time_only"
-                  class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-              </div>
-            </div>
-
-            <div class="max-w-sm">
-              <label for="duration_minutes" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-                {{ 'exp.form.durationLabel' | translate }}
-              </label>
-              <input
-                id="duration_minutes"
-                type="number"
-                min="30"
-                max="720"
-                step="15"
-                formControlName="duration_minutes"
-                class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-violet-500"
-              />
-            </div>
-
-            <!-- Modality Selector Cards -->
+      <!-- Hero Mobile App Showcase for Attendees -->
+      <div class="p-6 sm:p-10 rounded-3xl bg-gradient-to-br from-violet-900/90 via-[#181329] to-[#0d0b16] text-white border border-violet-500/20 shadow-lg relative overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          <!-- Left: Information and Features -->
+          <div class="lg:col-span-7 space-y-6">
             <div>
-              <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2.5">
-                {{ 'exp.form.modalityLabel' | translate }}
-              </label>
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                @for (mod of modalityOptions; track mod.value) {
-                  <button
-                    type="button"
-                    (click)="selectModality(mod.value)"
-                    class="p-4 rounded-2xl border text-left transition-colors cursor-pointer flex flex-col justify-between gap-3"
-                    [class]="
-                      currentModality() === mod.value
-                        ? 'border-violet-500 bg-violet-600/10 text-slate-900 dark:text-white'
-                        : 'border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-500 dark:text-slate-400 hover:border-violet-400'
-                    "
-                  >
-                    <app-icon
-                      [name]="mod.icon"
-                      [sizeClass]="currentModality() === mod.value ? 'w-5 h-5 text-violet-600 dark:text-violet-400' : 'w-5 h-5 text-slate-400'"
-                    />
-                    <span class="text-sm font-bold">{{ mod.labelKey | translate }}</span>
-                  </button>
-                }
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/20 border border-violet-400/30 text-violet-300 text-xs font-bold tracking-wider uppercase mb-3">
+                <app-icon name="device-phone-mobile" sizeClass="w-4 h-4" />
+                <span>{{ 'exp.create.attendeeAppHeading' | translate }}</span>
+              </div>
+              <h3 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
+                {{ 'exp.create.attendeeAppHeading' | translate }}
+              </h3>
+              <p class="mt-2 text-xs sm:text-sm text-violet-200/80 leading-relaxed">
+                {{ 'exp.create.attendeeAppSubheading' | translate }}
+              </p>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div class="p-4 rounded-2xl bg-white/[0.06] border border-white/10 backdrop-blur-sm space-y-1.5">
+                <div class="w-8 h-8 rounded-xl bg-violet-500/20 text-violet-300 flex items-center justify-center">
+                  <app-icon name="ticket" sizeClass="w-4 h-4" />
+                </div>
+                <h4 class="text-xs font-bold text-white">{{ 'exp.create.featTicketsTitle' | translate }}</h4>
+                <p class="text-[11px] text-violet-200/70 leading-relaxed">{{ 'exp.create.featTicketsDesc' | translate }}</p>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-white/[0.06] border border-white/10 backdrop-blur-sm space-y-1.5">
+                <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center">
+                  <app-icon name="bell" sizeClass="w-4 h-4" />
+                </div>
+                <h4 class="text-xs font-bold text-white">{{ 'exp.create.featQuorumTitle' | translate }}</h4>
+                <p class="text-[11px] text-violet-200/70 leading-relaxed">{{ 'exp.create.featQuorumDesc' | translate }}</p>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-white/[0.06] border border-white/10 backdrop-blur-sm space-y-1.5">
+                <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center">
+                  <app-icon name="users" sizeClass="w-4 h-4" />
+                </div>
+                <h4 class="text-xs font-bold text-white">{{ 'exp.create.featMatchingTitle' | translate }}</h4>
+                <p class="text-[11px] text-violet-200/70 leading-relaxed">{{ 'exp.create.featMatchingDesc' | translate }}</p>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-white/[0.06] border border-white/10 backdrop-blur-sm space-y-1.5">
+                <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-300 flex items-center justify-center">
+                  <app-icon name="sparkles" sizeClass="w-4 h-4" />
+                </div>
+                <h4 class="text-xs font-bold text-white">{{ 'exp.create.featLiveTitle' | translate }}</h4>
+                <p class="text-[11px] text-violet-200/70 leading-relaxed">{{ 'exp.create.featLiveDesc' | translate }}</p>
               </div>
             </div>
 
-            <!-- Conditional Venue & Address Fields -->
-            @if (currentModality() !== 'VIRTUAL') {
-              <div class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label for="venue_name" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-                      {{ 'exp.form.venueLabel' | translate }}
-                    </label>
-                    <input
-                      id="venue_name"
-                      type="text"
-                      formControlName="venue_name"
-                      [placeholder]="'exp.form.venuePlaceholder' | translate"
-                      class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label for="zone" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-                      {{ 'exp.form.zoneLabel' | translate }}
-                    </label>
-                    <input
-                      id="zone"
-                      type="text"
-                      formControlName="zone"
-                      [placeholder]="'exp.form.zonePlaceholder' | translate"
-                      class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    />
+            <!-- Download Badges & QR Section -->
+            <div class="pt-4 border-t border-white/10 flex flex-wrap items-center gap-4">
+              <div class="flex items-center gap-2">
+                <div class="px-4 py-2.5 rounded-xl bg-black/50 border border-white/15 hover:border-white/30 transition-colors inline-flex items-center gap-2.5 cursor-pointer">
+                  <app-icon name="device-phone-mobile" sizeClass="w-5 h-5 text-emerald-400" />
+                  <div class="text-left">
+                    <p class="text-[9px] uppercase tracking-wider text-slate-400 leading-none">Disponible en</p>
+                    <p class="text-xs font-bold text-white leading-tight">Google Play</p>
                   </div>
                 </div>
 
+                <div class="px-4 py-2.5 rounded-xl bg-black/50 border border-white/15 hover:border-white/30 transition-colors inline-flex items-center gap-2.5 cursor-pointer">
+                  <app-icon name="device-phone-mobile" sizeClass="w-5 h-5 text-violet-300" />
+                  <div class="text-left">
+                    <p class="text-[9px] uppercase tracking-wider text-slate-400 leading-none">Consíguelo en</p>
+                    <p class="text-xs font-bold text-white leading-tight">App Store</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 text-xs text-violet-200/80">
+                <app-icon name="qr-code" sizeClass="w-5 h-5 text-violet-400" />
+                <span>{{ 'exp.create.mobileDownload' | translate }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Visual Smartphone Mockup -->
+          <div class="lg:col-span-5 flex justify-center">
+            <div class="w-full max-w-[280px] sm:max-w-[310px] rounded-[36px] p-3.5 bg-gradient-to-b from-slate-700 via-slate-800 to-slate-950 border-4 border-slate-600/60 shadow-2xl relative">
+              <!-- Camera Notch -->
+              <div class="w-24 h-4 bg-black rounded-b-xl mx-auto mb-3 flex items-center justify-center">
+                <div class="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700"></div>
+              </div>
+
+              <!-- Screen Content -->
+              <div class="rounded-[26px] bg-[#0d0b16] border border-white/10 p-4 space-y-4 text-slate-100">
+                <!-- App header -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-lg bg-violet-600 text-white font-black text-xs flex items-center justify-center">E</span>
+                    <span class="text-xs font-extrabold tracking-widest uppercase">EXPERIENCIA</span>
+                  </div>
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                </div>
+
+                <!-- Digital Ticket Card in App -->
+                <div class="p-3.5 rounded-2xl bg-white/[0.08] border border-white/15 space-y-3">
+                  <div class="flex items-center justify-between text-[10px]">
+                    <span class="font-bold text-emerald-400 uppercase tracking-wide">Quórum Confirmado</span>
+                    <span class="text-slate-400">18 / 20 cupos</span>
+                  </div>
+                  <p class="text-xs font-bold text-white">Noche de Jazz & Degustación</p>
+                  <p class="text-[10px] text-slate-400">Casa Nómada · Vie 20:30</p>
+                  
+                  <!-- QR Code Mockup in Phone -->
+                  <div class="p-3 rounded-xl bg-white text-slate-950 flex flex-col items-center justify-center gap-1">
+                    <app-icon name="qr-code" sizeClass="w-16 h-16 text-slate-900" />
+                    <span class="text-[9px] font-mono tracking-widest font-bold">EXP-8472-VIP</span>
+                  </div>
+                </div>
+
+                <!-- Dynamic MC Poll in App -->
+                <div class="p-3 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <app-icon name="sparkles" sizeClass="w-4 h-4 text-violet-400" />
+                    <span class="text-[11px] font-bold text-violet-200">Dinámica DJ en vivo</span>
+                  </div>
+                  <span class="px-2 py-0.5 rounded-md bg-violet-600 text-[10px] font-bold text-white">Votar</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option to upgrade to Host -->
+      <div class="p-5 rounded-2xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-violet-600/10 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
+            <app-icon name="bolt" sizeClass="w-5 h-5" />
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-slate-900 dark:text-white">
+              {{ 'role.switchToHost' | translate }}
+            </h4>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">
+              Si organizas talleres, catas o eventos, puedes convertirte en Anfitrión para publicar desde la plataforma web.
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          (click)="onUpgradeToHost()"
+          [disabled]="switchingToHost()"
+          class="px-4 py-2.5 rounded-xl border border-violet-600 text-violet-600 dark:text-violet-400 hover:bg-violet-600 hover:text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-60"
+        >
+          <app-icon name="check" sizeClass="w-4 h-4" />
+          <span>{{ (switchingToHost() ? 'common.loading' : 'exp.create.switchHostBtn') | translate }}</span>
+        </button>
+      </div>
+    </div>
+  } @else {
+    <!-- HOST OR GUEST: Standard 2-Column Wizard Layout -->
+
+    <!-- Friendly Sign-In Required Callout (when user is not authenticated or token expired) -->
+    @if (!auth.isLoggedIn() || requiresAuthPrompt()) {
+      <div class="p-5 sm:p-6 rounded-2xl bg-violet-50/80 dark:bg-[#19152b] border border-violet-200 dark:border-violet-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-start gap-3.5">
+          <div class="w-10 h-10 rounded-xl bg-violet-600/15 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
+            <app-icon name="user" sizeClass="w-5 h-5" />
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white">
+              {{ 'auth.friendlyRequiredTitle' | translate }}
+            </h3>
+            <p class="mt-0.5 text-xs text-slate-600 dark:text-slate-300">
+              {{ 'auth.friendlyRequiredDesc' | translate }}
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5 shrink-0">
+          <a
+            routerLink="/auth/login"
+            [queryParams]="{ returnUrl: '/experiences/create' }"
+            class="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5 whitespace-nowrap"
+          >
+            <span>{{ 'auth.friendlyLoginBtn' | translate }}</span>
+            <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5" />
+          </a>
+          <a
+            routerLink="/auth/register"
+            class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors whitespace-nowrap"
+          >
+            {{ 'auth.friendlyRegisterBtn' | translate }}
+          </a>
+        </div>
+      </div>
+    }
+
+    <!-- Success Notification Banner -->
+    @if (publishedExperience(); as created) {
+      <div class="p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-start gap-3.5">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <app-icon name="check-circle" sizeClass="w-5 h-5" />
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-emerald-900 dark:text-emerald-100">
+              {{ 'exp.alert.successTitle' | translate }}: {{ created.title }}
+            </h3>
+            <p class="mt-0.5 text-xs text-emerald-700 dark:text-emerald-300">
+              {{ 'exp.alert.successDesc' | translate }}
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 shrink-0">
+          <a
+            routerLink="/catalog"
+            class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5"
+          >
+            <span>{{ 'exp.alert.viewCatalog' | translate }}</span>
+            <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5" />
+          </a>
+        </div>
+      </div>
+    }
+
+    <!-- Non-Auth Error Notification Banner -->
+    @if (submitError() && !requiresAuthPrompt()) {
+      <div class="p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs font-semibold text-red-700 dark:text-red-300 flex items-center gap-2.5">
+        <app-icon name="exclamation-triangle" sizeClass="w-5 h-5 shrink-0" />
+        <span>{{ submitError() }}</span>
+      </div>
+    }
+
+    <!-- 2-Column Wizard Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+      <!-- Left Column: Stepper Navigation -->
+      <aside class="lg:col-span-3">
+        <ol class="flex lg:flex-col justify-between lg:justify-start gap-4 lg:gap-0">
+          @for (item of steps; track item.step; let last = $last) {
+            <li class="relative flex-1 lg:flex-initial">
+              <button
+                type="button"
+                (click)="goToStep(item.step)"
+                class="w-full flex items-center gap-3.5 text-left group cursor-pointer"
+              >
+                <!-- Circle Indicator -->
+                @if (currentStep() > item.step) {
+                  <span class="w-10 h-10 rounded-full border border-emerald-500/60 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 flex items-center justify-center shrink-0 transition-colors">
+                    <app-icon name="check" sizeClass="w-4 h-4" />
+                  </span>
+                } @else if (currentStep() === item.step) {
+                  <span class="w-10 h-10 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-md shadow-violet-600/30">
+                    {{ item.code }}
+                  </span>
+                } @else {
+                  <span class="w-10 h-10 rounded-full border border-slate-300 dark:border-white/10 bg-white dark:bg-[#13121d] text-slate-400 dark:text-slate-500 text-xs font-bold flex items-center justify-center shrink-0">
+                    {{ item.code }}
+                  </span>
+                }
+
+                <!-- Label -->
+                <span
+                  class="text-xs sm:text-sm transition-colors"
+                  [class]="
+                    currentStep() === item.step
+                      ? 'font-bold text-slate-900 dark:text-white'
+                      : 'font-medium text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200'
+                  "
+                >
+                  {{ item.labelKey | translate }}
+                </span>
+              </button>
+
+              <!-- Vertical Connector Line on Desktop -->
+              @if (!last) {
+                <div class="hidden lg:block ml-5 my-2 h-8 w-px bg-slate-200 dark:bg-white/10"></div>
+              }
+            </li>
+          }
+        </ol>
+      </aside>
+
+      <!-- Right Column: Step Form Card -->
+      <div class="lg:col-span-9">
+        <form
+          [formGroup]="form"
+          (ngSubmit)="onSubmit()"
+          class="p-6 sm:p-8 lg:p-10 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 shadow-sm"
+          novalidate
+        >
+          <!-- STEP 1: Basic Information -->
+          @if (currentStep() === 1) {
+            <div class="space-y-6">
+              <div class="border-b border-slate-200 dark:border-white/10 pb-5">
+                <p class="text-[11px] font-bold tracking-[0.18em] text-violet-600 dark:text-violet-400 uppercase">
+                  {{ 'exp.step1.kicker' | translate }}
+                </p>
+                <h2 class="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white">
+                  {{ 'exp.step1.title' | translate }}
+                </h2>
+              </div>
+
+              <div class="space-y-5">
                 <div>
-                  <label for="address" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-                    {{ 'exp.form.addressLabel' | translate }}
+                  <label for="title" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                    {{ 'exp.form.titleLabel' | translate }}
                   </label>
                   <input
-                    id="address"
+                    id="title"
                     type="text"
-                    formControlName="address"
-                    [placeholder]="'exp.form.addressPlaceholder' | translate"
-                    class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    formControlName="title"
+                    [placeholder]="'exp.form.titlePlaceholder' | translate"
+                    class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
                   />
-                  @if (form.controls.address.touched && form.controls.address.invalid) {
+                  @if (form.controls.title.touched && form.controls.title.invalid) {
                     <p class="mt-1 text-xs text-red-500">{{ 'auth.required' | translate }}</p>
                   }
                 </div>
-              </div>
-            }
 
-            @if (currentModality() !== 'IN_PERSON') {
-              <div>
-                <label for="virtual_meeting_url" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-                  {{ 'exp.form.virtualUrlLabel' | translate }}
-                </label>
-                <input
-                  id="virtual_meeting_url"
-                  type="url"
-                  formControlName="virtual_meeting_url"
-                  [placeholder]="'exp.form.virtualUrlPlaceholder' | translate"
-                  class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-                @if (form.controls.virtual_meeting_url.touched && form.controls.virtual_meeting_url.invalid) {
-                  <p class="mt-1 text-xs text-red-500">{{ 'auth.required' | translate }}</p>
-                }
-              </div>
-            }
+                <div>
+                  <label for="category_id" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                    {{ 'exp.form.categoryLabel' | translate }}
+                  </label>
+                  @if (loadingCategories()) {
+                    <div class="w-full h-12 rounded-xl bg-slate-200/70 dark:bg-white/[0.06] animate-pulse"></div>
+                  } @else {
+                    <select
+                      id="category_id"
+                      formControlName="category_id"
+                      class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 cursor-pointer"
+                    >
+                      @if (categories().length === 0) {
+                        <option [ngValue]="0" disabled>{{ 'exp.form.categoryEmpty' | translate }}</option>
+                      }
+                      @for (cat of categories(); track cat.id) {
+                        <option [ngValue]="cat.id">{{ cat.name }}</option>
+                      }
+                    </select>
+                  }
+                  @if (form.controls.category_id.touched && form.controls.category_id.invalid) {
+                    <p class="mt-1 text-xs text-red-500">{{ 'auth.required' | translate }}</p>
+                  }
+                </div>
 
-            <div class="pt-6 border-t border-slate-200 dark:border-white/10 flex items-center justify-between">
-              <button
-                type="button"
-                (click)="prevStep()"
-                class="px-5 py-3 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors inline-flex items-center gap-2 cursor-pointer"
-              >
-                <app-icon name="arrow-left" sizeClass="w-4 h-4" />
-                <span>{{ 'common.back' | translate }}</span>
-              </button>
+                <div>
+                  <label for="description" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                    {{ 'exp.form.descLabel' | translate }}
+                  </label>
+                  <textarea
+                    id="description"
+                    rows="4"
+                    formControlName="description"
+                    [placeholder]="'exp.form.descPlaceholder' | translate"
+                    class="w-full p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+                  ></textarea>
+                  @if (form.controls.description.touched && form.controls.description.invalid) {
+                    <p class="mt-1 text-xs text-red-500">{{ 'auth.required' | translate }}</p>
+                  }
+                </div>
 
-              <button
-                type="button"
-                (click)="nextStep()"
-                class="px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold shadow-md shadow-violet-600/20 transition-colors inline-flex items-center gap-2 cursor-pointer"
-              >
-                <span>{{ 'common.continue' | translate }}</span>
-                <app-icon name="arrow-right" sizeClass="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        }
-
-        <!-- STEP 3: Capacity & Economics (HU-04 & HU-07) -->
-        @if (currentStep() === 3) {
-          <div class="space-y-6">
-            <div class="border-b border-slate-200 dark:border-white/10 pb-5">
-              <p class="text-[11px] font-bold tracking-[0.18em] text-violet-600 dark:text-violet-400 uppercase">
-                {{ 'exp.step3.kicker' | translate }}
-              </p>
-              <h2 class="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white">
-                {{ 'exp.step3.title' | translate }}
-              </h2>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              <div>
-                <label for="min_capacity" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-                  {{ 'exp.form.minCapLabel' | translate }}
-                </label>
-                <input
-                  id="min_capacity"
-                  type="number"
-                  min="2"
-                  max="500"
-                  formControlName="min_capacity"
-                  class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-              </div>
-
-              <div>
-                <label for="max_capacity" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-                  {{ 'exp.form.maxCapLabel' | translate }}
-                </label>
-                <input
-                  id="max_capacity"
-                  type="number"
-                  min="2"
-                  max="1000"
-                  formControlName="max_capacity"
-                  class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-              </div>
-
-              <div>
-                <label for="price" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-                  {{ 'exp.form.priceLabel' | translate }}
-                </label>
-                <div class="relative">
-                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Bs</span>
+                <div>
+                  <label for="cover_image_url" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                    {{ 'exp.form.imageLabel' | translate }}
+                  </label>
                   <input
-                    id="price"
-                    type="number"
-                    min="1"
-                    step="5"
-                    formControlName="price"
-                    class="w-full h-12 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    id="cover_image_url"
+                    type="url"
+                    formControlName="cover_image_url"
+                    [placeholder]="'exp.form.imagePlaceholder' | translate"
+                    class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
                   />
                 </div>
               </div>
-            </div>
 
-            @if (hasCapacityConflict()) {
-              <div class="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs font-semibold text-red-700 dark:text-red-300 flex items-center gap-2">
-                <app-icon name="exclamation-triangle" sizeClass="w-4 h-4 shrink-0" />
-                <span>{{ 'exp.form.capacityError' | translate }}</span>
-              </div>
-            }
-
-            <!-- Profitability Projection Box (HU-07) -->
-            <div class="p-6 sm:p-7 rounded-2xl border border-violet-200 dark:border-violet-500/25 bg-violet-50/60 dark:bg-[#19152b] space-y-5">
-              <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2 text-xs font-extrabold tracking-[0.14em] text-violet-700 dark:text-violet-300 uppercase">
-                  <app-icon name="sparkles" sizeClass="w-4 h-4" />
-                  <span>{{ 'exp.breakdown.heading' | translate }}</span>
-                </div>
-                <span class="text-[11px] font-semibold text-violet-600 dark:text-violet-300">
-                  {{ commission().tierKey | translate }}
-                </span>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div>
-                  <p class="text-xs text-slate-500 dark:text-slate-400">
-                    {{ 'exp.breakdown.quorumGross' | translate }}
-                  </p>
-                  <p class="mt-1.5 text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tabular-nums">
-                    Bs {{ guaranteedGrossRevenue() | number: '1.0-2' }}
-                  </p>
-                </div>
-
-                <div>
-                  <p class="text-xs text-slate-500 dark:text-slate-400">
-                    {{ 'exp.breakdown.platformFee' | translate }} · {{ commission().ratePercent }}%
-                  </p>
-                  <p class="mt-1.5 text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tabular-nums">
-                    - Bs {{ quorumPlatformFee() | number: '1.0-2' }}
-                  </p>
-                </div>
-
-                <div>
-                  <p class="text-xs text-slate-500 dark:text-slate-400">
-                    {{ 'exp.breakdown.netEstimated' | translate }}
-                  </p>
-                  <p class="mt-1.5 text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                    Bs {{ guaranteedNetRevenue() | number: '1.0-2' }}
-                  </p>
-                </div>
-              </div>
-
-              <div class="pt-4 border-t border-violet-200/60 dark:border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-300">
-                <span>{{ 'exp.breakdown.maxNetHint' | translate }} ({{ maxCapacity() }} cupos):</span>
-                <span class="font-bold text-slate-900 dark:text-white tabular-nums">
-                  Bs {{ maxNetRevenue() | number: '1.0-2' }}
-                </span>
+              <div class="pt-6 border-t border-slate-200 dark:border-white/10 flex justify-end">
+                <button
+                  type="button"
+                  (click)="nextStep()"
+                  class="px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold shadow-md shadow-violet-600/20 transition-colors inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <span>{{ 'common.continue' | translate }}</span>
+                  <app-icon name="arrow-right" sizeClass="w-4 h-4" />
+                </button>
               </div>
             </div>
+          }
 
-            <div class="pt-6 border-t border-slate-200 dark:border-white/10 flex items-center justify-between">
-              <button
-                type="button"
-                (click)="prevStep()"
-                class="px-5 py-3 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors inline-flex items-center gap-2 cursor-pointer"
-              >
-                <app-icon name="arrow-left" sizeClass="w-4 h-4" />
-                <span>{{ 'common.back' | translate }}</span>
-              </button>
+          <!-- STEP 2: Logistics (When & Where) -->
+          @if (currentStep() === 2) {
+            <div class="space-y-6">
+              <div class="border-b border-slate-200 dark:border-white/10 pb-5">
+                <p class="text-[11px] font-bold tracking-[0.18em] text-violet-600 dark:text-violet-400 uppercase">
+                  {{ 'exp.step2.kicker' | translate }}
+                </p>
+                <h2 class="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white">
+                  {{ 'exp.step2.title' | translate }}
+                </h2>
+              </div>
 
-              <button
-                type="submit"
-                [disabled]="isSubmitting() || hasCapacityConflict()"
-                class="px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-60 text-white text-xs font-bold shadow-md shadow-violet-600/20 transition-colors inline-flex items-center gap-2 cursor-pointer"
-              >
-                <app-icon name="check" sizeClass="w-4 h-4" />
-                <span>{{ (isSubmitting() ? 'exp.btn.publishing' : 'exp.btn.publish') | translate }}</span>
-              </button>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label for="event_date_only" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                    {{ 'exp.form.dateLabel' | translate }}
+                  </label>
+                  <input
+                    id="event_date_only"
+                    type="date"
+                    formControlName="event_date_only"
+                    class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  />
+                </div>
+
+                <div>
+                  <label for="event_time_only" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                    {{ 'exp.form.timeLabel' | translate }}
+                  </label>
+                  <input
+                    id="event_time_only"
+                    type="time"
+                    formControlName="event_time_only"
+                    class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  />
+                </div>
+              </div>
+
+              <div class="max-w-sm">
+                <label for="duration_minutes" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                  {{ 'exp.form.durationLabel' | translate }}
+                </label>
+                <input
+                  id="duration_minutes"
+                  type="number"
+                  min="30"
+                  max="720"
+                  step="15"
+                  formControlName="duration_minutes"
+                  class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-violet-500"
+                />
+              </div>
+
+              <!-- Modality Selector Cards -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2.5">
+                  {{ 'exp.form.modalityLabel' | translate }}
+                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  @for (mod of modalityOptions; track mod.value) {
+                    <button
+                      type="button"
+                      (click)="selectModality(mod.value)"
+                      class="p-4 rounded-2xl border text-left transition-colors cursor-pointer flex flex-col justify-between gap-3"
+                      [class]="
+                        currentModality() === mod.value
+                          ? 'border-violet-500 bg-violet-600/10 text-slate-900 dark:text-white'
+                          : 'border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-500 dark:text-slate-400 hover:border-violet-400'
+                      "
+                    >
+                      <app-icon
+                        [name]="mod.icon"
+                        [sizeClass]="currentModality() === mod.value ? 'w-5 h-5 text-violet-600 dark:text-violet-400' : 'w-5 h-5 text-slate-400'"
+                      />
+                      <span class="text-sm font-bold">{{ mod.labelKey | translate }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Conditional Venue & Address Fields -->
+              @if (currentModality() !== 'VIRTUAL') {
+                <div class="space-y-4">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label for="venue_name" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                        {{ 'exp.form.venueLabel' | translate }}
+                      </label>
+                      <input
+                        id="venue_name"
+                        type="text"
+                        formControlName="venue_name"
+                        [placeholder]="'exp.form.venuePlaceholder' | translate"
+                        class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label for="zone" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                        {{ 'exp.form.zoneLabel' | translate }}
+                      </label>
+                      <input
+                        id="zone"
+                        type="text"
+                        formControlName="zone"
+                        [placeholder]="'exp.form.zonePlaceholder' | translate"
+                        class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label for="address" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                      {{ 'exp.form.addressLabel' | translate }}
+                    </label>
+                    <input
+                      id="address"
+                      type="text"
+                      formControlName="address"
+                      [placeholder]="'exp.form.addressPlaceholder' | translate"
+                      class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    />
+                    @if (form.controls.address.touched && form.controls.address.invalid) {
+                      <p class="mt-1 text-xs text-red-500">{{ 'auth.required' | translate }}</p>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (currentModality() !== 'IN_PERSON') {
+                <div>
+                  <label for="virtual_meeting_url" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                    {{ 'exp.form.virtualUrlLabel' | translate }}
+                  </label>
+                  <input
+                    id="virtual_meeting_url"
+                    type="url"
+                    formControlName="virtual_meeting_url"
+                    [placeholder]="'exp.form.virtualUrlPlaceholder' | translate"
+                    class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  />
+                  @if (form.controls.virtual_meeting_url.touched && form.controls.virtual_meeting_url.invalid) {
+                    <p class="mt-1 text-xs text-red-500">{{ 'auth.required' | translate }}</p>
+                  }
+                </div>
+              }
+
+              <div class="pt-6 border-t border-slate-200 dark:border-white/10 flex items-center justify-between">
+                <button
+                  type="button"
+                  (click)="prevStep()"
+                  class="px-5 py-3 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <app-icon name="arrow-left" sizeClass="w-4 h-4" />
+                  <span>{{ 'common.back' | translate }}</span>
+                </button>
+
+                <button
+                  type="button"
+                  (click)="nextStep()"
+                  class="px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold shadow-md shadow-violet-600/20 transition-colors inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <span>{{ 'common.continue' | translate }}</span>
+                  <app-icon name="arrow-right" sizeClass="w-4 h-4" />
+                </button>
+              </div>
             </div>
-          </div>
-        }
-      </form>
+          }
+
+          <!-- STEP 3: Capacity & Economics (HU-04 & HU-07) -->
+          @if (currentStep() === 3) {
+            <div class="space-y-6">
+              <div class="border-b border-slate-200 dark:border-white/10 pb-5">
+                <p class="text-[11px] font-bold tracking-[0.18em] text-violet-600 dark:text-violet-400 uppercase">
+                  {{ 'exp.step3.kicker' | translate }}
+                </p>
+                <h2 class="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white">
+                  {{ 'exp.step3.title' | translate }}
+                </h2>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div>
+                  <label for="min_capacity" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                    {{ 'exp.form.minCapLabel' | translate }}
+                  </label>
+                  <input
+                    id="min_capacity"
+                    type="number"
+                    min="2"
+                    max="500"
+                    formControlName="min_capacity"
+                    class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  />
+                </div>
+
+                <div>
+                  <label for="max_capacity" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                    {{ 'exp.form.maxCapLabel' | translate }}
+                  </label>
+                  <input
+                    id="max_capacity"
+                    type="number"
+                    min="2"
+                    max="1000"
+                    formControlName="max_capacity"
+                    class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  />
+                </div>
+
+                <div>
+                  <label for="price" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                    {{ 'exp.form.priceLabel' | translate }}
+                  </label>
+                  <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Bs</span>
+                    <input
+                      id="price"
+                      type="number"
+                      min="1"
+                      step="5"
+                      formControlName="price"
+                      class="w-full h-12 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              @if (hasCapacityConflict()) {
+                <div class="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs font-semibold text-red-700 dark:text-red-300 flex items-center gap-2">
+                  <app-icon name="exclamation-triangle" sizeClass="w-4 h-4 shrink-0" />
+                  <span>{{ 'exp.form.capacityError' | translate }}</span>
+                </div>
+              }
+
+              <!-- Profitability Projection Box (HU-07) -->
+              <div class="p-6 sm:p-7 rounded-2xl border border-violet-200 dark:border-violet-500/25 bg-violet-50/60 dark:bg-[#19152b] space-y-5">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2 text-xs font-extrabold tracking-[0.14em] text-violet-700 dark:text-violet-300 uppercase">
+                    <app-icon name="sparkles" sizeClass="w-4 h-4" />
+                    <span>{{ 'exp.breakdown.heading' | translate }}</span>
+                  </div>
+                  <span class="text-[11px] font-semibold text-violet-600 dark:text-violet-300">
+                    {{ commission().tierKey | translate }}
+                  </span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                  <div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                      {{ 'exp.breakdown.quorumGross' | translate }}
+                    </p>
+                    <p class="mt-1.5 text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tabular-nums">
+                      Bs {{ guaranteedGrossRevenue() | number: '1.0-2' }}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                      {{ 'exp.breakdown.platformFee' | translate }} · {{ commission().ratePercent }}%
+                    </p>
+                    <p class="mt-1.5 text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tabular-nums">
+                      - Bs {{ quorumPlatformFee() | number: '1.0-2' }}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                      {{ 'exp.breakdown.netEstimated' | translate }}
+                    </p>
+                    <p class="mt-1.5 text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                      Bs {{ guaranteedNetRevenue() | number: '1.0-2' }}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="pt-4 border-t border-violet-200/60 dark:border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-300">
+                  <span>{{ 'exp.breakdown.maxNetHint' | translate }} ({{ maxCapacity() }} cupos):</span>
+                  <span class="font-bold text-slate-900 dark:text-white tabular-nums">
+                    Bs {{ maxNetRevenue() | number: '1.0-2' }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="pt-6 border-t border-slate-200 dark:border-white/10 flex items-center justify-between">
+                <button
+                  type="button"
+                  (click)="prevStep()"
+                  class="px-5 py-3 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <app-icon name="arrow-left" sizeClass="w-4 h-4" />
+                  <span>{{ 'common.back' | translate }}</span>
+                </button>
+
+                <button
+                  type="submit"
+                  [disabled]="isSubmitting() || hasCapacityConflict()"
+                  class="px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-60 text-white text-xs font-bold shadow-md shadow-violet-600/20 transition-colors inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <app-icon name="check" sizeClass="w-4 h-4" />
+                  <span>{{ (isSubmitting() ? 'exp.btn.publishing' : 'exp.btn.publish') | translate }}</span>
+                </button>
+              </div>
+            </div>
+          }
+        </form>
+      </div>
     </div>
-  </div>
+  }
 </div>
