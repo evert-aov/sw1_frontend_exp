@@ -29,6 +29,10 @@ export const authTranslations = {
     'auth.invalidEmail': 'Enter a valid email',
     'auth.terms': 'By continuing you accept our Terms of Use and Privacy Policy.',
     'auth.serverError': 'Could not connect to the FastAPI backend. Verify the server is running.',
+    'auth.friendlyRequiredTitle': 'Sign in to continue',
+    'auth.friendlyRequiredDesc': 'To publish or manage an experience, please sign in with your host account first.',
+    'auth.friendlyLoginBtn': 'Sign in now',
+    'auth.friendlyRegisterBtn': 'Create host account',
 
     // Login
     'auth.login.title': 'Welcome back.',
@@ -120,6 +124,10 @@ export const authTranslations = {
     'auth.invalidEmail': 'Ingresa un correo válido',
     'auth.terms': 'Al continuar aceptas nuestros Términos de uso y Política de privacidad.',
     'auth.serverError': 'No se pudo conectar con el servidor FastAPI. Verifica que el backend esté activo.',
+    'auth.friendlyRequiredTitle': 'Inicia sesión para continuar',
+    'auth.friendlyRequiredDesc': 'Para publicar o gestionar una experiencia, primero inicia sesión con tu cuenta en la plataforma.',
+    'auth.friendlyLoginBtn': 'Iniciar sesión',
+    'auth.friendlyRegisterBtn': 'Crear una cuenta',
 
     // Login
     'auth.login.title': 'Vuelve a conectar.',

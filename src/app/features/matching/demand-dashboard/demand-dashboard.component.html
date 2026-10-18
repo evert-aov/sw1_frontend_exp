@@ -9,9 +9,7 @@
   </div>
 
   @if (loading()) {
-    <div class="p-10 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 text-center text-sm text-slate-500">
-      {{ 'common.loading' | translate }}
-    </div>
+    <app-event-skeleton [count]="4" variant="list" />
   } @else if (insights().length === 0) {
     <div class="p-12 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 text-center text-sm text-slate-500">
       {{ 'catalog.emptyTitle' | translate }}

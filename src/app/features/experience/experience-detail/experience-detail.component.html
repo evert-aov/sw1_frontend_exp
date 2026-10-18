@@ -7,9 +7,45 @@
     <span>{{ 'common.back' | translate }}</span>
   </a>
 
+  @if (showAuthNotice()) {
+    <div class="p-5 rounded-2xl bg-violet-50/80 dark:bg-[#19152b] border border-violet-200 dark:border-violet-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-start gap-3.5">
+        <div class="w-10 h-10 rounded-xl bg-violet-600/15 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
+          <app-icon name="user" sizeClass="w-5 h-5" />
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white">
+            {{ 'auth.friendlyRequiredTitle' | translate }}
+          </h3>
+          <p class="mt-0.5 text-xs text-slate-600 dark:text-slate-300">
+            {{ 'auth.friendlyRequiredDesc' | translate }}
+          </p>
+        </div>
+      </div>
+
+      <a
+        routerLink="/auth/login"
+        [queryParams]="{ returnUrl: '/experiences/' + experience()?.id }"
+        class="self-start sm:self-center px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5 whitespace-nowrap"
+      >
+        <span>{{ 'auth.friendlyLoginBtn' | translate }}</span>
+        <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5" />
+      </a>
+    </div>
+  }
+
   @if (loading()) {
-    <div class="p-12 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 text-center text-sm text-slate-500">
-      {{ 'common.loading' | translate }}
+    <div class="rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 overflow-hidden animate-pulse">
+      <div class="h-72 sm:h-96 w-full bg-slate-200 dark:bg-white/[0.06]"></div>
+      <div class="p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-8 space-y-4">
+          <div class="h-4 w-48 rounded bg-slate-200 dark:bg-white/10"></div>
+          <div class="h-9 w-3/4 rounded-lg bg-slate-200 dark:bg-white/10"></div>
+          <div class="h-4 w-full rounded bg-slate-200/70 dark:bg-white/[0.06]"></div>
+          <div class="h-4 w-5/6 rounded bg-slate-200/70 dark:bg-white/[0.06]"></div>
+        </div>
+        <div class="lg:col-span-4 h-56 rounded-2xl bg-slate-100 dark:bg-[#0b0a10]"></div>
+      </div>
     </div>
   } @else if (error() || !experience()) {
     <div class="p-12 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 text-center space-y-3">

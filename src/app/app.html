@@ -1,16 +1,20 @@
-<div class="min-h-dvh bg-[#f6f5fa] dark:bg-[#0b0a10] text-slate-900 dark:text-slate-100 transition-colors duration-200 flex flex-col font-sans">
+<div class="h-dvh max-h-dvh w-full overflow-hidden bg-[#f6f5fa] dark:bg-[#0b0a10] text-slate-900 dark:text-slate-100 transition-colors duration-200 flex flex-col font-sans">
   @if (isAuthPage()) {
     <!-- Login y registro: pantalla completa sin scroll -->
     <main class="h-dvh w-full overflow-hidden">
       <router-outlet />
     </main>
   } @else {
-    <app-navbar />
+    <!-- Appbar fijo en la parte superior -->
+    <app-navbar class="shrink-0 z-50" />
 
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
-      <router-outlet />
-    </main>
+    <!-- Contenedor con scroll independiente para el resto de la página -->
+    <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col scroll-smooth">
+      <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+        <router-outlet />
+      </main>
 
-    <app-footer />
+      <app-footer class="shrink-0" />
+    </div>
   }
 </div>

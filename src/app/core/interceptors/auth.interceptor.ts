@@ -3,7 +3,19 @@ import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
-// Adjunta el JWT a cada petición y cierra sesión si el backend responde 401
+/**
+ * Interceptor HTTP de Autenticación JWT.
+ *
+ * Responsabilidades:
+ * - Adjuntar de manera transparente la cabecera `Authorization: Bearer <token>`
+ *   en todas las solicitudes salientes si existe una sesión activa.
+ * - Detectar respuestas `401 Unauthorized` provenientes del backend FastAPI,
+ *   invalidando la sesión local y redirigiendo al login.
+ *
+ * @param {HttpRequest<unknown>} req - Solicitud HTTP interceptada.
+ * @param {HttpHandlerFn} next - Función continuadora del flujo HTTP.
+ * @returns {Observable<HttpEvent<unknown>>} Flujo observable de la petición procesada.
+ */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const token = auth.token;

@@ -2,8 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_CONFIG } from '../config/api.config';
-import { LiveMetrics, PostEventReport } from '../models/models';
+import { ActionSuggestion, LiveMetrics, PostEventReport } from '../models/live.model';
 
+/**
+ * Servicio del dominio de Streaming en Vivo, Visión Artificial Efímera y Smart Host (CU-09..CU-13).
+ * Cumple con el principio de Responsabilidad Única (SRP) abstrayendo la conexión WebSocket
+ * de telemetría de eventos y la obtención de reportes analíticos post-evento.
+ */
 @Injectable({
   providedIn: 'root',
 })
@@ -13,6 +18,13 @@ export class LiveService {
   private readonly wsUrl = API_CONFIG.wsUrl;
   private socket: WebSocket | null = null;
 
+  /**
+   * CU-09 / CU-10: Establece una conexión WebSocket reactiva para recibir telemetría en tiempo real.
+   * Emite métricas efímeras de atención, energía y entusiasmo calculadas sobre fotogramas.
+   *
+   * @param {number} sessionId - Identificador único de la sesión del evento en vivo.
+   * @returns {Observable<LiveMetrics>} Flujo reactivo continuo con las métricas muestreadas.
+   */
   connectStream(sessionId: number): Observable<LiveMetrics> {
     return new Observable<LiveMetrics>((observer) => {
       this.socket = new WebSocket(`${this.wsUrl}/${sessionId}`);
@@ -36,12 +48,37 @@ export class LiveService {
     });
   }
 
+  /**
+   * CU-09: Envía un fotograma codificado en Base64 al backend para su procesamiento efímero en memoria.
+   * No se almacena ninguna imagen en disco para garantizar estricto cumplimiento GDPR/privacidad.
+   *
+   * @param {number} sessionId - Identificador de la sesión activa.
+   * @param {string} frameBase64 - Contenido JPEG/PNG codificado en Base64.
+   * @returns {void}
+   */
   sendFrame(sessionId: number, frameBase64: string): void {
     if (this.socket?.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify({ session_id: sessionId, frame: frameBase64 }));
     }
   }
 
+  /**
+   * CU-11 / CU-12: Consulta la lista de dinámicas y sugerencias recomendadas para MC o DJ.
+   *
+   * @param {number} sessionId - Identificador de la sesión en vivo.
+   * @returns {Observable<ActionSuggestion[]>} Flujo observable con las sugerencias contextuales.
+   */
+  getSuggestions(sessionId: number): Observable<ActionSuggestion[]> {
+    return this.http.get<ActionSuggestion[]>(`${this.apiUrl}/live/sessions/${sessionId}/suggestions`);
+  }
+
+  /**
+   * CU-13: Consulta el reporte analítico consolidado tras la finalización del evento.
+   * Proporciona curvas de engagement minuto a minuto y medias de atención.
+   *
+   * @param {number} sessionId - Identificador de la sesión culminada.
+   * @returns {Observable<PostEventReport>} Flujo observable con el reporte integral.
+   */
   getPostEventReport(sessionId: number): Observable<PostEventReport> {
     return this.http.get<PostEventReport>(`${this.apiUrl}/reports/${sessionId}`);
   }
