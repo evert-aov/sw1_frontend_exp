@@ -32,7 +32,7 @@ export type ProfileTab = 'profile' | 'billing';
 })
 export class ProfileComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
-  private readonly auth = inject(AuthService);
+  readonly auth = inject(AuthService);
   private readonly bookingService = inject(BookingService);
   private readonly experienceService = inject(ExperienceService);
 

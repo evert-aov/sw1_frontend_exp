@@ -35,7 +35,7 @@ export const hostGuard: CanActivateFn = (_route, state) => {
   }
 
   if (auth.isAttendee()) {
-    return router.createUrlTree(['/experiences/create']);
+    return router.createUrlTree(['/catalog']);
   }
 
   return true;
