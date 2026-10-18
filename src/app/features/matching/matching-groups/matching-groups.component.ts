@@ -1,11 +1,10 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'app-matching-groups',
-  standalone: true,
-  imports: [CommonModule],
-  template: `<div class="p-6"><h2>Matching Groups Component (CU-07)</h2></div>`,
+  imports: [],
+  templateUrl: './matching-groups.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MatchingGroupsComponent {
   onJoinQuorum(): void {

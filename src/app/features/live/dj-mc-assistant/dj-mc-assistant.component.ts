@@ -1,11 +1,10 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'app-dj-mc-assistant',
-  standalone: true,
-  imports: [CommonModule],
-  template: `<div class="p-6"><h2>Smart Host (MC & DJ) Assistant Component (CU-11, CU-12)</h2></div>`,
+  imports: [],
+  templateUrl: './dj-mc-assistant.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DjMcAssistantComponent {
   applySuggestion(suggestionId: number): void {

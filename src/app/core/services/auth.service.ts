@@ -2,36 +2,31 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, switchMap, tap } from 'rxjs';
+import { API_CONFIG } from '../config/api.config';
 import { User, AuthResponse, RegisterRequest, ProfileUpdateRequest } from '../models/models';
 
-// Servicio de autenticación y perfil (CU-01, CU-02)
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private http = inject(HttpClient);
-  private router = inject(Router);
+  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
+  private readonly apiUrl = API_CONFIG.baseUrl;
 
-  private apiUrl = 'http://localhost:8000/api';
   private readonly TOKEN_KEY = 'experiencia_token';
   private readonly USER_KEY = 'experiencia_user';
 
-  // Si el token está en localStorage, el usuario marcó "Recordarme"
   private remember = typeof localStorage !== 'undefined' && localStorage.getItem(this.TOKEN_KEY) !== null;
 
-  // Estado reactivo de la sesión
-  private tokenSignal = signal<string | null>(this.readStorage(this.TOKEN_KEY));
-  currentUser = signal<User | null>(this.readUser());
-  isLoggedIn = computed(() => !!this.tokenSignal());
+  private readonly tokenSignal = signal<string | null>(this.readStorage(this.TOKEN_KEY));
+  readonly currentUser = signal<User | null>(this.readUser());
+  readonly isLoggedIn = computed(() => !!this.tokenSignal());
 
   get token(): string | null {
     return this.tokenSignal();
   }
 
-  // remember = true -> la sesión sobrevive al cerrar el navegador (localStorage)
-  // remember = false -> se borra al cerrar el navegador (sessionStorage)
   login(credentials: { email: string; password: string }, remember = true): Observable<User> {
-    // Guarda el JWT y luego carga el perfil completo del usuario
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, credentials).pipe(
       tap((res) => {
         this.remember = remember;
@@ -42,7 +37,6 @@ export class AuthService {
   }
 
   register(userData: RegisterRequest): Observable<User> {
-    // El backend devuelve el perfil creado (sin token), así que iniciamos sesión a continuación
     return this.http
       .post<User>(`${this.apiUrl}/auth/register`, userData)
       .pipe(switchMap(() => this.login({ email: userData.email, password: userData.password })));
@@ -88,7 +82,6 @@ export class AuthService {
     }
   }
 
-  // Busca primero en localStorage ("Recordarme") y luego en sessionStorage
   private readStorage(key: string): string | null {
     if (typeof localStorage === 'undefined') return null;
     return localStorage.getItem(key) ?? sessionStorage.getItem(key);

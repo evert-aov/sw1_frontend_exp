@@ -1,0 +1,47 @@
+<div class="h-dvh max-h-dvh w-full overflow-hidden grid lg:grid-cols-2 bg-[#f3f1f8] dark:bg-[#0c0b12] text-slate-900 dark:text-white">
+  <!-- Left Column: Brand Presentation (Desktop) -->
+  <section class="relative hidden lg:flex flex-col justify-between p-8 xl:p-12 overflow-hidden border-r border-slate-200 dark:border-white/10">
+    <div class="pointer-events-none absolute -left-32 top-1/4 w-[480px] h-[480px] rounded-full bg-violet-500/20 dark:bg-violet-700/20 blur-3xl"></div>
+
+    <div class="relative">
+      <a routerLink="/catalog" class="inline-flex items-center gap-3">
+        <span class="w-9 h-9 rounded-xl bg-violet-600 text-white font-bold text-sm flex items-center justify-center">E</span>
+        <span class="text-sm font-extrabold tracking-[0.25em]">EXPERIENCIA</span>
+      </a>
+
+      <div class="mt-6">
+        <p class="text-[11px] font-bold tracking-[0.2em] text-violet-600 dark:text-violet-400">
+          {{ 'auth.brand.pill' | translate }} · {{ 'auth.brand.tagline' | translate }}
+        </p>
+      </div>
+    </div>
+
+    <div class="relative my-auto py-4">
+      <h1 class="text-3xl xl:text-5xl font-extrabold leading-[1.08] tracking-tight text-balance">
+        {{ 'auth.brand.title' | translate }}
+      </h1>
+      <p class="mt-4 max-w-lg text-sm xl:text-base text-slate-600 dark:text-slate-400 leading-relaxed">
+        {{ 'auth.brand.subtitle' | translate }}
+      </p>
+    </div>
+
+    <div class="relative grid grid-cols-3 gap-3">
+      @for (feat of features; track feat.titleKey) {
+        <div class="p-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/60 dark:bg-white/[0.03]">
+          <div class="w-8 h-8 rounded-lg bg-violet-600/10 text-violet-600 dark:text-violet-400 flex items-center justify-center">
+            <app-icon [name]="feat.icon" sizeClass="w-4 h-4" />
+          </div>
+          <p class="mt-2.5 text-xs font-bold text-slate-900 dark:text-white">{{ feat.titleKey | translate }}</p>
+          <p class="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400 leading-snug">{{ feat.descKey | translate }}</p>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Right Column: Active Form (Login / Register) - Zero Scroll -->
+  <section class="h-dvh max-h-dvh overflow-hidden flex flex-col justify-center items-center px-5 sm:px-10 py-4">
+    <div class="w-full max-w-[460px]">
+      <router-outlet />
+    </div>
+  </section>
+</div>

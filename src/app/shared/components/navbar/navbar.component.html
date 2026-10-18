@@ -1,0 +1,180 @@
+<header class="sticky top-0 z-50 w-full border-b border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-[#0b0a10]/90 backdrop-blur-md transition-colors">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-6">
+    <!-- Zone 1: Brand -->
+    <a routerLink="/catalog" class="flex items-center gap-3 whitespace-nowrap shrink-0">
+      <span class="w-9 h-9 rounded-xl bg-violet-600 text-white font-extrabold text-sm flex items-center justify-center shadow-sm">
+        E
+      </span>
+      <span class="text-sm font-extrabold tracking-[0.22em] text-slate-900 dark:text-white">
+        {{ 'nav.brand' | translate }}
+      </span>
+    </a>
+
+    <!-- Zone 2: Primary Navigation -->
+    <nav class="hidden md:flex items-center gap-1 p-1 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-100/70 dark:bg-white/[0.03] text-xs font-semibold">
+      <a
+        routerLink="/catalog"
+        routerLinkActive="bg-violet-600 text-white shadow-sm"
+        class="px-3.5 py-1.5 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap shrink-0"
+      >
+        {{ 'nav.catalog' | translate }}
+      </a>
+      <a
+        routerLink="/experiences/create"
+        routerLinkActive="bg-violet-600 text-white shadow-sm"
+        class="px-3.5 py-1.5 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap shrink-0"
+      >
+        {{ 'nav.createExperience' | translate }}
+      </a>
+      <a
+        routerLink="/demand-insights"
+        routerLinkActive="bg-violet-600 text-white shadow-sm"
+        class="px-3.5 py-1.5 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap shrink-0"
+      >
+        {{ 'nav.demandInsights' | translate }}
+      </a>
+      <a
+        routerLink="/my-tickets"
+        routerLinkActive="bg-violet-600 text-white shadow-sm"
+        class="px-3.5 py-1.5 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap shrink-0"
+      >
+        {{ 'nav.myTickets' | translate }}
+      </a>
+    </nav>
+
+    <!-- Zone 3: Actions & User Account -->
+    <div class="flex items-center gap-2.5 shrink-0">
+      <button
+        type="button"
+        (click)="toggleLanguage()"
+        class="h-9 px-2.5 text-xs font-semibold rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.07] text-slate-700 dark:text-slate-200 transition-colors inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+      >
+        <app-icon name="language" sizeClass="w-4 h-4" />
+        <span>{{ i18n.currentLang() === 'es' ? 'ES' : 'EN' }}</span>
+      </button>
+
+      <button
+        type="button"
+        (click)="toggleTheme()"
+        class="w-9 h-9 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.07] text-slate-700 dark:text-slate-200 transition-colors inline-flex items-center justify-center cursor-pointer"
+        [attr.aria-label]="themeService.isDark() ? ('theme.light' | translate) : ('theme.dark' | translate)"
+      >
+        @if (themeService.isDark()) {
+          <app-icon name="sun" sizeClass="w-4 h-4 text-amber-400" />
+        } @else {
+          <app-icon name="moon" sizeClass="w-4 h-4 text-slate-600" />
+        }
+      </button>
+
+      @if (auth.currentUser(); as user) {
+        <div class="relative">
+          <button
+            type="button"
+            (click)="userMenuOpen.set(!userMenuOpen())"
+            class="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.07] transition-colors cursor-pointer"
+          >
+            <span class="w-7 h-7 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center">
+              {{ userInitials() }}
+            </span>
+            <span class="hidden sm:inline text-xs font-semibold text-slate-700 dark:text-slate-200 max-w-[110px] truncate">
+              {{ user.first_name }}
+            </span>
+          </button>
+
+          @if (userMenuOpen()) {
+            <div class="absolute right-0 mt-2 w-48 py-1.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13121d] shadow-lg z-50">
+              <a
+                routerLink="/profile"
+                (click)="closeMenus()"
+                class="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5"
+              >
+                <app-icon name="user" sizeClass="w-4 h-4" />
+                <span>{{ 'nav.profile' | translate }}</span>
+              </a>
+              <button
+                type="button"
+                (click)="logout()"
+                class="w-full flex items-center gap-2.5 text-left px-4 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer"
+              >
+                <app-icon name="x-mark" sizeClass="w-4 h-4" />
+                <span>{{ 'nav.logout' | translate }}</span>
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <a
+          routerLink="/auth/login"
+          class="hidden sm:inline px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-violet-600 dark:hover:text-violet-400 transition-colors whitespace-nowrap"
+        >
+          {{ 'nav.login' | translate }}
+        </a>
+        <a
+          routerLink="/auth/register"
+          class="px-3.5 py-2 text-xs font-semibold text-white bg-violet-600 hover:bg-violet-500 rounded-xl transition-colors whitespace-nowrap"
+        >
+          {{ 'nav.register' | translate }}
+        </a>
+      }
+
+      <!-- Mobile menu button -->
+      <button
+        type="button"
+        (click)="mobileMenuOpen.set(!mobileMenuOpen())"
+        [attr.aria-label]="'layout.menu' | translate"
+        class="md:hidden w-9 h-9 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 inline-flex items-center justify-center cursor-pointer"
+      >
+        @if (mobileMenuOpen()) {
+          <app-icon name="x-mark" sizeClass="w-4 h-4" />
+        } @else {
+          <app-icon name="bars-3" sizeClass="w-4 h-4" />
+        }
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Navigation Drawer -->
+  @if (mobileMenuOpen()) {
+    <nav
+      class="md:hidden border-t border-slate-200 dark:border-white/10 bg-white dark:bg-[#0b0a10] px-4 py-3 flex flex-col gap-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300"
+      (click)="closeMenus()"
+    >
+      <a
+        routerLink="/catalog"
+        routerLinkActive="bg-violet-600/10 text-violet-600 dark:text-violet-400"
+        class="px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+      >
+        {{ 'nav.catalog' | translate }}
+      </a>
+      <a
+        routerLink="/experiences/create"
+        routerLinkActive="bg-violet-600/10 text-violet-600 dark:text-violet-400"
+        class="px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+      >
+        {{ 'nav.createExperience' | translate }}
+      </a>
+      <a
+        routerLink="/demand-insights"
+        routerLinkActive="bg-violet-600/10 text-violet-600 dark:text-violet-400"
+        class="px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+      >
+        {{ 'nav.demandInsights' | translate }}
+      </a>
+      <a
+        routerLink="/my-tickets"
+        routerLinkActive="bg-violet-600/10 text-violet-600 dark:text-violet-400"
+        class="px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+      >
+        {{ 'nav.myTickets' | translate }}
+      </a>
+      @if (!auth.currentUser()) {
+        <a
+          routerLink="/auth/login"
+          class="px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors sm:hidden"
+        >
+          {{ 'nav.login' | translate }}
+        </a>
+      }
+    </nav>
+  }
+</header>

@@ -1,18 +1,21 @@
 // Traducciones del módulo de autenticación y perfil (CU-01, CU-02)
-// Van en un archivo propio para no generar conflictos de merge en translations.ts
 
 export const authTranslations = {
   en: {
-    // Panel de marca (izquierda)
+    // Brand panel (left)
     'auth.brand.pill': 'EXPERIENCES THAT RESPOND',
     'auth.brand.tagline': 'DISCOVER · CONNECT · OPTIMIZE',
     'auth.brand.title': 'Connect experiences, optimize audiences in real time',
-    'auth.brand.subtitle': 'A smart platform to discover unique moments and help every host read the energy of their audience, without invading their privacy.',
-    'auth.brand.statAttendees': 'attendees',
-    'auth.brand.statViable': 'viable events',
-    'auth.brand.statBiometric': 'biometric data stored',
+    'auth.brand.subtitle':
+      'A smart platform to discover unique moments and help every host read the energy of their audience without invading privacy.',
+    'auth.brand.feat1Title': 'Dynamic Group Matching',
+    'auth.brand.feat1Desc': 'Reach minimum viable quorum automatically',
+    'auth.brand.feat2Title': 'Ephemeral RAM Vision',
+    'auth.brand.feat2Desc': 'Zero biometric persistence under GDPR',
+    'auth.brand.feat3Title': 'Transparent Economics',
+    'auth.brand.feat3Desc': 'Staggered commission tiers for hosts',
 
-    // Común
+    // Common Auth
     'auth.eyebrow': 'WELCOME TO EXPERIENCIA',
     'auth.tabs.login': 'Log in',
     'auth.tabs.register': 'Create account',
@@ -25,7 +28,7 @@ export const authTranslations = {
     'auth.required': 'This field is required',
     'auth.invalidEmail': 'Enter a valid email',
     'auth.terms': 'By continuing you accept our Terms of Use and Privacy Policy.',
-    'auth.serverError': 'Could not connect to the server. Try again later.',
+    'auth.serverError': 'Could not connect to the FastAPI backend. Verify the server is running.',
 
     // Login
     'auth.login.title': 'Welcome back.',
@@ -35,7 +38,8 @@ export const authTranslations = {
     'auth.login.submit': 'Log In',
     'auth.login.loading': 'Logging in...',
     'auth.login.invalid': 'Incorrect email or password',
-    // Registro
+
+    // Register
     'auth.register.title': 'Create your access.',
     'auth.register.subtitle': 'Join as an attendee or boost your venue.',
     'auth.register.fullName': 'Full name',
@@ -48,29 +52,41 @@ export const authTranslations = {
     'auth.register.roleHostDesc': 'Create and analyze',
     'auth.register.submit': 'Create my account',
     'auth.register.loading': 'Creating account...',
-    // Layout principal
+
+    // Main layout
     'layout.menu': 'Menu',
     'layout.footer': 'Connecting people with limited-spot experiences.',
     'layout.rights': 'All rights reserved.',
 
-    // Perfil (CU-02 / HU-03)
+    // Profile (CU-02 / HU-03)
     'auth.register.firstName': 'First name',
     'auth.register.lastName': 'Last name',
-    'auth.register.phone': 'Phone (optional)',
-    'profile.title': 'My profile',
-    'profile.subtitle': 'Manage your personal information and interests',
+    'auth.register.phone': 'Phone',
+    'profile.title': 'Account Information',
+    'profile.subtitle': 'Keep your details updated to receive local recommendations.',
+    'profile.tabProfile': 'Profile & interests',
+    'profile.tabBilling': 'Billing & history',
+    'profile.verified': 'Verified',
+    'profile.changePhoto': 'Change photo',
+    'profile.city': 'City',
+    'profile.cityPlaceholder': 'e.g. Santa Cruz de la Sierra',
+    'profile.zone': 'Neighborhood / Zone',
+    'profile.zonePlaceholder': 'e.g. Equipetrol',
     'profile.memberSince': 'Member since',
-    'profile.edit': 'Edit profile',
+    'profile.edit': 'Account information',
     'profile.avatarUrl': 'Avatar URL',
-    'profile.bio': 'About me',
+    'profile.bio': 'Biography',
     'profile.bioPlaceholder': 'Tell others a bit about yourself...',
-    'profile.interests': 'Interests',
-    'profile.interestsHint': 'Used by the matching engine to suggest experiences.',
-    'profile.addInterest': 'Add interest and press Enter',
-    'profile.noInterests': 'No interests added yet.',
+    'profile.interests': 'Interests & preferences',
+    'profile.interestsHint': 'Select or add topics that refine your catalog.',
+    'profile.addInterest': 'Type a new interest and press Enter',
+    'profile.noInterests': 'No interests selected yet.',
+    'profile.saveChanges': 'Save changes',
     'profile.saved': 'Profile updated successfully',
     'profile.saving': 'Saving...',
-    'profile.loadError': 'Could not load your profile.',
+    'profile.loadError': 'Could not load your profile from the backend.',
+    'profile.historyTitle': 'Experience history',
+    'profile.historyEmpty': 'You have no registered bookings yet.',
     'role.ATTENDEE': 'Attendee',
     'role.HOST': 'Host',
     'role.VENUE': 'Venue',
@@ -81,10 +97,14 @@ export const authTranslations = {
     'auth.brand.pill': 'EXPERIENCIAS QUE RESPONDEN',
     'auth.brand.tagline': 'DESCUBRIR · CONECTAR · OPTIMIZAR',
     'auth.brand.title': 'Conecta experiencias, optimiza audiencias en tiempo real',
-    'auth.brand.subtitle': 'Una plataforma inteligente para descubrir momentos únicos y ayudar a cada anfitrión a leer la energía de su audiencia, sin invadir su privacidad.',
-    'auth.brand.statAttendees': 'asistentes',
-    'auth.brand.statViable': 'eventos viables',
-    'auth.brand.statBiometric': 'datos biométricos',
+    'auth.brand.subtitle':
+      'Una plataforma inteligente para descubrir momentos únicos y ayudar a cada anfitrión a leer la energía de su audiencia, sin invadir su privacidad.',
+    'auth.brand.feat1Title': 'Matching Grupal Dinámico',
+    'auth.brand.feat1Desc': 'Alcanza el quórum mínimo viable automáticamente',
+    'auth.brand.feat2Title': 'Visión Efímera en RAM',
+    'auth.brand.feat2Desc': 'Cero almacenamiento biométrico bajo GDPR',
+    'auth.brand.feat3Title': 'Economía Transparente',
+    'auth.brand.feat3Desc': 'Comisiones escalonadas para anfitriones',
 
     // Común
     'auth.eyebrow': 'BIENVENIDO A EXPERIENCIA',
@@ -99,7 +119,7 @@ export const authTranslations = {
     'auth.required': 'Este campo es obligatorio',
     'auth.invalidEmail': 'Ingresa un correo válido',
     'auth.terms': 'Al continuar aceptas nuestros Términos de uso y Política de privacidad.',
-    'auth.serverError': 'No se pudo conectar con el servidor. Intenta más tarde.',
+    'auth.serverError': 'No se pudo conectar con el servidor FastAPI. Verifica que el backend esté activo.',
 
     // Login
     'auth.login.title': 'Vuelve a conectar.',
@@ -109,6 +129,7 @@ export const authTranslations = {
     'auth.login.submit': 'Iniciar Sesión',
     'auth.login.loading': 'Ingresando...',
     'auth.login.invalid': 'Correo o contraseña incorrectos',
+
     // Registro
     'auth.register.title': 'Crea tu acceso.',
     'auth.register.subtitle': 'Únete como asistente o impulsa tu establecimiento.',
@@ -122,6 +143,7 @@ export const authTranslations = {
     'auth.register.roleHostDesc': 'Crear y analizar',
     'auth.register.submit': 'Crear mi cuenta',
     'auth.register.loading': 'Creando cuenta...',
+
     // Layout principal
     'layout.menu': 'Menú',
     'layout.footer': 'Conectando personas con experiencias de cupo limitado.',
@@ -130,24 +152,35 @@ export const authTranslations = {
     // Perfil (CU-02 / HU-03)
     'auth.register.firstName': 'Nombre',
     'auth.register.lastName': 'Apellido',
-    'auth.register.phone': 'Teléfono (opcional)',
-    'profile.title': 'Mi perfil',
-    'profile.subtitle': 'Administra tu información personal e intereses',
+    'auth.register.phone': 'Teléfono',
+    'profile.title': 'Información de cuenta',
+    'profile.subtitle': 'Mantén tus datos actualizados para recibir recomendaciones locales.',
+    'profile.tabProfile': 'Perfil e intereses',
+    'profile.tabBilling': 'Facturación e historial',
+    'profile.verified': 'Verificada',
+    'profile.changePhoto': 'Cambiar fotografía',
+    'profile.city': 'Ciudad',
+    'profile.cityPlaceholder': 'Ej. Santa Cruz de la Sierra',
+    'profile.zone': 'Barrio / Zona',
+    'profile.zonePlaceholder': 'Ej. Equipetrol',
     'profile.memberSince': 'Miembro desde',
-    'profile.edit': 'Editar perfil',
-    'profile.avatarUrl': 'URL del avatar',
-    'profile.bio': 'Sobre mí',
-    'profile.bioPlaceholder': 'Cuéntale a los demás un poco sobre ti...',
-    'profile.interests': 'Intereses',
-    'profile.interestsHint': 'El motor de matching los usa para sugerirte experiencias.',
-    'profile.addInterest': 'Agrega un interés y presiona Enter',
+    'profile.edit': 'Información de cuenta',
+    'profile.avatarUrl': 'URL de fotografía de perfil',
+    'profile.bio': 'Biografía',
+    'profile.bioPlaceholder': 'Cuéntale a la comunidad un poco sobre ti...',
+    'profile.interests': 'Intereses y preferencias',
+    'profile.interestsHint': 'Selecciona o agrega los temas que afinan tu catálogo.',
+    'profile.addInterest': 'Escribe un interés y presiona Enter',
     'profile.noInterests': 'Aún no agregaste intereses.',
+    'profile.saveChanges': 'Guardar cambios',
     'profile.saved': 'Perfil actualizado correctamente',
     'profile.saving': 'Guardando...',
-    'profile.loadError': 'No se pudo cargar tu perfil.',
+    'profile.loadError': 'No se pudo cargar tu perfil desde el backend.',
+    'profile.historyTitle': 'Historial de experiencias',
+    'profile.historyEmpty': 'Aún no tienes reservas registradas.',
     'role.ATTENDEE': 'Asistente',
     'role.HOST': 'Anfitrión',
-    'role.VENUE': 'Local',
+    'role.VENUE': 'Establecimiento',
     'role.ADMIN': 'Administrador',
   },
 };

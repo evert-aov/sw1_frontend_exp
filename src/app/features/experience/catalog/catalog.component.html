@@ -1,0 +1,271 @@
+<div class="space-y-8" [formGroup]="filterForm">
+  <!-- Top Search & Location Bar -->
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5">
+    <div class="md:col-span-9 relative">
+      <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+        <app-icon name="magnifying-glass" sizeClass="w-4 h-4" />
+      </span>
+      <input
+        type="text"
+        formControlName="search"
+        [placeholder]="'catalog.searchPlaceholder' | translate"
+        class="w-full h-12 pl-11 pr-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13121d] text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+      />
+    </div>
+
+    <div class="md:col-span-3 relative">
+      <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+        <app-icon name="map-pin" sizeClass="w-4 h-4" />
+      </span>
+      <input
+        type="text"
+        formControlName="zone"
+        placeholder="Santa Cruz de la Sierra"
+        class="w-full h-12 pl-11 pr-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13121d] text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+      />
+    </div>
+  </div>
+
+  <!-- Hero Heading & Category Filter Tabs -->
+  <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+    <div>
+      <p class="text-[11px] font-bold tracking-[0.2em] text-violet-600 dark:text-violet-400 uppercase">
+        {{ 'catalog.eyebrow' | translate }}
+      </p>
+      <h1 class="mt-2 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+        {{ 'catalog.heroTitle' | translate }}
+      </h1>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+        {{ 'catalog.heroSubtitle' | translate }}
+      </p>
+    </div>
+
+    <!-- Dynamic Category Buttons -->
+    <div class="flex items-center gap-2 overflow-x-auto pb-1">
+      <button
+        type="button"
+        (click)="selectCategory(0)"
+        class="px-4 py-2 rounded-full text-xs font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+        [class]="
+          selectedCategoryId() === 0
+            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950'
+            : 'border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13121d] text-slate-600 dark:text-slate-300 hover:border-violet-400'
+        "
+      >
+        {{ 'catalog.all' | translate }}
+      </button>
+
+      @for (cat of categories(); track cat.id) {
+        <button
+          type="button"
+          (click)="selectCategory(cat.id)"
+          class="px-4 py-2 rounded-full text-xs font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+          [class]="
+            selectedCategoryId() === cat.id
+              ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950'
+              : 'border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13121d] text-slate-600 dark:text-slate-300 hover:border-violet-400'
+          "
+        >
+          {{ cat.name }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Secondary Filter Bar -->
+  <div class="p-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13121d] flex flex-wrap items-center justify-between gap-4">
+    <div class="flex flex-wrap items-center gap-2">
+      <!-- Segmented Modality Filter -->
+      <div class="inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-[#0b0a10] border border-slate-200/60 dark:border-white/5">
+        <button
+          type="button"
+          (click)="selectModality('')"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap"
+          [class]="
+            selectedModality() === ''
+              ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm'
+              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          "
+        >
+          {{ 'catalog.modAll' | translate }}
+        </button>
+        <button
+          type="button"
+          (click)="selectModality('IN_PERSON')"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap"
+          [class]="
+            selectedModality() === 'IN_PERSON'
+              ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm'
+              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          "
+        >
+          {{ 'catalog.modInPerson' | translate }}
+        </button>
+        <button
+          type="button"
+          (click)="selectModality('VIRTUAL')"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap"
+          [class]="
+            selectedModality() === 'VIRTUAL'
+              ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm'
+              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          "
+        >
+          {{ 'catalog.modVirtual' | translate }}
+        </button>
+        <button
+          type="button"
+          (click)="selectModality('HYBRID')"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap"
+          [class]="
+            selectedModality() === 'HYBRID'
+              ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm'
+              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          "
+        >
+          {{ 'catalog.modHybrid' | translate }}
+        </button>
+      </div>
+    </div>
+
+    <label class="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">
+      <input type="checkbox" formControlName="onlyOpen" class="w-4 h-4 accent-violet-600 rounded" />
+      <span>{{ 'catalog.onlyOpen' | translate }}</span>
+    </label>
+  </div>
+
+  <!-- Catalog States: Loading / Error / Empty / Grid -->
+  @if (loading()) {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      @for (skeleton of [1, 2, 3]; track skeleton) {
+        <div class="h-96 rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13121d] p-5 animate-pulse flex flex-col justify-between">
+          <div class="h-48 rounded-2xl bg-slate-200 dark:bg-white/5"></div>
+          <div class="space-y-3">
+            <div class="h-5 w-3/4 rounded bg-slate-200 dark:bg-white/5"></div>
+            <div class="h-4 w-1/2 rounded bg-slate-200 dark:bg-white/5"></div>
+            <div class="h-12 w-full rounded-xl bg-slate-200 dark:bg-white/5"></div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (backendError()) {
+    <div class="p-12 text-center rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 space-y-4">
+      <div class="w-12 h-12 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center mx-auto">
+        <app-icon name="exclamation-triangle" sizeClass="w-6 h-6" />
+      </div>
+      <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+        {{ 'catalog.errorDesc' | translate }}
+      </h3>
+      <div>
+        <button
+          type="button"
+          (click)="loadCatalog()"
+          class="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors cursor-pointer"
+        >
+          {{ 'common.retry' | translate }}
+        </button>
+      </div>
+    </div>
+  } @else if (filteredExperiences().length === 0) {
+    <div class="p-14 text-center rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 space-y-4">
+      <div class="w-12 h-12 rounded-2xl bg-violet-600/10 text-violet-600 dark:text-violet-400 flex items-center justify-center mx-auto">
+        <app-icon name="sparkles" sizeClass="w-6 h-6" />
+      </div>
+      <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+        {{ 'catalog.emptyTitle' | translate }}
+      </h3>
+      <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+        {{ 'catalog.emptyDesc' | translate }}
+      </p>
+      <div class="pt-2">
+        <a
+          routerLink="/experiences/create"
+          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors"
+        >
+          <app-icon name="plus" sizeClass="w-4 h-4" />
+          <span>{{ 'catalog.publishNow' | translate }}</span>
+        </a>
+      </div>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      @for (exp of filteredExperiences(); track exp.id) {
+        <a
+          [routerLink]="['/experiences', exp.id]"
+          class="group rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 overflow-hidden hover:border-violet-500/50 transition-colors flex flex-col justify-between"
+        >
+          <!-- Image Header with Scrim -->
+          <div class="relative h-52 w-full overflow-hidden bg-slate-900">
+            @if (exp.cover_image_url) {
+              <img
+                [src]="exp.cover_image_url"
+                [alt]="exp.title"
+                referrerpolicy="no-referrer"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            } @else {
+              <div class="w-full h-full bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 flex items-center justify-center text-violet-400/40">
+                <app-icon name="sparkles" sizeClass="w-10 h-10" />
+              </div>
+            }
+
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent"></div>
+
+            <!-- Top Category Label & Favorite Affordance -->
+            <div class="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between">
+              <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-black/60 text-white backdrop-blur-md border border-white/15">
+                {{ exp.category_name || exp.modality }}
+              </span>
+              <span class="w-8 h-8 rounded-full bg-black/50 text-white/80 backdrop-blur-md border border-white/15 flex items-center justify-center">
+                <app-icon name="heart" sizeClass="w-4 h-4" />
+              </span>
+            </div>
+
+            <!-- Date & Time Overlay -->
+            <div class="absolute bottom-3.5 left-4 right-4 text-xs font-semibold text-white/90">
+              {{ exp.event_date | date: 'dd MMM · HH:mm' }}
+            </div>
+          </div>
+
+          <!-- Card Body -->
+          <div class="p-5 space-y-4 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors line-clamp-1">
+                  {{ exp.title }}
+                </h3>
+                <span class="text-base font-extrabold text-slate-900 dark:text-white whitespace-nowrap tabular-nums">
+                  Bs {{ exp.price | number: '1.0-0' }}
+                </span>
+              </div>
+
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
+                {{ 'catalog.hostedBy' | translate }} {{ exp.venue_name || exp.zone || exp.modality }}
+              </p>
+            </div>
+
+            <!-- Quorum Progress Box -->
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#0b0a10] border border-slate-200/70 dark:border-white/5 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-slate-800 dark:text-slate-200 tabular-nums">
+                  {{ exp.reserved_slots }}/{{ exp.min_capacity }} {{ 'catalog.spotsFilled' | translate }}
+                </span>
+                <span class="text-[11px] text-slate-400">
+                  {{ 'catalog.limited' | translate }}
+                </span>
+              </div>
+
+              <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
+                <div
+                  class="h-full rounded-full transition-all duration-300"
+                  [class]="isQuorumMet(exp) ? 'bg-emerald-500' : 'bg-violet-600'"
+                  [style.width.%]="quorumProgressPercent(exp)"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </a>
+      }
+    </div>
+  }
+</div>

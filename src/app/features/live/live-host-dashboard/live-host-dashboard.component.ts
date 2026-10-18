@@ -1,11 +1,10 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'app-live-host-dashboard',
-  standalone: true,
-  imports: [CommonModule],
-  template: `<div class="p-6"><h2>Live Host Dashboard Component (CU-09, CU-10)</h2></div>`,
+  imports: [],
+  templateUrl: './live-host-dashboard.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LiveHostDashboardComponent {
   captureAndSendFrame(): void {

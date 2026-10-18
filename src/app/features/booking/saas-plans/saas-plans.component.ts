@@ -1,11 +1,10 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'app-saas-plans',
-  standalone: true,
-  imports: [CommonModule],
-  template: `<div class="p-6"><h2>SaaS Pro Plans Component (CU-14)</h2></div>`,
+  imports: [],
+  templateUrl: './saas-plans.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SaasPlansComponent {
   onSubscribe(planId: number): void {

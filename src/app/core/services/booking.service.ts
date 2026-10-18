@@ -1,31 +1,29 @@
-import { Injectable } from '@angular/core';
-import { Observable, EMPTY } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { API_CONFIG } from '../config/api.config';
 import { Booking, SaaSPlan } from '../models/models';
 
-// Servicio de reservas, tickets y pagos: únicamente firmas de métodos (CU-05, CU-06, CU-14)
 @Injectable({
   providedIn: 'root',
 })
 export class BookingService {
-  private apiUrl = 'http://localhost:8000/api';
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = API_CONFIG.baseUrl;
 
   createBooking(bookingData: { experience_id: number; quantity: number }): Observable<Booking> {
-    // Firma para crear reserva
-    return EMPTY;
+    return this.http.post<Booking>(`${this.apiUrl}/bookings`, bookingData);
   }
 
   createCheckoutSession(bookingId: number): Observable<{ checkout_url: string }> {
-    // Firma para iniciar checkout Stripe
-    return EMPTY;
+    return this.http.post<{ checkout_url: string }>(`${this.apiUrl}/bookings/${bookingId}/checkout`, {});
   }
 
   getMyTickets(): Observable<Booking[]> {
-    // Firma para obtener historial y entradas con QR
-    return EMPTY;
+    return this.http.get<Booking[]>(`${this.apiUrl}/bookings/me`);
   }
 
   getSaaSPlans(): Observable<SaaSPlan[]> {
-    // Firma para listar planes de suscripción
-    return EMPTY;
+    return this.http.get<SaaSPlan[]>(`${this.apiUrl}/saas/plans`);
   }
 }
