@@ -21,6 +21,26 @@ export interface AuthResponse {
   roles: string[];
 }
 
+export type UserRole = 'ATTENDEE' | 'HOST' | 'VENUE';
+
+export interface RegisterRequest {
+  first_name: string;
+  last_name?: string;
+  email: string;
+  password: string;
+  phone?: string;
+  role: UserRole;
+}
+
+export interface ProfileUpdateRequest {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  avatar_url?: string;
+  bio?: string;
+  interests?: string[];
+}
+
 export interface Category {
   id: number;
   name: string;
