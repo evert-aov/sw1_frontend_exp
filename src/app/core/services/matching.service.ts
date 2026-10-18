@@ -21,20 +21,20 @@ export class MatchingService {
    * CU-07: Postula al usuario autenticado a un grupo de matching para una experiencia específica.
    * Si se alcanza el cupo mínimo requerido, el grupo se confirma y se emiten las reservas.
    *
-   * @param {number} experienceId - Identificador de la experiencia postulada.
+   * @param {string} experienceId - Identificador de la experiencia postulada (UUID).
    * @returns {Observable<MatchingGroup>} Flujo observable con el estado consolidado del grupo.
    */
-  applyForMatching(experienceId: number): Observable<MatchingGroup> {
+  applyForMatching(experienceId: string): Observable<MatchingGroup> {
     return this.http.post<MatchingGroup>(`${this.apiUrl}/matching/${experienceId}/apply`, {});
   }
 
   /**
    * Consulta el progreso y estado de conformación del grupo de matching de una experiencia.
    *
-   * @param {number} experienceId - Identificador de la experiencia.
+   * @param {string} experienceId - Identificador de la experiencia (UUID).
    * @returns {Observable<MatchingGroup>} Flujo observable con el porcentaje y conteo de miembros.
    */
-  getGroupStatus(experienceId: number): Observable<MatchingGroup> {
+  getGroupStatus(experienceId: string): Observable<MatchingGroup> {
     return this.http.get<MatchingGroup>(`${this.apiUrl}/matching/${experienceId}`);
   }
 

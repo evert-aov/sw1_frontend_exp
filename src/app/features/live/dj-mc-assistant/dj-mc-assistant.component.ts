@@ -16,20 +16,20 @@ export class DjMcAssistantComponent {
   /**
    * Aplica una sugerencia generada por el asistente inteligente.
    *
-   * @param {number} suggestionId - Identificador de la sugerencia a ejecutar.
+   * @param {string} suggestionId - Identificador de la sugerencia a ejecutar (UUID).
    * @returns {void}
    */
-  applySuggestion(suggestionId: number): void {
+  applySuggestion(suggestionId: string): void {
     // Aplica la sugerencia
   }
 
   /**
    * Descarta una sugerencia sin aplicarla al evento.
    *
-   * @param {number} suggestionId - Identificador de la sugerencia a descartar.
+   * @param {string} suggestionId - Identificador de la sugerencia a descartar (UUID).
    * @returns {void}
    */
-  dismissSuggestion(suggestionId: number): void {
+  dismissSuggestion(suggestionId: string): void {
     // Descarta la sugerencia
   }
 }

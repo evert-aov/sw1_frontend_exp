@@ -98,8 +98,8 @@ export class ExperienceService {
   getCatalog(filters?: CatalogFilters): Observable<CatalogResponse> {
     let params = new HttpParams();
 
-    if (filters?.category_id && filters.category_id > 0) {
-      params = params.set('category_id', String(filters.category_id));
+    if (filters?.category_id) {
+      params = params.set('category_id', filters.category_id);
     }
     if (filters?.modality) {
       params = params.set('modality', filters.modality);
@@ -121,12 +121,12 @@ export class ExperienceService {
   }
 
   /**
-   * Obtiene la ficha detallada de una experiencia mediante su identificador numérico.
+   * Obtiene la ficha detallada de una experiencia mediante su identificador UUID.
    *
-   * @param {number} id - Identificador primario de la experiencia.
+   * @param {string} id - Identificador primario de la experiencia (UUID).
    * @returns {Observable<Experience>} Flujo observable con los detalles completos del evento.
    */
-  getExperienceById(id: number): Observable<Experience> {
+  getExperienceById(id: string): Observable<Experience> {
     return this.http.get<Experience>(`${this.apiUrl}/experiences/${id}`);
   }
 

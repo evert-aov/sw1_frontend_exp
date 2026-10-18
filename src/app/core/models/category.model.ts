@@ -7,8 +7,8 @@
  * Representa una categoría temática disponible para catalogar eventos.
  */
 export interface Category {
-  /** Identificador único de la categoría */
-  id: number;
+  /** Identificador único de la categoría (UUID) */
+  id: string;
   /** Nombre descriptivo (ej. Gastronomía, Arte & Pintura) */
   name: string;
   /** Breve descripción del alcance temático */

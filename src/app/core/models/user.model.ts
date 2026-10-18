@@ -12,8 +12,8 @@ export type UserRole = 'ATTENDEE' | 'HOST' | 'VENUE' | 'ADMIN';
  * Representa la entidad de un usuario registrado en la plataforma.
  */
 export interface User {
-  /** Identificador único del usuario */
-  id: number;
+  /** Identificador único del usuario (UUID) */
+  id: string;
   /** Nombres del usuario */
   first_name: string;
   /** Apellidos del usuario */

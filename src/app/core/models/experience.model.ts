@@ -23,18 +23,18 @@ export type ExperienceStatus =
  * Entidad principal de una Experiencia en el ecosistema.
  */
 export interface Experience {
-  /** Identificador único */
-  id: number;
-  /** Identificador del anfitrión organizador */
-  host_id: number;
+  /** Identificador único (UUID) */
+  id: string;
+  /** Identificador del anfitrión organizador (UUID) */
+  host_id: string;
   /** Nombre del anfitrión */
   host_name?: string;
-  /** Identificador de categoría temática */
-  category_id: number;
+  /** Identificador de categoría temática (UUID) */
+  category_id: string;
   /** Nombre de categoría */
   category_name?: string;
-  /** Identificador de sede asignada (si aplica) */
-  venue_id?: number;
+  /** Identificador de sede asignada (si aplica) (UUID) */
+  venue_id?: string;
   /** Nombre del establecimiento o local */
   venue_name?: string;
   /** Zona o barrio urbano */
@@ -75,10 +75,10 @@ export interface Experience {
  * Carga útil para crear una nueva experiencia desde el wizard de anfitrión (CU-03 / HU-04).
  */
 export interface CreateExperiencePayload {
-  /** Categoría temática seleccionada */
-  category_id: number;
-  /** Identificador de sede (opcional) */
-  venue_id?: number;
+  /** Categoría temática seleccionada (UUID) */
+  category_id: string;
+  /** Identificador de sede (opcional) (UUID) */
+  venue_id?: string;
   /** Nombre del establecimiento */
   venue_name?: string;
   /** Zona o barrio */
@@ -111,8 +111,8 @@ export interface CreateExperiencePayload {
  * Criterios de filtrado para exploración del catálogo (CU-04 / HU-05).
  */
 export interface CatalogFilters {
-  /** Filtrar por ID de categoría temática */
-  category_id?: number;
+  /** Filtrar por ID de categoría temática (UUID) */
+  category_id?: string;
   /** Filtrar por modalidad */
   modality?: Modality | '';
   /** Búsqueda por texto libre en título, descripción o local */

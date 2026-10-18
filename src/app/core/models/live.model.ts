@@ -7,8 +7,8 @@
  * Métricas de audiencia calculadas en memoria efímera sin persistencia biométrica (GDPR).
  */
 export interface LiveMetrics {
-  /** Identificador de la sesión en vivo */
-  session_id: number;
+  /** Identificador de la sesión en vivo (UUID) */
+  session_id: string;
   /** Marca temporal del fotograma muestreado */
   recorded_at: string;
   /** Cantidad de rostros detectados en la escena */
@@ -31,10 +31,10 @@ export interface LiveMetrics {
  * Sugerencia generada por el asistente inteligente para el anfitrión (MC o DJ).
  */
 export interface ActionSuggestion {
-  /** Identificador de la sugerencia */
-  id: number;
-  /** Identificador de la sesión activa */
-  session_id: number;
+  /** Identificador de la sugerencia (UUID) */
+  id: string;
+  /** Identificador de la sesión activa (UUID) */
+  session_id: string;
   /** Tipo de sugerencia contextual */
   suggestion_type: 'MC_DYNAMIC' | 'DJ_MUSIC_CHANGE' | 'BREAK';
   /** Texto explicativo de la dinámica o cambio recomendado */
@@ -53,10 +53,10 @@ export interface ActionSuggestion {
  * Reporte analítico final generado tras la culminación del evento (CU-13).
  */
 export interface PostEventReport {
-  /** Identificador de la sesión */
-  session_id: number;
-  /** Identificador de la experiencia */
-  experience_id: number;
+  /** Identificador de la sesión (UUID) */
+  session_id: string;
+  /** Identificador de la experiencia (UUID) */
+  experience_id: string;
   /** Título de la experiencia analizada */
   experience_title: string;
   /** Duración total real en minutos */

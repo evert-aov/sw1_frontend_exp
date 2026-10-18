@@ -13,8 +13,8 @@ export interface AuthResponse {
   access_token: string;
   /** Tipo de token de autenticación (ej. Bearer) */
   token_type: string;
-  /** Identificador único del usuario autenticado */
-  user_id: number;
+  /** Identificador único del usuario autenticado (UUID) */
+  user_id: string;
   /** Correo electrónico autenticado */
   email: string;
   /** Roles de acceso asociados */

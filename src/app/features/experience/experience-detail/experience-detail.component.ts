@@ -50,7 +50,7 @@ export class ExperienceDetailComponent implements OnInit {
    * @returns {void}
    */
   ngOnInit(): void {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
+    const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
       this.loading.set(false);
       this.error.set(true);

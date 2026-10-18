@@ -7,10 +7,10 @@
  * Grupo de matching dinámico para consolidar cupos mínimos viables.
  */
 export interface MatchingGroup {
-  /** Identificador único del grupo de matching */
-  id: number;
-  /** Identificador de la experiencia postulada */
-  experience_id: number;
+  /** Identificador único del grupo de matching (UUID) */
+  id: string;
+  /** Identificador de la experiencia postulada (UUID) */
+  experience_id: string;
   /** Quórum objetivo a alcanzar */
   target_quorum: number;
   /** Miembros actualmente agrupados */
@@ -27,8 +27,8 @@ export interface MatchingGroup {
  * Indicador de demanda insatisfecha por zona geográfica (CU-08).
  */
 export interface UnmetDemandInsight {
-  /** Identificador de la métrica */
-  id: number;
+  /** Identificador de la métrica (UUID) */
+  id: string;
   /** Zona o barrio geográfico */
   zone: string;
   /** Palabra clave o categoría demandada */

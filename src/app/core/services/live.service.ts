@@ -22,10 +22,10 @@ export class LiveService {
    * CU-09 / CU-10: Establece una conexión WebSocket reactiva para recibir telemetría en tiempo real.
    * Emite métricas efímeras de atención, energía y entusiasmo calculadas sobre fotogramas.
    *
-   * @param {number} sessionId - Identificador único de la sesión del evento en vivo.
+   * @param {string} sessionId - Identificador único de la sesión del evento en vivo (UUID).
    * @returns {Observable<LiveMetrics>} Flujo reactivo continuo con las métricas muestreadas.
    */
-  connectStream(sessionId: number): Observable<LiveMetrics> {
+  connectStream(sessionId: string): Observable<LiveMetrics> {
     return new Observable<LiveMetrics>((observer) => {
       this.socket = new WebSocket(`${this.wsUrl}/${sessionId}`);
 
@@ -52,11 +52,11 @@ export class LiveService {
    * CU-09: Envía un fotograma codificado en Base64 al backend para su procesamiento efímero en memoria.
    * No se almacena ninguna imagen en disco para garantizar estricto cumplimiento GDPR/privacidad.
    *
-   * @param {number} sessionId - Identificador de la sesión activa.
+   * @param {string} sessionId - Identificador de la sesión activa (UUID).
    * @param {string} frameBase64 - Contenido JPEG/PNG codificado en Base64.
    * @returns {void}
    */
-  sendFrame(sessionId: number, frameBase64: string): void {
+  sendFrame(sessionId: string, frameBase64: string): void {
     if (this.socket?.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify({ session_id: sessionId, frame: frameBase64 }));
     }
@@ -65,10 +65,10 @@ export class LiveService {
   /**
    * CU-11 / CU-12: Consulta la lista de dinámicas y sugerencias recomendadas para MC o DJ.
    *
-   * @param {number} sessionId - Identificador de la sesión en vivo.
+   * @param {string} sessionId - Identificador de la sesión en vivo (UUID).
    * @returns {Observable<ActionSuggestion[]>} Flujo observable con las sugerencias contextuales.
    */
-  getSuggestions(sessionId: number): Observable<ActionSuggestion[]> {
+  getSuggestions(sessionId: string): Observable<ActionSuggestion[]> {
     return this.http.get<ActionSuggestion[]>(`${this.apiUrl}/live/sessions/${sessionId}/suggestions`);
   }
 
@@ -76,10 +76,10 @@ export class LiveService {
    * CU-13: Consulta el reporte analítico consolidado tras la finalización del evento.
    * Proporciona curvas de engagement minuto a minuto y medias de atención.
    *
-   * @param {number} sessionId - Identificador de la sesión culminada.
+   * @param {string} sessionId - Identificador de la sesión culminada (UUID).
    * @returns {Observable<PostEventReport>} Flujo observable con el reporte integral.
    */
-  getPostEventReport(sessionId: number): Observable<PostEventReport> {
+  getPostEventReport(sessionId: string): Observable<PostEventReport> {
     return this.http.get<PostEventReport>(`${this.apiUrl}/reports/${sessionId}`);
   }
 }

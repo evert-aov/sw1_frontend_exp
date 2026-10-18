@@ -391,10 +391,10 @@
                       class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0a10] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 cursor-pointer"
                     >
                       @if (categories().length === 0) {
-                        <option [ngValue]="0" disabled>{{ 'exp.form.categoryEmpty' | translate }}</option>
+                        <option value="" disabled>{{ 'exp.form.categoryEmpty' | translate }}</option>
                       }
                       @for (cat of categories(); track cat.id) {
-                        <option [ngValue]="cat.id">{{ cat.name }}</option>
+                        <option [value]="cat.id">{{ cat.name }}</option>
                       }
                     </select>
                   }

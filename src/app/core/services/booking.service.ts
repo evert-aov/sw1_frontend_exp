@@ -20,21 +20,21 @@ export class BookingService {
    * CU-05: Crea una nueva orden de reserva de cupos para una experiencia.
    *
    * @param {Object} bookingData - Datos requeridos para la reserva.
-   * @param {number} bookingData.experience_id - Identificador de la experiencia a reservar.
+   * @param {string} bookingData.experience_id - Identificador de la experiencia a reservar (UUID).
    * @param {number} bookingData.quantity - Cantidad de cupos solicitados.
    * @returns {Observable<Booking>} Flujo observable con la orden de reserva generada.
    */
-  createBooking(bookingData: { experience_id: number; quantity: number }): Observable<Booking> {
+  createBooking(bookingData: { experience_id: string; quantity: number }): Observable<Booking> {
     return this.http.post<Booking>(`${this.apiUrl}/bookings`, bookingData);
   }
 
   /**
    * Inicia el flujo de checkout pasarela de pagos para abonar una reserva existente.
    *
-   * @param {number} bookingId - Identificador numérico de la reserva a pagar.
+   * @param {string} bookingId - Identificador de la reserva a pagar (UUID).
    * @returns {Observable<{ checkout_url: string }>} Flujo observable con la URL segura de checkout o pasarela.
    */
-  createCheckoutSession(bookingId: number): Observable<{ checkout_url: string }> {
+  createCheckoutSession(bookingId: string): Observable<{ checkout_url: string }> {
     return this.http.post<{ checkout_url: string }>(`${this.apiUrl}/bookings/${bookingId}/checkout`, {});
   }
 
@@ -50,10 +50,10 @@ export class BookingService {
   /**
    * Obtiene la entrada digital individual con código QR para validación en puerta.
    *
-   * @param {number} ticketId - Identificador de la entrada.
+   * @param {string} ticketId - Identificador de la entrada (UUID).
    * @returns {Observable<Ticket>} Flujo observable con la entidad del ticket y su payload QR.
    */
-  getTicketById(ticketId: number): Observable<Ticket> {
+  getTicketById(ticketId: string): Observable<Ticket> {
     return this.http.get<Ticket>(`${this.apiUrl}/tickets/${ticketId}`);
   }
 

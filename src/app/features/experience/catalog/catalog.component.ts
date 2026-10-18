@@ -57,8 +57,8 @@ export class CatalogComponent implements OnInit {
   /** Bandera de error de conectividad con el servidor */
   readonly backendError = signal<boolean>(false);
 
-  /** Categoría seleccionada actualmente (0 para Todas) */
-  readonly selectedCategoryId = signal<number>(0);
+  /** Categoría seleccionada actualmente (cadena vacía para Todas) */
+  readonly selectedCategoryId = signal<string>('');
 
   /** Modalidad seleccionada actualmente (cadena vacía para Todas) */
   readonly selectedModality = signal<Modality | ''>('');
@@ -85,7 +85,7 @@ export class CatalogComponent implements OnInit {
 
     let items = this.allExperiences();
 
-    if (catId > 0) {
+    if (catId) {
       items = items.filter((exp) => exp.category_id === catId);
     }
 
@@ -174,10 +174,10 @@ export class CatalogComponent implements OnInit {
   /**
    * Filtra las experiencias por una categoría específica.
    *
-   * @param {number} id - Identificador de la categoría (0 para 'Todas').
+   * @param {string} id - Identificador de la categoría ('' para 'Todas').
    * @returns {void}
    */
-  selectCategory(id: number): void {
+  selectCategory(id: string): void {
     this.selectedCategoryId.set(id);
   }
 

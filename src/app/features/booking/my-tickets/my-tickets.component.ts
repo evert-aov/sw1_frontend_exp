@@ -58,10 +58,10 @@ export class MyTicketsComponent implements OnInit {
   /**
    * Despliega el modal con el código QR digital de la entrada para validación en puerta.
    *
-   * @param {number} ticketId - Identificador único del ticket o reserva.
+   * @param {string} ticketId - Identificador único del ticket o reserva (UUID).
    * @returns {void}
    */
-  onShowTicketQR(ticketId: number): void {
+  onShowTicketQR(ticketId: string): void {
     // Despliega código QR de acceso digital
   }
 }

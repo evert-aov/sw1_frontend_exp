@@ -91,7 +91,7 @@ export class CreateExperienceComponent implements OnInit {
   readonly form = this.fb.nonNullable.group({
     // Paso 1: Información básica
     title: ['', [Validators.required, Validators.minLength(4)]],
-    category_id: [0, [Validators.required, Validators.min(1)]],
+    category_id: ['', [Validators.required]],
     description: ['', [Validators.required, Validators.minLength(10)]],
     cover_image_url: [''],
 
@@ -190,7 +190,7 @@ export class CreateExperienceComponent implements OnInit {
     this.experienceService.getCategories().subscribe({
       next: (cats) => {
         this.categories.set(cats);
-        if (cats.length > 0 && this.form.controls.category_id.value === 0) {
+        if (cats.length > 0 && !this.form.controls.category_id.value) {
           this.form.controls.category_id.setValue(cats[0].id);
         }
         this.loadingCategories.set(false);
@@ -308,7 +308,7 @@ export class CreateExperienceComponent implements OnInit {
 
     const payload: CreateExperiencePayload = {
       title: raw.title.trim(),
-      category_id: Number(raw.category_id),
+      category_id: raw.category_id,
       description: raw.description.trim(),
       cover_image_url: raw.cover_image_url.trim() || undefined,
       modality: raw.modality,

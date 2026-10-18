@@ -7,8 +7,10 @@
  * Representa un establecimiento o sede física donde se desarrollan experiencias presenciales o híbridas.
  */
 export interface Venue {
-  /** Identificador único del establecimiento */
-  id: number;
+  /** Identificador único del establecimiento (UUID) */
+  id: string;
+  /** Identificador único del usuario propietario (UUID) */
+  owner_id?: string;
   /** Nombre comercial o del local */
   name: string;
   /** Dirección física legible */

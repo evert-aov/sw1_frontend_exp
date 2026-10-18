@@ -16,10 +16,10 @@ export class SaasPlansComponent {
   /**
    * Inicia el proceso de suscripción a un plan SaaS.
    *
-   * @param {number} planId - Identificador del plan seleccionado.
+   * @param {string} planId - Identificador del plan seleccionado (UUID).
    * @returns {void}
    */
-  onSubscribe(planId: number): void {
+  onSubscribe(planId: string): void {
     // Contratar suscripción recurrente
   }
 }
