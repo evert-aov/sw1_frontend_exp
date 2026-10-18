@@ -1,9 +1,11 @@
 // Diccionarios de traducción para internacionalización (Inglés y Español)
+import { authTranslations } from './auth.translations';
 
 export type Language = 'en' | 'es';
 
 export const translations: Record<Language, Record<string, string>> = {
   en: {
+    ...authTranslations.en,
     // Navigation
     'nav.brand': 'EXPERIENCIA',
     'nav.catalog': 'Catalog',
@@ -134,6 +136,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'exp.recent.quorum': 'Quorum min:',
   },
   es: {
+    ...authTranslations.es,
     // Navegación
     'nav.brand': 'EXPERIENCIA',
     'nav.catalog': 'Catálogo',
