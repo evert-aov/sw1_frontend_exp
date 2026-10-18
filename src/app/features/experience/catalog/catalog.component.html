@@ -38,6 +38,20 @@
       <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
         {{ 'catalog.heroSubtitle' | translate }}
       </p>
+
+      @if (auth.isHost()) {
+        <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-700 dark:text-violet-300 text-xs font-semibold">
+          <app-icon name="sparkles" sizeClass="w-3.5 h-3.5" />
+          <span>{{ 'role.hostBadge' | translate }}: Crea eventos y monitorea quórums</span>
+          <a routerLink="/experiences/create" class="font-bold underline ml-1 hover:text-violet-900 dark:hover:text-white">Publicar</a>
+        </div>
+      } @else if (auth.isAttendee()) {
+        <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
+          <app-icon name="device-phone-mobile" sizeClass="w-3.5 h-3.5" />
+          <span>{{ 'role.attendeeBadge' | translate }}: Gestiona tus entradas con QR offline en la App Móvil</span>
+          <a routerLink="/experiences/create" class="font-bold underline ml-1 hover:text-emerald-900 dark:hover:text-white">Ver App</a>
+        </div>
+      }
     </div>
 
     <!-- Dynamic Category Buttons or Skeleton Pills -->

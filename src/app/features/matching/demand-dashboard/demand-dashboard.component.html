@@ -1,11 +1,30 @@
 <div class="max-w-5xl mx-auto space-y-6">
-  <div class="flex items-center gap-3">
-    <div class="w-10 h-10 rounded-xl bg-violet-600/10 text-violet-600 dark:text-violet-400 flex items-center justify-center">
-      <app-icon name="chart-bar" sizeClass="w-5 h-5" />
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-violet-600/10 text-violet-600 dark:text-violet-400 flex items-center justify-center">
+        <app-icon name="chart-bar" sizeClass="w-5 h-5" />
+      </div>
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          {{ 'nav.demandInsights' | translate }}
+        </h1>
+        <p class="text-xs text-slate-500 dark:text-slate-400">
+          Prospección de mercado y categorías no cubiertas en tiempo real
+        </p>
+      </div>
     </div>
-    <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-      {{ 'nav.demandInsights' | translate }}
-    </h1>
+
+    @if (auth.isHost()) {
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-violet-500/10 text-violet-700 dark:text-violet-300 border border-violet-500/20 self-start sm:self-auto">
+        <app-icon name="sparkles" sizeClass="w-3.5 h-3.5" />
+        <span>{{ 'role.hostBadge' | translate }}</span>
+      </span>
+    } @else if (auth.isAttendee()) {
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 self-start sm:self-auto">
+        <app-icon name="device-phone-mobile" sizeClass="w-3.5 h-3.5" />
+        <span>Vista de Demanda para Asistentes</span>
+      </span>
+    }
   </div>
 
   @if (loading()) {

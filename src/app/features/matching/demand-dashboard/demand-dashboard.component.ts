@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { MatchingService } from '../../../core/services/matching.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { UnmetDemandInsight } from '../../../core/models/matching.model';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
@@ -13,6 +14,7 @@ import { EventSkeletonComponent } from '../../../shared/components/event-skeleto
  * - Identificación de categorías más buscadas por asistentes sin oferta disponible.
  * - Sugerencias de franjas horarias y precios de entrada recomendados.
  * - Skeleton loaders reactivos durante la consulta a los servicios de análisis.
+ * - Inyección directa de AuthService para validación de roles en plantilla.
  */
 @Component({
   selector: 'app-demand-dashboard',
@@ -22,6 +24,7 @@ import { EventSkeletonComponent } from '../../../shared/components/event-skeleto
 })
 export class DemandDashboardComponent implements OnInit {
   private readonly matchingService = inject(MatchingService);
+  readonly auth = inject(AuthService);
 
   /** Colección de insights analíticos de demanda insatisfecha */
   readonly insights = signal<UnmetDemandInsight[]>([]);

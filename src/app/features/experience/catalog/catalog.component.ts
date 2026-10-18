@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ExperienceService } from '../../../core/services/experience.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { EventSkeletonComponent } from '../../../shared/components/event-skeleton/event-skeleton.component';
@@ -20,6 +21,7 @@ import { Experience, Modality } from '../../../core/models/experience.model';
  * - Búsqueda por texto y zona urbana.
  * - Toggle para filtrar solo eventos con cupos abiertos.
  * - Barra de progreso visual del quórum mínimo viable.
+ * - Inyección directa de AuthService para adaptación de vistas según rol (host vs attendee).
  */
 @Component({
   selector: 'app-catalog',
@@ -38,6 +40,7 @@ import { Experience, Modality } from '../../../core/models/experience.model';
 export class CatalogComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly experienceService = inject(ExperienceService);
+  readonly auth = inject(AuthService);
 
   /** Listado de categorías temáticas disponibles */
   readonly categories = signal<Category[]>([]);
