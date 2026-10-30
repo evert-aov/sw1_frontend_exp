@@ -1,5 +1,7 @@
 # EXPERIENCIA — Frontend Web (Angular)
 
+> Documentación vigente: [guía del desarrollador](guia-desarrollador/README.md). Angular 22 requiere un Node compatible con sus engines; la web usa puerto 3000 y la API 8000. Los módulos de sprint 2 descritos más abajo incluyen contratos pendientes.
+
 Aplicación Web desarrollada en **Angular 22** con **Tailwind CSS**, orientada a anfitriones, establecimientos y moderadores de eventos en vivo.
 
 ---
@@ -68,7 +70,7 @@ src/app/
 ## 🚀 Puesta en Marcha
 
 ### 1. Requisitos Previos
-- Node.js 18+
+- Node compatible con Angular 22: ^22.22.3, ^24.15.0 o >=26.0.0
 - Angular CLI 22 (`npm install -g @angular/cli`)
 
 ### 2. Instalación y Servidor de Desarrollo
@@ -81,7 +83,7 @@ npm start
 # o: ng serve --open
 ```
 
-Disponible en `http://localhost:4200/`.
+Disponible en `http://localhost:3000/`.
 
 ### 3. Verificación de Tipos y Compilación
 ```bash
@@ -91,3 +93,5 @@ npx tsc --noEmit
 # Compilación para producción con Tailwind y Chunks optimizados
 npm run build
 ```
+
+Vistas por rol y paneles: [guía](guia-desarrollador/07-ROLES-Y-PANELES.md). HOST entra a /host; ADMIN a /admin; ATTENDEE usa catálogo y entradas. Los roles son explícitos y pueden combinarse.

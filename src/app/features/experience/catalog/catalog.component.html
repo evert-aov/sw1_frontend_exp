@@ -1,310 +1,263 @@
-<div class="space-y-8" [formGroup]="filterForm">
-  <!-- Top Search & Location Bar -->
-  <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5">
-    <div class="md:col-span-9 relative">
-      <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-        <app-icon name="magnifying-glass" sizeClass="w-4 h-4" />
-      </span>
-      <input
-        type="text"
-        formControlName="search"
-        [placeholder]="'catalog.searchPlaceholder' | translate"
-        class="w-full h-12 pl-11 pr-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13121d] text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
-      />
-    </div>
-
-    <div class="md:col-span-3 relative">
-      <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-        <app-icon name="map-pin" sizeClass="w-4 h-4" />
-      </span>
-      <input
-        type="text"
-        formControlName="zone"
-        placeholder="Santa Cruz de la Sierra"
-        class="w-full h-12 pl-11 pr-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13121d] text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
-      />
-    </div>
-  </div>
-
-  <!-- Hero Heading & Category Filter Tabs -->
-  <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-    <div>
-      <p class="text-[11px] font-bold tracking-[0.2em] text-violet-600 dark:text-violet-400 uppercase">
-        {{ 'catalog.eyebrow' | translate }}
-      </p>
-      <h1 class="mt-2 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-        {{ 'catalog.heroTitle' | translate }}
-      </h1>
-      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-        {{ 'catalog.heroSubtitle' | translate }}
-      </p>
-
-      @if (auth.isHost()) {
-        <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-700 dark:text-violet-300 text-xs font-semibold">
-          <app-icon name="sparkles" sizeClass="w-3.5 h-3.5" />
-          <span>{{ 'role.hostBadge' | translate }}: Crea eventos y monitorea quórums</span>
-          <a routerLink="/experiences/create" class="font-bold underline ml-1 hover:text-violet-900 dark:hover:text-white">Publicar</a>
-        </div>
-      } @else if (auth.isAttendee()) {
-        <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
-          <app-icon name="device-phone-mobile" sizeClass="w-3.5 h-3.5" />
-          <span>{{ 'role.attendeeBadge' | translate }}: Gestiona tus entradas con QR offline en la App Móvil</span>
-          <a routerLink="/experiences/create" class="font-bold underline ml-1 hover:text-emerald-900 dark:hover:text-white">Ver App</a>
-        </div>
-      }
-    </div>
-
-    <!-- Dynamic Category Buttons or Skeleton Pills -->
-    <div class="flex items-center gap-2 overflow-x-auto pb-1">
-      <button
-        type="button"
-        (click)="selectCategory('')"
-        class="px-4 py-2 rounded-full text-xs font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-        [class]="
-          selectedCategoryId() === ''
-            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950'
-            : 'border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13121d] text-slate-600 dark:text-slate-300 hover:border-violet-400'
-        "
+<section class="space-y-6" [formGroup]="filterForm">
+  <app-page-header
+    [eyebrow]="'catalog.eyebrow' | translate"
+    [title]="'catalog.heroTitle' | translate"
+    [description]="'catalog.heroSubtitle' | translate"
+  >
+    @if (auth.canPublishExperiences()) {
+      <a appButton variant="primary" routerLink="/experiences/create"
+        ><app-icon name="plus" sizeClass="w-4 h-4" />{{ 'nav.createExperience' | translate }}</a
       >
-        {{ 'catalog.all' | translate }}
+    }
+  </app-page-header>
+
+  <div class="ui-surface ui-panel space-y-5">
+    <div class="grid sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-4">
+      <app-field controlId="catalog-search" [label]="'catalog.searchLabel' | translate"
+        ><input
+          appInput
+          type="search"
+          formControlName="search"
+          [placeholder]="'catalog.searchPlaceholder' | translate"
+      /></app-field>
+      <app-field controlId="catalog-zone" [label]="'demand.zone' | translate"
+        ><input appInput formControlName="zone" [placeholder]="'demand.allZones' | translate"
+      /></app-field>
+    </div>
+    <details class="ui-divider pt-4">
+      <summary
+        class="cursor-pointer text-sm font-semibold text-violet-700 dark:text-violet-300 rounded-lg py-2"
+      >
+        {{ 'catalog.advanced' | translate }}
+      </summary>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-4">
+        <app-field controlId="catalog-date-from" [label]="'catalog.dateFrom' | translate"
+          ><input appInput type="date" formControlName="dateFrom"
+        /></app-field>
+        <app-field controlId="catalog-date-to" [label]="'catalog.dateTo' | translate"
+          ><input appInput type="date" formControlName="dateTo"
+        /></app-field>
+        <app-field controlId="catalog-latitude" [label]="'catalog.latitude' | translate"
+          ><input appInput type="number" min="-90" max="90" step="any" formControlName="latitude"
+        /></app-field>
+        <app-field controlId="catalog-longitude" [label]="'catalog.longitude' | translate"
+          ><input
+            appInput
+            type="number"
+            min="-180"
+            max="180"
+            step="any"
+            formControlName="longitude"
+        /></app-field>
+        <app-field controlId="catalog-radius" [label]="'catalog.radius' | translate"
+          ><input appInput type="number" min="1" max="500" formControlName="radius"
+        /></app-field>
+      </div>
+    </details>
+  </div>
+
+  <div
+    class="flex flex-wrap items-center gap-2"
+    role="group"
+    [attr.aria-label]="'catalog.categories' | translate"
+  >
+    <button
+      appButton
+      variant="secondary"
+      size="sm"
+      (click)="selectCategory('')"
+      [attr.aria-pressed]="selectedCategoryId() === ''"
+    >
+      {{ 'catalog.all' | translate }}
+    </button>
+    @if (loadingCategories()) {
+      <span class="ui-muted text-sm">{{ 'ui.loading' | translate }}</span>
+    }
+    @for (cat of categories(); track cat.id) {
+      <button
+        appButton
+        variant="secondary"
+        size="sm"
+        (click)="selectCategory(cat.id)"
+        [attr.aria-pressed]="selectedCategoryId() === cat.id"
+      >
+        {{ cat.name }}
       </button>
-
-      @if (loadingCategories()) {
-        @for (pill of [1, 2, 3, 4]; track pill) {
-          <div class="h-8 w-24 rounded-full bg-slate-200/80 dark:bg-white/10 animate-pulse shrink-0"></div>
-        }
-      } @else {
-        @for (cat of categories(); track cat.id) {
-          <button
-            type="button"
-            (click)="selectCategory(cat.id)"
-            class="px-4 py-2 rounded-full text-xs font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-            [class]="
-              selectedCategoryId() === cat.id
-                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950'
-                : 'border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13121d] text-slate-600 dark:text-slate-300 hover:border-violet-400'
-            "
-          >
-            {{ cat.name }}
-          </button>
-        }
-      }
+    }
+  </div>
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div class="ui-tabs" role="group" [attr.aria-label]="'catalog.modality' | translate">
+      <button
+        appButton
+        variant="ghost"
+        size="sm"
+        (click)="selectModality('')"
+        [attr.aria-pressed]="selectedModality() === ''"
+      >
+        {{ 'catalog.modAll' | translate }}
+      </button>
+      <button
+        appButton
+        variant="ghost"
+        size="sm"
+        (click)="selectModality('IN_PERSON')"
+        [attr.aria-pressed]="selectedModality() === 'IN_PERSON'"
+      >
+        {{ 'catalog.modInPerson' | translate }}
+      </button>
+      <button
+        appButton
+        variant="ghost"
+        size="sm"
+        (click)="selectModality('VIRTUAL')"
+        [attr.aria-pressed]="selectedModality() === 'VIRTUAL'"
+      >
+        {{ 'catalog.modVirtual' | translate }}
+      </button>
+      <button
+        appButton
+        variant="ghost"
+        size="sm"
+        (click)="selectModality('HYBRID')"
+        [attr.aria-pressed]="selectedModality() === 'HYBRID'"
+      >
+        {{ 'catalog.modHybrid' | translate }}
+      </button>
     </div>
+    <label class="inline-flex items-center gap-2 text-sm ui-muted cursor-pointer min-h-11"
+      ><input type="checkbox" formControlName="onlyOpen" class="w-4 h-4 accent-violet-600" />{{
+        'catalog.onlyOpen' | translate
+      }}</label
+    >
   </div>
 
-  <!-- Secondary Filter Bar -->
-  <div class="p-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13121d] flex flex-wrap items-center justify-between gap-4">
-    <div class="flex flex-wrap items-center gap-2">
-      <!-- Segmented Modality Filter -->
-      <div class="inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-[#0b0a10] border border-slate-200/60 dark:border-white/5">
-        <button
-          type="button"
-          (click)="selectModality('')"
-          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap"
-          [class]="
-            selectedModality() === ''
-              ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-          "
-        >
-          {{ 'catalog.modAll' | translate }}
-        </button>
-        <button
-          type="button"
-          (click)="selectModality('IN_PERSON')"
-          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap"
-          [class]="
-            selectedModality() === 'IN_PERSON'
-              ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-          "
-        >
-          {{ 'catalog.modInPerson' | translate }}
-        </button>
-        <button
-          type="button"
-          (click)="selectModality('VIRTUAL')"
-          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap"
-          [class]="
-            selectedModality() === 'VIRTUAL'
-              ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-          "
-        >
-          {{ 'catalog.modVirtual' | translate }}
-        </button>
-        <button
-          type="button"
-          (click)="selectModality('HYBRID')"
-          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap"
-          [class]="
-            selectedModality() === 'HYBRID'
-              ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-          "
-        >
-          {{ 'catalog.modHybrid' | translate }}
-        </button>
-      </div>
-    </div>
-
-    <label class="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">
-      <input type="checkbox" formControlName="onlyOpen" class="w-4 h-4 accent-violet-600 rounded" />
-      <span>{{ 'catalog.onlyOpen' | translate }}</span>
-    </label>
-  </div>
-
-  <!-- Catalog States: Skeleton Loader / Error / Empty / Grid -->
   @if (loading()) {
-    <app-event-skeleton [count]="6" variant="card" />
+    <div role="status" [attr.aria-label]="'ui.loading' | translate">
+      <app-event-skeleton [count]="6" variant="card" />
+    </div>
+  } @else if (locationIncomplete()) {
+    <app-alert>{{ 'catalog.locationIncomplete' | translate }}</app-alert>
   } @else if (backendError()) {
-    <div class="p-12 text-center rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 space-y-4">
-      <div class="w-12 h-12 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center mx-auto">
-        <app-icon name="exclamation-triangle" sizeClass="w-6 h-6" />
-      </div>
-      <h3 class="text-lg font-bold text-slate-900 dark:text-white">
-        {{ 'catalog.errorDesc' | translate }}
-      </h3>
-      <div>
-        <button
-          type="button"
-          (click)="loadCatalog()"
-          class="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors cursor-pointer"
-        >
-          {{ 'common.retry' | translate }}
-        </button>
-      </div>
-    </div>
-  } @else if (filteredExperiences().length === 0) {
-    <div class="p-14 text-center rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 space-y-4">
-      <div class="w-12 h-12 rounded-2xl bg-violet-600/10 text-violet-600 dark:text-violet-400 flex items-center justify-center mx-auto">
-        <app-icon name="sparkles" sizeClass="w-6 h-6" />
-      </div>
-      <h3 class="text-lg font-bold text-slate-900 dark:text-white">
-        {{ 'catalog.emptyTitle' | translate }}
-      </h3>
-      <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-        {{ 'catalog.emptyDesc' | translate }}
-      </p>
-      <div class="pt-2">
-        <a
-          routerLink="/experiences/create"
-          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors"
-        >
-          <app-icon name="plus" sizeClass="w-4 h-4" />
-          <span>{{ 'catalog.publishNow' | translate }}</span>
-        </a>
-      </div>
-    </div>
+    <app-empty-state
+      icon="exclamation-triangle"
+      [title]="'catalog.serverErrorTitle' | translate"
+      [description]="'catalog.connectionError' | translate"
+      ><button appButton (click)="loadCatalog()">
+        {{ 'ui.retry' | translate }}
+      </button></app-empty-state
+    >
+  } @else if (!filteredExperiences().length) {
+    <app-empty-state
+      icon="magnifying-glass"
+      [title]="'catalog.emptyTitle' | translate"
+      [description]="'catalog.emptySubtitle' | translate"
+    />
   } @else {
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <p class="ui-muted text-sm" role="status">{{ total() }} {{ 'catalog.results' | translate }}</p>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
       @for (exp of filteredExperiences(); track exp.id) {
-        <a
-          [routerLink]="['/experiences', exp.id]"
-          class="group rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 overflow-hidden hover:border-violet-500/50 transition-colors flex flex-col justify-between"
+        <article
+          class="ui-surface overflow-hidden transition-shadow hover:shadow-lg hover:shadow-violet-950/5"
         >
-          <!-- Image Header with Scrim -->
-          <div class="relative h-52 w-full overflow-hidden bg-slate-900">
-            @if (exp.cover_image_url) {
-              <img
-                [src]="exp.cover_image_url"
-                [alt]="exp.title"
-                referrerpolicy="no-referrer"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            } @else {
-              <div class="w-full h-full bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 flex items-center justify-center text-violet-400/40">
-                <app-icon name="sparkles" sizeClass="w-10 h-10" />
-              </div>
-            }
-
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent"></div>
-
-            <!-- Top Category Label & Favorite Affordance -->
-            <div class="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between">
-              <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-black/60 text-white backdrop-blur-md border border-white/15">
-                {{ exp.category_name || exp.modality }}
-              </span>
-              <span class="w-8 h-8 rounded-full bg-black/50 text-white/80 backdrop-blur-md border border-white/15 flex items-center justify-center">
-                <app-icon name="heart" sizeClass="w-4 h-4" />
-              </span>
-            </div>
-
-            <!-- Date & Time Overlay -->
-            <div class="absolute bottom-3.5 left-4 right-4 text-xs font-semibold text-white/90">
-              {{ exp.event_date | date: 'dd MMM · HH:mm' }}
-            </div>
-          </div>
-
-          <!-- Card Body -->
-          <div class="p-5 space-y-4 flex-1 flex flex-col justify-between">
-            <div>
-              <div class="flex items-start justify-between gap-3">
-                <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors line-clamp-1">
-                  {{ exp.title }}
-                </h3>
-                <span class="text-base font-extrabold text-slate-900 dark:text-white whitespace-nowrap tabular-nums">
-                  Bs {{ exp.price | number: '1.0-0' }}
-                </span>
-              </div>
-
-              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
-                {{ 'catalog.hostedBy' | translate }} {{ exp.venue_name || exp.zone || exp.modality }}
-              </p>
-            </div>
-
-            <!-- Quorum Progress Box -->
-            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#0b0a10] border border-slate-200/70 dark:border-white/5 space-y-2">
-              <div class="flex items-center justify-between text-xs">
-                <span class="font-bold text-slate-800 dark:text-slate-200 tabular-nums">
-                  {{ exp.reserved_slots }}/{{ exp.min_capacity }} {{ 'catalog.spotsFilled' | translate }}
-                </span>
-                <span class="text-[11px] text-slate-400">
-                  {{ 'catalog.limited' | translate }}
-                </span>
-              </div>
-
-              <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
+          <a [routerLink]="['/experiences', exp.id]" class="group flex flex-col h-full rounded-2xl">
+            <div class="relative h-48 bg-violet-950 overflow-hidden">
+              @if (exp.cover_image_url) {
+                <img
+                  [src]="exp.cover_image_url"
+                  alt=""
+                  referrerpolicy="no-referrer"
+                  loading="lazy"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              } @else {
                 <div
-                  class="h-full rounded-full transition-all duration-300"
-                  [class]="isQuorumMet(exp) ? 'bg-emerald-500' : 'bg-violet-600'"
-                  [style.width.%]="quorumProgressPercent(exp)"
-                ></div>
+                  class="w-full h-full bg-gradient-to-br from-violet-800 to-indigo-950 grid place-items-center"
+                >
+                  <app-icon name="sparkles" sizeClass="w-12 h-12 text-violet-300/50" />
+                </div>
+              }
+              <span
+                class="absolute left-4 top-4 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/95 text-violet-950 shadow-sm"
+                >{{
+                  exp.category_name ||
+                    ((exp.modality === 'VIRTUAL'
+                      ? 'catalog.modVirtual'
+                      : exp.modality === 'HYBRID'
+                        ? 'catalog.modHybrid'
+                        : 'catalog.modInPerson'
+                    ) | translate)
+                }}</span
+              >
+            </div>
+            <div class="p-5 flex flex-col flex-1 gap-4">
+              <p class="ui-muted text-xs flex items-center gap-2">
+                <app-icon name="calendar" sizeClass="w-4 h-4" />{{
+                  exp.event_date | date: 'dd MMM · HH:mm' : undefined : i18n.currentLang()
+                }}
+              </p>
+              <h2
+                class="text-lg font-bold tracking-tight line-clamp-2 group-hover:text-violet-600 dark:group-hover:text-violet-300"
+              >
+                {{ exp.title }}
+              </h2>
+              <p class="ui-muted text-sm flex items-center gap-2">
+                <app-icon
+                  [name]="exp.modality === 'VIRTUAL' ? 'video-camera' : 'map-pin'"
+                  sizeClass="w-4 h-4"
+                />{{ exp.venue_name || exp.venue_zone || ('catalog.modVirtual' | translate) }}
+              </p>
+              <div class="mt-auto bg-slate-50 dark:bg-white/[.025] rounded-xl p-3 space-y-2">
+                <div class="flex flex-wrap justify-between gap-2 text-xs">
+                  <span class="ui-muted"
+                    >{{ exp.reserved_slots }}/{{ exp.min_capacity }}
+                    {{ 'catalog.spotsFilled' | translate }}</span
+                  >
+                  @if (isQuorumMet(exp)) {
+                    <app-icon
+                      name="check-circle"
+                      sizeClass="w-4 h-4 text-emerald-600 dark:text-emerald-300"
+                    />
+                  }
+                </div>
+                <progress
+                  class="w-full h-1.5 accent-violet-600"
+                  [value]="quorumProgressPercent(exp)"
+                  max="100"
+                  [attr.aria-label]="'common.quorum' | translate"
+                ></progress>
+              </div>
+              <div class="ui-divider pt-4 flex justify-between items-center gap-3">
+                <p class="font-bold text-lg tabular-nums">Bs {{ exp.price | number: '1.0-2' }}</p>
+                <span
+                  class="text-violet-700 dark:text-violet-300 font-semibold text-sm inline-flex items-center gap-1.5"
+                  >{{ 'catalog.view' | translate }}<app-icon name="arrow-right" sizeClass="w-4 h-4"
+                /></span>
               </div>
             </div>
-          </div>
-        </a>
+          </a>
+        </article>
       }
     </div>
   }
-
-  <!-- Attendee Mobile App Feature Card -->
-  <div class="mt-8 p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-violet-900/60 via-[#181329] to-[#0d0b16] border border-violet-500/20 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
-    <div class="space-y-2 max-w-xl">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/20 text-emerald-300 text-[11px] font-bold uppercase tracking-wider">
-        <app-icon name="device-phone-mobile" sizeClass="w-3.5 h-3.5" />
-        <span>{{ 'role.attendeeBadge' | translate }}</span>
-      </div>
-      <h3 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white">
-        {{ 'exp.create.attendeeAppHeading' | translate }}
-      </h3>
-      <p class="text-xs text-violet-200/80 leading-relaxed">
-        {{ 'exp.create.attendeeAppSubheading' | translate }} Entradas offline por QR, alertas push de quórum y matching grupal.
-      </p>
-    </div>
-
-    <div class="flex flex-wrap items-center gap-3 shrink-0">
-      <div class="px-3.5 py-2 rounded-xl bg-black/60 border border-white/10 text-xs font-semibold inline-flex items-center gap-2">
-        <app-icon name="qr-code" sizeClass="w-4 h-4 text-emerald-400" />
-        <span class="text-slate-200 text-xs">Google Play & App Store</span>
-      </div>
-      <a
-        routerLink="/my-tickets"
-        class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5"
+  @if (totalPages() > 1) {
+    <nav [attr.aria-label]="'catalog.pagination' | translate" class="ui-actions justify-center">
+      <button
+        appButton
+        variant="secondary"
+        [disabled]="page() === 1 || loading()"
+        (click)="changePage(page() - 1)"
       >
-        <app-icon name="ticket" sizeClass="w-4 h-4" />
-        <span>{{ 'exp.create.ticketsBtn' | translate }}</span>
-      </a>
-    </div>
-  </div>
-</div>
+        <app-icon name="arrow-left" sizeClass="w-4 h-4" />{{ 'catalog.previous' | translate }}
+      </button>
+      <span class="ui-muted text-sm">{{ page() }} / {{ totalPages() }}</span>
+      <button
+        appButton
+        variant="secondary"
+        [disabled]="page() === totalPages() || loading()"
+        (click)="changePage(page() + 1)"
+      >
+        {{ 'catalog.next' | translate }}<app-icon name="arrow-right" sizeClass="w-4 h-4" />
+      </button>
+    </nav>
+  }
+</section>

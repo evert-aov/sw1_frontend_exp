@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
+import { ButtonLinkDirective } from '../../../shared/ui/button';
 
 /**
  * Componente de Selector de Pestañas de Autenticación (Login / Registro).
@@ -9,7 +10,7 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
  */
 @Component({
   selector: 'app-auth-tabs',
-  imports: [RouterLink, RouterLinkActive, TranslatePipe],
+  imports: [RouterLink, RouterLinkActive, TranslatePipe, ButtonLinkDirective],
   templateUrl: './auth-tabs.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

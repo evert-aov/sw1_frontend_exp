@@ -1,3 +1,6 @@
+import { ButtonComponent } from '../../../shared/ui/button';
+import { FormFieldComponent, InputDirective } from '../../../shared/ui/form-field';
+import { AlertComponent } from '../../../shared/ui/feedback';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -19,7 +22,16 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
  */
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, TranslatePipe, AuthTabsComponent, IconComponent],
+  imports: [
+    ButtonComponent,
+    FormFieldComponent,
+    InputDirective,
+    AlertComponent,
+    ReactiveFormsModule,
+    TranslatePipe,
+    AuthTabsComponent,
+    IconComponent,
+  ],
   templateUrl: './login.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -52,6 +64,7 @@ export class LoginComponent {
    * @returns {void}
    */
   onSubmit(): void {
+    if (this.loading()) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -62,7 +75,8 @@ export class LoginComponent {
     const { email, password, remember } = this.form.getRawValue();
     this.auth.login({ email, password }, remember).subscribe({
       next: () => {
-        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/catalog';
+        const returnUrl =
+          this.route.snapshot.queryParamMap.get('returnUrl') || this.auth.homeRoute();
         this.router.navigateByUrl(returnUrl);
       },
       error: (err: HttpErrorResponse) => {

@@ -38,9 +38,10 @@ export interface Experience {
   /** Nombre del establecimiento o local */
   venue_name?: string;
   /** Zona o barrio urbano */
-  zone?: string;
+  venue_zone?: string;
   /** Dirección física */
-  address?: string;
+  venue_address?: string;
+  distance_km?: number;
   /** Título de la experiencia */
   title: string;
   /** Descripción detallada y propuesta de valor */
@@ -82,9 +83,10 @@ export interface CreateExperiencePayload {
   /** Nombre del establecimiento */
   venue_name?: string;
   /** Zona o barrio */
-  zone?: string;
+  venue_zone?: string;
   /** Dirección física */
-  address?: string;
+  venue_address?: string;
+  distance_km?: number;
   /** Título de la experiencia */
   title: string;
   /** Descripción del evento */
@@ -120,7 +122,14 @@ export interface CatalogFilters {
   /** Filtrar por zona urbana */
   zone?: string;
   /** Excluir eventos llenos o cancelados */
-  only_open?: boolean;
+  only_available?: boolean;
+  date_from?: string;
+  date_to?: string;
+  latitude?: number;
+  longitude?: number;
+  radius_km?: number;
+  page?: number;
+  page_size?: number;
   /** Tope máximo de precio */
   max_price?: number;
 }
@@ -131,6 +140,9 @@ export interface CatalogFilters {
 export interface CatalogResponse {
   /** Total de registros encontrados */
   total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
   /** Lista de experiencias obtenidas */
   experiences: Experience[];
 }

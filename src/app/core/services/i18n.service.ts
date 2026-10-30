@@ -1,5 +1,9 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, effect, inject, signal } from '@angular/core';
+import { DOCUMENT, registerLocaleData } from '@angular/common';
+import localeEs from '@angular/common/locales/es';
 import { Language, translations } from '../i18n/translations';
+
+registerLocaleData(localeEs);
 
 /**
  * Servicio de Internacionalización (i18n) para soporte multiidioma reactivo.
@@ -10,6 +14,7 @@ import { Language, translations } from '../i18n/translations';
   providedIn: 'root',
 })
 export class I18nService {
+  private readonly document = inject(DOCUMENT);
   private readonly LANG_KEY = 'experiencia_lang';
 
   /** Señal reactiva que contiene el idioma actualmente activo ('es' | 'en') */
@@ -17,6 +22,9 @@ export class I18nService {
 
   constructor() {
     this.initLanguage();
+    effect(() => {
+      this.document.documentElement.lang = this.currentLang();
+    });
   }
 
   /**

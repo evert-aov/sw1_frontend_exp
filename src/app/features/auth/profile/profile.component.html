@@ -1,383 +1,279 @@
-<div class="max-w-6xl mx-auto space-y-6">
+<section class="max-w-6xl mx-auto space-y-6">
+  <app-page-header
+    [eyebrow]="'ui.account' | translate"
+    [title]="'profile.overview' | translate"
+    [description]="'profile.intro' | translate"
+  />
   @if (loadError()) {
-    <div class="p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-sm text-red-700 dark:text-red-300 flex items-center gap-2.5">
-      <app-icon name="exclamation-triangle" sizeClass="w-5 h-5" />
-      <span>{{ 'profile.loadError' | translate }}</span>
-    </div>
+    <app-alert tone="error">{{ 'profile.alert.loadError' | translate }}</app-alert>
   }
-
   @if (user(); as u) {
-    <!-- Top Header Card -->
-    <div class="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-      <div class="flex items-center gap-5">
-        @if (u.avatar_url) {
-          <img
-            [src]="u.avatar_url"
-            [alt]="u.first_name"
-            referrerpolicy="no-referrer"
-            class="w-20 h-20 rounded-2xl object-cover border border-slate-200 dark:border-white/10 shrink-0"
-          />
-        } @else {
-          <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white flex items-center justify-center text-2xl font-extrabold shrink-0">
-            {{ userInitials() }}
-          </div>
-        }
-
-        <div>
-          <div class="flex flex-wrap items-center gap-2.5">
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-              {{ u.first_name }} {{ u.last_name }}
-            </h1>
-            <span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-              <app-icon name="check" sizeClass="w-3.5 h-3.5" />
-              <span>{{ 'profile.verified' | translate }}</span>
-            </span>
-          </div>
-
-          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            {{ u.email }}
-            @if (u.city) {
-              <span class="mx-1.5" aria-hidden="true">·</span>
-              <span>{{ u.city }}</span>
-            }
-          </p>
-
-          <div class="mt-2.5 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            @for (role of u.roles; track role; let last = $last) {
-              <span class="font-semibold text-violet-600 dark:text-violet-400">
-                {{ 'role.' + role | translate }}
-              </span>
-              @if (!last) {
-                <span aria-hidden="true">·</span>
-              }
-            }
-            <span aria-hidden="true">·</span>
-            <span>{{ 'profile.memberSince' | translate }} {{ u.created_at | date: 'mediumDate' }}</span>
-          </div>
+    <div class="ui-surface ui-panel flex flex-col md:flex-row md:items-center gap-6">
+      @if (u.avatar_url) {
+        <img
+          [src]="u.avatar_url"
+          [alt]="u.first_name"
+          referrerpolicy="no-referrer"
+          class="w-20 h-20 rounded-2xl object-cover shrink-0"
+        />
+      } @else {
+        <span
+          class="w-20 h-20 rounded-2xl bg-violet-600 text-white grid place-items-center text-2xl font-bold shrink-0"
+          >{{ userInitials() }}</span
+        >
+      }
+      <div class="flex-1 min-w-0">
+        <h2 class="text-2xl font-bold tracking-tight break-words">
+          {{ u.first_name }} {{ u.last_name }}
+        </h2>
+        <p class="ui-muted text-sm mt-1 break-words">
+          {{ u.email }}
+          @if (u.city) {
+            · {{ u.city }}
+          }
+        </p>
+        <div class="flex flex-wrap gap-2 mt-3">
+          @for (role of u.roles; track role) {
+            <span class="ui-badge">{{ 'role.' + role | translate }}</span>
+          }
+          <span class="ui-muted text-xs self-center"
+            >{{ 'profile.memberSince' | translate }}
+            {{ u.created_at | date: 'mediumDate' : undefined : i18n.currentLang() }}</span
+          >
         </div>
       </div>
-
       <button
-        type="button"
+        appButton
+        variant="secondary"
         (click)="showAvatarInput.set(!showAvatarInput()); selectTab('profile')"
-        class="self-start sm:self-center px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.07] text-xs font-semibold text-slate-800 dark:text-slate-200 transition-colors inline-flex items-center gap-2 cursor-pointer whitespace-nowrap"
+        [attr.aria-expanded]="showAvatarInput()"
+        aria-controls="profile-photo"
       >
-        <app-icon name="photo" sizeClass="w-4 h-4" />
-        <span>{{ 'profile.changePhoto' | translate }}</span>
+        <app-icon name="photo" sizeClass="w-4 h-4" />{{ 'profile.photo.edit' | translate }}
       </button>
     </div>
 
-    <!-- Main 2-Column Content -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-      <!-- Left Sidebar Tabs -->
-      <aside class="lg:col-span-3 p-3 rounded-2xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 space-y-1">
-        <button
-          type="button"
-          (click)="selectTab('profile')"
-          class="w-full px-4 py-3 rounded-xl text-left text-xs font-semibold flex items-center gap-3 transition-colors cursor-pointer"
-          [class]="
-            activeTab() === 'profile'
-              ? 'bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-          "
+    <div class="grid lg:grid-cols-[15rem_minmax(0,1fr)] gap-6 items-start">
+      <aside class="space-y-5">
+        <nav
+          class="ui-surface p-3 flex lg:flex-col gap-2"
+          [attr.aria-label]="'ui.account' | translate"
         >
-          <app-icon name="user" sizeClass="w-4 h-4" />
-          <span>{{ 'profile.tabProfile' | translate }}</span>
-        </button>
-
-        <button
-          type="button"
-          (click)="selectTab('billing')"
-          class="w-full px-4 py-3 rounded-xl text-left text-xs font-semibold flex items-center gap-3 transition-colors cursor-pointer"
-          [class]="
-            activeTab() === 'billing'
-              ? 'bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-          "
-        >
-          <app-icon name="credit-card" sizeClass="w-4 h-4" />
-          <span>{{ 'profile.tabBilling' | translate }}</span>
-        </button>
+          <button
+            appButton
+            variant="ghost"
+            class="flex-1 lg:justify-start"
+            (click)="selectTab('profile')"
+            [attr.aria-pressed]="activeTab() === 'profile'"
+          >
+            <app-icon name="user" sizeClass="w-4 h-4" />{{ 'profile.tabs.profile' | translate }}
+          </button>
+          @if (auth.isAttendee()) {
+            <button
+              appButton
+              variant="ghost"
+              class="flex-1 lg:justify-start"
+              (click)="selectTab('billing')"
+              [attr.aria-pressed]="activeTab() === 'billing'"
+            >
+              <app-icon name="ticket" sizeClass="w-4 h-4" />{{ 'profile.tabs.billing' | translate }}
+            </button>
+          }
+        </nav>
+        <div class="hidden lg:block ui-surface ui-panel space-y-4">
+          <app-icon name="sparkles" sizeClass="w-6 h-6 text-violet-500" />
+          <p class="ui-muted text-sm leading-relaxed">
+            {{ 'profile.interests.subtitle' | translate }}
+          </p>
+          <dl class="flex justify-between text-sm">
+            <dt class="ui-muted">{{ 'profile.interestsCount' | translate }}</dt>
+            <dd class="font-bold">{{ interests().length }}</dd>
+          </dl>
+        </div>
       </aside>
 
-      <!-- Right Panel -->
-      <div class="lg:col-span-9">
-        @if (activeTab() === 'profile') {
-          <form
-            [formGroup]="form"
-            (ngSubmit)="onSaveProfile()"
-            class="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 space-y-6"
-          >
-            <div class="border-b border-slate-200 dark:border-white/10 pb-5">
-              <h2 class="text-xl font-bold text-slate-900 dark:text-white">
-                {{ 'profile.title' | translate }}
-              </h2>
-              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                {{ 'profile.subtitle' | translate }}
-              </p>
-            </div>
+      @if (activeTab() === 'profile') {
+        <form
+          [formGroup]="form"
+          (ngSubmit)="onSaveProfile()"
+          (input)="saved.set(false)"
+          class="ui-surface ui-panel space-y-7"
+          novalidate
+        >
+          <div>
+            <h2 class="ui-section-title">{{ 'profile.title' | translate }}</h2>
+            <p class="ui-muted text-sm mt-1">{{ 'profile.subtitle' | translate }}</p>
+          </div>
 
-            <!-- Role Management Card (Asistente vs Anfitrión) -->
-            <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] space-y-3">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div class="flex items-center gap-2.5">
-                  @if (auth.isHost()) {
-                    <div class="w-8 h-8 rounded-xl bg-violet-600/15 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
-                      <app-icon name="sparkles" sizeClass="w-4 h-4" />
-                    </div>
-                    <div>
-                      <span class="text-xs font-bold text-slate-900 dark:text-white">{{ 'role.hostBadge' | translate }}</span>
-                      <p class="text-[11px] text-slate-500 dark:text-slate-400">Autorizado para publicar experiencias y monitorear audiencia.</p>
-                    </div>
-                  } @else {
-                    <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                      <app-icon name="device-phone-mobile" sizeClass="w-4 h-4" />
-                    </div>
-                    <div>
-                      <span class="text-xs font-bold text-slate-900 dark:text-white">{{ 'role.attendeeBadge' | translate }}</span>
-                      <p class="text-[11px] text-slate-500 dark:text-slate-400">Disfruta experiencias y usa la App Móvil para tus tickets con QR offline.</p>
-                    </div>
-                  }
-                </div>
+          <app-alert>{{ 'workspace.rolesAssigned' | translate }}</app-alert>
 
-                <div>
-                  @if (auth.isAttendee()) {
-                    <button
-                      type="button"
-                      (click)="onSwitchRole('HOST')"
-                      [disabled]="switchingRole()"
-                      class="px-3.5 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
-                    >
-                      <app-icon name="plus" sizeClass="w-3.5 h-3.5" />
-                      <span>{{ (switchingRole() ? 'common.loading' : 'role.switchToHost') | translate }}</span>
-                    </button>
-                  } @else {
-                    <button
-                      type="button"
-                      (click)="onSwitchRole('ATTENDEE')"
-                      [disabled]="switchingRole()"
-                      class="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
-                    >
-                      <app-icon name="device-phone-mobile" sizeClass="w-3.5 h-3.5" />
-                      <span>{{ (switchingRole() ? 'common.loading' : 'role.switchToAttendee') | translate }}</span>
-                    </button>
-                  }
-                </div>
-              </div>
-
-              @if (roleChangeSuccess()) {
-                <div class="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-xs font-semibold text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
-                  <app-icon name="check-circle" sizeClass="w-4 h-4" />
-                  <span>{{ roleChangeSuccess()! | translate }}</span>
-                </div>
-              }
-            </div>
-
-            @if (saved()) {
-              <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-xs font-semibold text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
-                <app-icon name="check-circle" sizeClass="w-4 h-4" />
-                <span>{{ 'profile.saved' | translate }}</span>
-              </div>
-            }
-
+          <div id="profile-photo">
             @if (showAvatarInput()) {
-              <div>
-                <label for="avatar_url" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
-                  {{ 'profile.avatarUrl' | translate }}
-                </label>
+              <app-field
+                controlId="avatar_url"
+                [label]="'profile.photo.url' | translate"
+                [hint]="'profile.photoHint' | translate"
+              >
                 <input
-                  id="avatar_url"
+                  appInput
                   type="url"
                   formControlName="avatar_url"
                   placeholder="https://..."
-                  class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0d0c14] text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  autocomplete="url"
                 />
-              </div>
-            }
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <label for="first_name" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
-                  {{ 'auth.register.firstName' | translate }}
-                </label>
-                <input
-                  id="first_name"
-                  formControlName="first_name"
-                  class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0d0c14] text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-              </div>
-
-              <div>
-                <label for="last_name" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
-                  {{ 'auth.register.lastName' | translate }}
-                </label>
-                <input
-                  id="last_name"
-                  formControlName="last_name"
-                  class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0d0c14] text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-              </div>
-
-              <div>
-                <label for="city" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
-                  {{ 'profile.city' | translate }}
-                </label>
-                <input
-                  id="city"
-                  formControlName="city"
-                  [placeholder]="'profile.cityPlaceholder' | translate"
-                  class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0d0c14] text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-              </div>
-
-              <div>
-                <label for="zone" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
-                  {{ 'profile.zone' | translate }}
-                </label>
-                <input
-                  id="zone"
-                  formControlName="zone"
-                  [placeholder]="'profile.zonePlaceholder' | translate"
-                  class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0d0c14] text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-              </div>
-
-              <div>
-                <label for="phone" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
-                  {{ 'auth.register.phone' | translate }}
-                </label>
-                <input
-                  id="phone"
-                  type="tel"
-                  formControlName="phone"
-                  class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0d0c14] text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-              </div>
-
-              <div>
-                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
-                  {{ 'auth.email' | translate }}
-                </label>
-                <input
-                  type="email"
-                  [value]="u.email"
-                  disabled
-                  class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/[0.02] text-slate-500 text-sm cursor-not-allowed"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label for="bio" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
-                {{ 'profile.bio' | translate }}
-              </label>
-              <textarea
-                id="bio"
-                rows="3"
-                formControlName="bio"
-                [placeholder]="'profile.bioPlaceholder' | translate"
-                class="w-full p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0d0c14] text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
-              ></textarea>
-            </div>
-
-            <!-- Interests & Preferences -->
-            <div class="border-t border-slate-200 dark:border-white/10 pt-6 space-y-4">
-              <div>
-                <h3 class="text-base font-bold text-slate-900 dark:text-white">
-                  {{ 'profile.interests' | translate }}
-                </h3>
-                <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                  {{ 'profile.interestsHint' | translate }}
-                </p>
-              </div>
-
-              @if (availableTopics().length > 0) {
-                <div class="flex flex-wrap gap-2.5">
-                  @for (topic of availableTopics(); track topic) {
-                    <button
-                      type="button"
-                      (click)="toggleInterest(topic)"
-                      class="px-3.5 py-2 rounded-full border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-                      [class]="
-                        isInterestSelected(topic)
-                          ? 'border-violet-500 bg-violet-600/15 text-violet-700 dark:text-violet-300'
-                          : 'border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0d0c14] text-slate-600 dark:text-slate-400 hover:border-violet-400'
-                      "
-                    >
-                      @if (isInterestSelected(topic)) {
-                        <app-icon name="check" sizeClass="w-3.5 h-3.5" />
-                      }
-                      <span>{{ topic }}</span>
-                    </button>
-                  }
-                </div>
-              } @else {
-                <p class="text-xs text-slate-400">{{ 'profile.noInterests' | translate }}</p>
-              }
-
-              <div class="max-w-sm">
-                <input
-                  #customInterestInput
-                  type="text"
-                  (keydown.enter)="addCustomInterest(customInterestInput); $event.preventDefault()"
-                  [placeholder]="'profile.addInterest' | translate"
-                  class="w-full h-10 px-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0d0c14] text-xs focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-              </div>
-            </div>
-
-            <div class="flex justify-end pt-2">
-              <button
-                type="submit"
-                [disabled]="saving() || form.invalid"
-                class="px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-60 text-white text-xs font-bold shadow-md shadow-violet-600/20 transition-colors inline-flex items-center gap-2 cursor-pointer"
-              >
-                <app-icon name="check" sizeClass="w-4 h-4" />
-                <span>{{ (saving() ? 'profile.saving' : 'profile.saveChanges') | translate }}</span>
-              </button>
-            </div>
-          </form>
-        } @else {
-          <!-- Billing & Experience History Tab -->
-          <div class="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 space-y-5">
-            <div class="border-b border-slate-200 dark:border-white/10 pb-4">
-              <h2 class="text-xl font-bold text-slate-900 dark:text-white">
-                {{ 'profile.historyTitle' | translate }}
-              </h2>
-            </div>
-
-            @if (bookings().length === 0) {
-              <div class="py-12 text-center text-sm text-slate-500 dark:text-slate-400 space-y-2">
-                <app-icon name="ticket" sizeClass="w-8 h-8 text-slate-400 mx-auto" />
-                <p>{{ 'profile.historyEmpty' | translate }}</p>
-              </div>
-            } @else {
-              <div class="divide-y divide-slate-200 dark:divide-white/10">
-                @for (item of bookings(); track item.id) {
-                  <div class="py-4 flex items-center justify-between gap-4">
-                    <div class="flex items-center gap-3.5">
-                      <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/[0.05] text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
-                        <app-icon name="calendar" sizeClass="w-5 h-5" />
-                      </div>
-                      <div>
-                        <p class="text-sm font-bold text-slate-900 dark:text-white">
-                          {{ item.experience_title || ('Reserva #' + item.id) }}
-                        </p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 uppercase">
-                          {{ (item.event_date || item.created_at) | date: 'dd MMM yyyy' }} · {{ item.status }}
-                        </p>
-                      </div>
-                    </div>
-                    <div class="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">
-                      Bs {{ item.total_amount | number: '1.0-2' }}
-                    </div>
-                  </div>
-                }
-              </div>
+              </app-field>
             }
           </div>
-        }
-      </div>
+          <fieldset class="space-y-5">
+            <legend class="ui-section-title mb-4">
+              {{ 'profile.personal.title' | translate }}
+            </legend>
+            <div class="grid sm:grid-cols-2 gap-5">
+              <app-field
+                controlId="first_name"
+                [label]="'profile.personal.firstName' | translate"
+                [error]="
+                  form.controls.first_name.touched && form.controls.first_name.invalid
+                    ? ('auth.required' | translate)
+                    : ''
+                "
+              >
+                <input appInput formControlName="first_name" required autocomplete="given-name" />
+              </app-field>
+              <app-field controlId="last_name" [label]="'profile.personal.lastName' | translate">
+                <input appInput formControlName="last_name" autocomplete="family-name" />
+              </app-field>
+              <app-field controlId="phone" [label]="'profile.personal.phone' | translate">
+                <input appInput type="tel" formControlName="phone" autocomplete="tel" />
+              </app-field>
+              <app-field
+                controlId="profile-email"
+                [label]="'profile.personal.email' | translate"
+                [hint]="'profile.emailHint' | translate"
+              >
+                <input appInput type="email" [value]="u.email" readonly autocomplete="email" />
+              </app-field>
+            </div>
+          </fieldset>
+
+          <app-field controlId="bio" [label]="'profile.bio.label' | translate">
+            <textarea
+              appInput
+              formControlName="bio"
+              rows="3"
+              [placeholder]="'profile.bio.placeholder' | translate"
+            ></textarea>
+          </app-field>
+
+          <section class="ui-divider pt-6 space-y-4">
+            <div>
+              <h3 class="ui-section-title">{{ 'profile.interests.title' | translate }}</h3>
+              <p class="ui-muted text-sm mt-1">{{ 'profile.interests.subtitle' | translate }}</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              @for (topic of availableTopics(); track topic) {
+                <button
+                  appButton
+                  variant="secondary"
+                  size="sm"
+                  (click)="toggleInterest(topic)"
+                  [attr.aria-pressed]="isInterestSelected(topic)"
+                >
+                  <app-icon
+                    [name]="isInterestSelected(topic) ? 'check' : 'plus'"
+                    sizeClass="w-4 h-4"
+                  />{{ topic }}
+                </button>
+              } @empty {
+                <p class="ui-muted text-sm">{{ 'profile.noInterests' | translate }}</p>
+              }
+            </div>
+            <div class="flex items-end gap-3">
+              <app-field
+                class="flex-1"
+                controlId="custom-interest"
+                [label]="'profile.interests.addCustom' | translate"
+              >
+                <input
+                  appInput
+                  #customInterestInput
+                  maxlength="100"
+                  (keydown.enter)="addCustomInterest(customInterestInput); $event.preventDefault()"
+                />
+              </app-field>
+              <button
+                appButton
+                variant="secondary"
+                (click)="addCustomInterest(customInterestInput)"
+              >
+                <app-icon name="plus" sizeClass="w-4 h-4" />{{ 'ui.add' | translate }}
+              </button>
+            </div>
+          </section>
+
+          @if (saved()) {
+            <app-alert tone="success">{{ 'profile.alert.saved' | translate }}</app-alert>
+          }
+          @if (saveError()) {
+            <app-alert tone="error">{{ 'ui.saveError' | translate }}</app-alert>
+          }
+          <div class="ui-divider pt-5 flex justify-end">
+            <button appButton type="submit" [busy]="saving()" class="w-full sm:w-auto">
+              <app-icon name="check" sizeClass="w-4 h-4" />{{
+                (saving() ? 'profile.btn.saving' : 'profile.btn.save') | translate
+              }}
+            </button>
+          </div>
+        </form>
+      } @else if (auth.isAttendee()) {
+        <section class="ui-surface ui-panel space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h2 class="ui-section-title">{{ 'profile.historyTitle' | translate }}</h2>
+            <a appButton size="sm" routerLink="/my-tickets"
+              >{{ 'profile.viewAll' | translate }}<app-icon name="arrow-right" sizeClass="w-4 h-4"
+            /></a>
+          </div>
+          @if (historyLoading()) {
+            <app-alert>{{ 'ui.loading' | translate }}</app-alert>
+          } @else if (historyError()) {
+            <app-alert tone="error">{{ 'profile.historyError' | translate }}</app-alert>
+          } @else {
+            @for (item of bookings(); track item.id) {
+              <a
+                [routerLink]="['/checkout', item.id]"
+                class="block ui-surface p-4 hover:border-violet-400 transition-colors"
+              >
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <h3 class="font-semibold">
+                      {{ item.experience_title || ('tickets.fallback' | translate) }}
+                    </h3>
+                    <p class="ui-muted text-sm mt-1">
+                      {{
+                        item.event_date || item.created_at
+                          | date: 'mediumDate' : undefined : i18n.currentLang()
+                      }}
+                    </p>
+                  </div>
+                  <app-status-badge [value]="item.status" />
+                </div>
+                <p class="mt-3 font-bold tabular-nums">
+                  {{ item.currency }} {{ item.total_amount | number: '1.2-2' }}
+                </p>
+              </a>
+            } @empty {
+              <app-empty-state
+                [title]="'profile.historyEmpty' | translate"
+                [description]="'profile.historyDesc' | translate"
+              >
+                <a appButton variant="primary" routerLink="/catalog"
+                  >{{ 'ui.explore' | translate }}<app-icon name="arrow-right" sizeClass="w-4 h-4"
+                /></a>
+              </app-empty-state>
+            }
+          }
+        </section>
+      }
     </div>
   }
-</div>
+</section>

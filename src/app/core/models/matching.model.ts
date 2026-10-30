@@ -21,6 +21,10 @@ export interface MatchingGroup {
   deadline: string;
   /** Indica si se alcanzó el quórum necesario para confirmar el evento */
   is_quorum_reached: boolean;
+  is_member: boolean;
+  affinity_score: number;
+  experience_confirmed: boolean;
+  paid_slots: number;
 }
 
 /**
@@ -36,7 +40,12 @@ export interface UnmetDemandInsight {
   /** Cantidad de búsquedas registradas sin oferta cubierta */
   search_count: number;
   /** Precio sugerido para que la oferta sea competitiva */
-  suggested_price?: number;
+  suggested_price?: number | null;
   /** Franja horaria sugerida */
-  suggested_time_slot?: string;
+  suggested_time_slot?: string | null;
+}
+
+export interface SuggestedExperience {
+  zone: string; category_keyword: string; category_id?: string; estimated_interest_count: number;
+  suggested_price?: number | null; recommended_time_slot?: string | null; rationale: string; confidence_score?: number | null;
 }

@@ -1,63 +1,93 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
-import { MatchingService } from '../../../core/services/matching.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { UnmetDemandInsight } from '../../../core/models/matching.model';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
-import { EventSkeletonComponent } from '../../../shared/components/event-skeleton/event-skeleton.component';
+import { ButtonComponent, ButtonLinkDirective } from '../../../shared/ui/button';
+import { FormFieldComponent, InputDirective } from '../../../shared/ui/form-field';
+import {
+  AlertComponent,
+  PageHeaderComponent,
+  EmptyStateComponent,
+} from '../../../shared/ui/feedback';
+import { I18nService } from '../../../core/services/i18n.service';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { Subject, catchError, forkJoin, of, switchMap, tap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatchingService } from '../../../core/services/matching.service';
+import { SuggestedExperience, UnmetDemandInsight } from '../../../core/models/matching.model';
 
-/**
- * Componente del Panel de Demanda Insatisfecha para Anfitriones y Sedes (CU-08).
- *
- * Expone inteligencia de mercado por zona geográfica:
- * - Identificación de categorías más buscadas por asistentes sin oferta disponible.
- * - Sugerencias de franjas horarias y precios de entrada recomendados.
- * - Skeleton loaders reactivos durante la consulta a los servicios de análisis.
- * - Inyección directa de AuthService para validación de roles en plantilla.
- */
+/** Demanda observada: solicitudes sin oferta en 30 días, sin pronósticos inventados. */
 @Component({
   selector: 'app-demand-dashboard',
-  imports: [DecimalPipe, TranslatePipe, IconComponent, EventSkeletonComponent],
+  imports: [
+    TranslatePipe,
+    IconComponent,
+    ButtonComponent,
+    ButtonLinkDirective,
+    FormFieldComponent,
+    InputDirective,
+    AlertComponent,
+    PageHeaderComponent,
+    EmptyStateComponent,
+    DecimalPipe,
+    FormsModule,
+    RouterLink,
+  ],
   templateUrl: './demand-dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DemandDashboardComponent implements OnInit {
-  private readonly matchingService = inject(MatchingService);
   readonly auth = inject(AuthService);
-
-  /** Colección de insights analíticos de demanda insatisfecha */
+  readonly i18n = inject(I18nService);
+  private readonly api = inject(MatchingService);
+  private readonly requests = new Subject<string>();
   readonly insights = signal<UnmetDemandInsight[]>([]);
-
-  /** Estado de carga mientras se obtienen los datos de FastAPI */
-  readonly loading = signal<boolean>(true);
-
-  /**
-   * Ciclo de vida inicial: realiza la prospección inicial para todas las zonas.
-   *
-   * @returns {void}
-   */
+  readonly suggestions = signal<SuggestedExperience[]>([]);
+  readonly loading = signal(false);
+  readonly error = signal('');
+  zone = '';
+  constructor() {
+    this.requests
+      .pipe(
+        tap(() => {
+          this.loading.set(true);
+          this.error.set('');
+        }),
+        switchMap((zone) =>
+          forkJoin({
+            insights: this.api.getDemandInsights(zone),
+            suggestions: this.api.suggestions(zone),
+          }).pipe(
+            catchError((err) => {
+              this.error.set(err.error?.detail ?? this.i18n.translate('demand.loadError'));
+              return of(null);
+            }),
+          ),
+        ),
+        takeUntilDestroyed(),
+      )
+      .subscribe((value) => {
+        this.loading.set(false);
+        if (value) {
+          this.insights.set(value.insights);
+          this.suggestions.set(value.suggestions);
+        }
+      });
+  }
   ngOnInit(): void {
     this.onSelectZone('');
   }
-
-  /**
-   * Filtra los reportes de demanda insatisfecha por una zona urbana específica.
-   *
-   * @param {string} zone - Nombre del barrio o zona urbana (ej. 'Equipetrol').
-   * @returns {void}
-   */
   onSelectZone(zone: string): void {
-    this.loading.set(true);
-    this.matchingService.getDemandInsights(zone).subscribe({
-      next: (items) => {
-        this.insights.set(items);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.insights.set([]);
-        this.loading.set(false);
-      },
-    });
+    this.requests.next(zone);
+  }
+  draft(item: SuggestedExperience): Record<string, string | number> {
+    return {
+      title: (this.i18n.translate('demand.draft') + ' ' + item.category_keyword).slice(0, 200),
+      ...(item.category_id ? { category_id: item.category_id } : {}),
+      ...(item.suggested_price != null ? { price: item.suggested_price } : {}),
+      zone: item.zone,
+    };
   }
 }

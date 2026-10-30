@@ -1,0 +1,133 @@
+<section class="space-y-6">
+  <app-page-header
+    [eyebrow]="'workspace.host' | translate"
+    [title]="'venue.title' | translate"
+    [description]="'venue.description' | translate"
+    ><button appButton variant="secondary" [busy]="loading()" (click)="load()">
+      {{ 'ui.refresh' | translate }}
+    </button></app-page-header
+  >
+  @if (error()) {
+    <app-alert tone="error">{{ error() }}</app-alert>
+  }
+  <div class="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-6 items-start">
+    <div class="space-y-4">
+      @for (item of items(); track item.id) {
+        <article class="ui-surface ui-panel space-y-3">
+          <div class="flex items-start gap-3">
+            <app-icon name="building-office" />
+            <div>
+              <h2 class="ui-section-title">{{ item.name }}</h2>
+              <p class="ui-muted text-sm mt-2">{{ item.address }}</p>
+              <p class="ui-muted text-sm">{{ item.city }} · {{ item.zone }}</p>
+            </div>
+          </div>
+          <p class="text-sm">{{ 'venue.capacity' | translate }}: {{ item.max_capacity }}</p>
+          <button appButton variant="secondary" size="sm" [disabled]="busy()" (click)="edit(item)">
+            {{ 'host.edit' | translate }}
+          </button>
+        </article>
+      } @empty {
+        <app-empty-state
+          icon="building-office"
+          [title]="(loading() ? 'ui.loading' : 'venue.empty') | translate"
+          [description]="'venue.emptyHint' | translate"
+        />
+      }
+    </div>
+    <form
+      id="venue-editor"
+      [formGroup]="form"
+      (ngSubmit)="save()"
+      class="ui-surface ui-panel space-y-5"
+      novalidate
+      (input)="saved.set(false)"
+    >
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="ui-section-title">
+          {{ (editingId() ? 'venue.edit' : 'venue.create') | translate }}
+        </h2>
+        @if (editingId()) {
+          <button appButton variant="ghost" size="sm" [disabled]="busy()" (click)="newVenue()">
+            {{ 'venue.new' | translate }}
+          </button>
+        }
+      </div>
+      <app-field
+        controlId="venue-name"
+        [label]="'venue.name' | translate"
+        [error]="fieldError('name')"
+        ><input appInput formControlName="name" required maxlength="150"
+      /></app-field>
+      <app-field
+        controlId="venue-address"
+        [label]="'venue.address' | translate"
+        [error]="fieldError('address')"
+        ><input
+          appInput
+          formControlName="address"
+          required
+          maxlength="255"
+          autocomplete="street-address"
+      /></app-field>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <app-field
+          controlId="venue-city"
+          [label]="'profile.location.city' | translate"
+          [error]="fieldError('city')"
+          ><input
+            appInput
+            formControlName="city"
+            required
+            maxlength="100"
+            autocomplete="address-level2"
+        /></app-field>
+        <app-field controlId="venue-zone" [label]="'profile.location.zone' | translate"
+          ><input appInput formControlName="zone" maxlength="100"
+        /></app-field>
+        <app-field controlId="venue-phone" [label]="'profile.personal.phone' | translate"
+          ><input appInput formControlName="phone" type="tel" maxlength="20"
+        /></app-field>
+        <app-field
+          controlId="venue-capacity"
+          [label]="'venue.capacity' | translate"
+          [error]="fieldError('max_capacity')"
+          ><input
+            appInput
+            formControlName="max_capacity"
+            type="number"
+            min="1"
+            max="50000"
+            step="1"
+            required
+        /></app-field>
+        <app-field
+          controlId="venue-latitude"
+          [label]="'catalog.latitude' | translate"
+          [error]="fieldError('latitude')"
+          ><input appInput formControlName="latitude" type="number" min="-90" max="90" step="any"
+        /></app-field>
+        <app-field
+          controlId="venue-longitude"
+          [label]="'catalog.longitude' | translate"
+          [error]="fieldError('longitude')"
+          ><input
+            appInput
+            formControlName="longitude"
+            type="number"
+            min="-180"
+            max="180"
+            step="any"
+        /></app-field>
+      </div>
+      <p class="ui-muted text-xs">{{ 'venue.coordinatesHint' | translate }}</p>
+      @if (form.touched && form.hasError('coordinates')) {
+        <app-alert tone="error">{{ 'catalog.locationIncomplete' | translate }}</app-alert>
+      }
+      @if (saved()) {
+        <app-alert tone="success">{{ 'venue.saved' | translate }}</app-alert>
+      }
+      <button appButton type="submit" [busy]="busy()">{{ 'common.save' | translate }}</button>
+    </form>
+  </div>
+</section>

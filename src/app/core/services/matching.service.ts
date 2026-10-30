@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_CONFIG } from '../config/api.config';
-import { MatchingGroup, UnmetDemandInsight } from '../models/matching.model';
+import { MatchingGroup, SuggestedExperience, UnmetDemandInsight } from '../models/matching.model';
 
 /**
  * Servicio del dominio de Matching Grupal y Prospección de Demanda (CU-07, CU-08).
@@ -24,8 +24,8 @@ export class MatchingService {
    * @param {string} experienceId - Identificador de la experiencia postulada (UUID).
    * @returns {Observable<MatchingGroup>} Flujo observable con el estado consolidado del grupo.
    */
-  applyForMatching(experienceId: string): Observable<MatchingGroup> {
-    return this.http.post<MatchingGroup>(`${this.apiUrl}/matching/${experienceId}/apply`, {});
+  applyForMatching(experienceId: string, preferences: { available_from?: string; available_to?: string; preferred_zone?: string } = {}): Observable<MatchingGroup> {
+    return this.http.post<MatchingGroup>(`${this.apiUrl}/matching/apply`, { experience_id: experienceId, ...preferences });
   }
 
   /**
@@ -35,7 +35,7 @@ export class MatchingService {
    * @returns {Observable<MatchingGroup>} Flujo observable con el porcentaje y conteo de miembros.
    */
   getGroupStatus(experienceId: string): Observable<MatchingGroup> {
-    return this.http.get<MatchingGroup>(`${this.apiUrl}/matching/${experienceId}`);
+    return this.http.get<MatchingGroup>(`${this.apiUrl}/matching/group/${experienceId}`);
   }
 
   /**
@@ -50,6 +50,10 @@ export class MatchingService {
     if (zone?.trim()) {
       params = params.set('zone', zone.trim());
     }
-    return this.http.get<UnmetDemandInsight[]>(`${this.apiUrl}/demand-insights`, { params });
+    return this.http.get<UnmetDemandInsight[]>(`${this.apiUrl}/demand/insights`, { params });
+  }
+  leave(experienceId: string): Observable<unknown> { return this.http.delete(`${this.apiUrl}/matching/group/${experienceId}/membership`); }
+  suggestions(zone?: string): Observable<SuggestedExperience[]> {
+    return this.http.get<SuggestedExperience[]>(`${this.apiUrl}/demand/suggestions`, { params: zone?.trim() ? { zone: zone.trim() } : {} });
   }
 }

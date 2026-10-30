@@ -1,89 +1,151 @@
-<div class="max-w-5xl mx-auto space-y-6">
-  <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-    {{ 'profile.historyTitle' | translate }}
-  </h1>
-
-  @if (!auth.isLoggedIn()) {
-    <div class="p-8 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div class="flex items-start gap-3.5">
-        <div class="w-10 h-10 rounded-xl bg-violet-600/15 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
-          <app-icon name="ticket" sizeClass="w-5 h-5" />
-        </div>
-        <div>
-          <h3 class="text-sm font-bold text-slate-900 dark:text-white">
-            {{ 'auth.friendlyRequiredTitle' | translate }}
-          </h3>
-          <p class="mt-0.5 text-xs text-slate-600 dark:text-slate-300">
-            {{ 'auth.friendlyRequiredDesc' | translate }}
-          </p>
-        </div>
-      </div>
-
-      <a
-        routerLink="/auth/login"
-        [queryParams]="{ returnUrl: '/my-tickets' }"
-        class="self-start sm:self-center px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5 whitespace-nowrap"
-      >
-        <span>{{ 'auth.friendlyLoginBtn' | translate }}</span>
-        <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5" />
-      </a>
-    </div>
-  } @else if (loading()) {
-    <app-event-skeleton [count]="4" variant="list" />
-  } @else if (bookings().length === 0) {
-    <div class="p-12 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 text-center space-y-3">
-      <app-icon name="ticket" sizeClass="w-8 h-8 text-slate-400 mx-auto" />
-      <p class="text-sm text-slate-500 dark:text-slate-400">{{ 'profile.historyEmpty' | translate }}</p>
-    </div>
-  } @else {
-    <div class="rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 divide-y divide-slate-200 dark:divide-white/10">
-      @for (item of bookings(); track item.id) {
-        <div class="p-5 flex items-center justify-between gap-4">
-          <div class="flex items-center gap-3.5">
-            <div class="w-10 h-10 rounded-xl bg-violet-600/10 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
-              <app-icon name="calendar" sizeClass="w-5 h-5" />
-            </div>
-            <div>
-              <p class="text-sm font-bold text-slate-900 dark:text-white">
-                {{ item.experience_title || ('Reserva #' + item.id) }}
-              </p>
-              <p class="text-xs text-slate-500 dark:text-slate-400 uppercase">
-                {{ (item.event_date || item.created_at) | date: 'dd MMM yyyy' }} · {{ item.status }}
-              </p>
-            </div>
-          </div>
-          <span class="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">
-            Bs {{ item.total_amount | number: '1.0-2' }}
-          </span>
-        </div>
-      }
-    </div>
+<section class="max-w-5xl mx-auto space-y-6">
+  <app-page-header
+    [eyebrow]="'ui.account' | translate"
+    [title]="'tickets.title' | translate"
+    [description]="'tickets.subtitle' | translate"
+  >
+    <button appButton variant="secondary" [busy]="loading()" (click)="load()">
+      {{ 'ui.refresh' | translate }}
+    </button>
+    <a appButton routerLink="/notifications"
+      ><app-icon name="bell" sizeClass="w-4 h-4" />{{ 'nav.notifications' | translate }}</a
+    >
+  </app-page-header>
+  <nav [attr.aria-label]="'tickets.filters' | translate" class="ui-tabs">
+    <button
+      appButton
+      variant="ghost"
+      size="sm"
+      (click)="filter.set('all')"
+      [attr.aria-pressed]="filter() === 'all'"
+    >
+      {{ 'tickets.all' | translate }}
+    </button>
+    <button
+      appButton
+      variant="ghost"
+      size="sm"
+      (click)="filter.set('upcoming')"
+      [attr.aria-pressed]="filter() === 'upcoming'"
+    >
+      {{ 'tickets.upcoming' | translate }}
+    </button>
+    <button
+      appButton
+      variant="ghost"
+      size="sm"
+      (click)="filter.set('past')"
+      [attr.aria-pressed]="filter() === 'past'"
+    >
+      {{ 'tickets.past' | translate }}
+    </button>
+  </nav>
+  @if (error()) {
+    <app-alert tone="error">{{ error() }}</app-alert>
   }
-
-  <!-- Mobile App for Attendees Banner -->
-  <div class="p-6 rounded-3xl bg-gradient-to-r from-violet-900/80 to-[#181329] text-white border border-violet-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-    <div class="flex items-start gap-4">
-      <div class="w-11 h-11 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-        <app-icon name="device-phone-mobile" sizeClass="w-6 h-6" />
+  @if (loading()) {
+    <app-alert>{{ 'ui.loading' | translate }}</app-alert>
+  } @else if (!visible().length && !error()) {
+    <app-empty-state
+      [title]="'tickets.empty' | translate"
+      [description]="'tickets.emptyHint' | translate"
+      ><a appButton variant="primary" routerLink="/catalog"
+        >{{ 'ui.explore' | translate }}<app-icon name="arrow-right" sizeClass="w-4 h-4" /></a
+    ></app-empty-state>
+  }
+  @for (item of visible(); track item.id) {
+    <article class="ui-surface overflow-hidden">
+      <div class="p-5 sm:p-6 flex flex-col sm:flex-row gap-5">
+        <div
+          class="hidden sm:grid place-items-center w-14 h-14 rounded-2xl bg-violet-500/10 text-violet-600 dark:text-violet-300 shrink-0"
+        >
+          <app-icon name="ticket" sizeClass="w-7 h-7" />
+        </div>
+        <div class="flex-1 min-w-0 space-y-3">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <h2 class="text-lg font-bold">
+              {{ item.experience_title || ('tickets.fallback' | translate) }}
+            </h2>
+            <app-status-badge [value]="item.status" />
+          </div>
+          <p class="ui-muted text-sm">
+            {{ item.event_date | date: 'dd/MM/yyyy HH:mm' }} · {{ item.quantity }}
+            {{ 'booking.tickets' | translate }}
+          </p>
+          <div class="flex flex-wrap items-center gap-2">
+            @if (item.experience_status) {
+              <span class="ui-muted text-xs">{{ 'booking.event' | translate }}</span
+              ><app-status-badge [value]="item.experience_status" />
+            }
+            @if (item.refund_status) {
+              <span class="ui-muted text-xs">{{ 'booking.refundStatus' | translate }}</span
+              ><app-status-badge [value]="item.refund_status" />
+            }
+          </div>
+          <p class="text-lg font-bold tabular-nums">
+            {{ item.currency }} {{ item.total_amount | number: '1.2-2' }}
+          </p>
+          @if (item.cancellation_reason) {
+            <p class="ui-muted text-sm">{{ item.cancellation_reason }}</p>
+          }
+        </div>
       </div>
-      <div>
-        <h3 class="text-sm font-bold text-white flex items-center gap-2">
-          <span>{{ 'exp.create.attendeeAppHeading' | translate }}</span>
-          <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-emerald-500/20 text-emerald-300">
-            QR Offline
-          </span>
-        </h3>
-        <p class="mt-1 text-xs text-violet-200/80 max-w-xl leading-relaxed">
-          {{ 'exp.create.featTicketsDesc' | translate }} Escanea tus entradas en puerta de local sin conexión y recibe avisos de quórum instantáneos.
-        </p>
+      <div
+        class="p-4 sm:px-6 bg-slate-50/70 dark:bg-white/[.02] border-t border-slate-200 dark:border-white/10 ui-actions"
+      >
+        @if (item.status === 'PAID' && !item.refund_status) {
+          @for (ticket of item.tickets; track ticket.id; let n = $index) {
+            <button
+              appButton
+              [busy]="qrLoading() && selected()?.id === ticket.id"
+              [disabled]="qrLoading()"
+              (click)="onShowTicketQR(ticket, $event)"
+            >
+              <app-icon name="qr-code" sizeClass="w-4 h-4" />{{ 'tickets.entry' | translate }}
+              {{ n + 1 }} · {{ (ticket.is_used ? 'tickets.used' : 'tickets.showQR') | translate }}
+            </button>
+          }
+        }
+        <a appButton size="sm" [routerLink]="['/checkout', item.id]"
+          >{{ 'tickets.detail' | translate }}<app-icon name="arrow-right" sizeClass="w-4 h-4"
+        /></a>
+        @if (canRefund(item)) {
+          <button
+            appButton
+            variant="danger"
+            size="sm"
+            [busy]="refundBusy() === item.id"
+            [disabled]="!!refundBusy()"
+            (click)="refund(item)"
+          >
+            {{ 'tickets.refund' | translate }}
+          </button>
+        }
       </div>
-    </div>
-
-    <div class="flex items-center gap-3 shrink-0">
-      <div class="px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-xs font-semibold inline-flex items-center gap-2">
-        <app-icon name="qr-code" sizeClass="w-4 h-4 text-violet-300" />
-        <span class="text-[11px] text-slate-200">Google Play & App Store</span>
-      </div>
-    </div>
-  </div>
-</div>
+    </article>
+  }
+  @if (selected(); as ticket) {
+    <app-dialog
+      [title]="'tickets.digital' | translate"
+      [closeLabel]="'ui.close' | translate"
+      [returnFocus]="qrTrigger"
+      (closed)="closeQR()"
+    >
+      @if (qrUrl()) {
+        <div class="bg-white rounded-xl p-3">
+          <img
+            [src]="qrUrl()"
+            [alt]="'tickets.qrAlt' | translate"
+            class="w-full aspect-square object-contain"
+          />
+        </div>
+      } @else {
+        <app-alert>{{ 'tickets.generating' | translate }}</app-alert>
+      }
+      <p class="break-all font-mono text-xs text-center ui-muted">{{ ticket.ticket_code }}</p>
+      <app-alert [tone]="ticket.is_used ? 'info' : 'success'">{{
+        (ticket.is_used ? 'tickets.usedHint' : 'tickets.showHint') | translate
+      }}</app-alert>
+    </app-dialog>
+  }
+</section>

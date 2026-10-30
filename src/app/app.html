@@ -1,7 +1,10 @@
-<div class="h-dvh max-h-dvh w-full overflow-hidden bg-[#f6f5fa] dark:bg-[#0b0a10] text-slate-900 dark:text-slate-100 transition-colors duration-200 flex flex-col font-sans">
+<div
+  class="h-dvh max-h-dvh w-full overflow-hidden bg-[#f6f5fa] dark:bg-[#0b0a10] text-slate-900 dark:text-slate-100 transition-colors duration-200 flex flex-col font-sans"
+>
+  <a class="ui-skip-link" href="#main-content">{{ 'ui.skip' | translate }}</a>
   @if (isAuthPage()) {
     <!-- Login y registro: pantalla completa sin scroll -->
-    <main class="h-dvh w-full overflow-hidden">
+    <main id="main-content" tabindex="-1" class="h-dvh w-full overflow-y-auto">
       <router-outlet />
     </main>
   } @else {
@@ -10,7 +13,11 @@
 
     <!-- Contenedor con scroll independiente para el resto de la página -->
     <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col scroll-smooth">
-      <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <main
+        id="main-content"
+        tabindex="-1"
+        class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10"
+      >
         <router-outlet />
       </main>
 

@@ -17,6 +17,7 @@ export interface Booking {
   experience_title?: string;
   /** Fecha programada de la experiencia */
   event_date?: string;
+  experience_status?: string;
   /** Cantidad de cupos adquiridos */
   quantity: number;
   /** Monto total facturado en Bs */
@@ -25,6 +26,13 @@ export interface Booking {
   status: string;
   /** Fecha y hora de creación de la reserva */
   created_at: string;
+  expires_at?: string;
+  currency: string;
+  platform_fee: number;
+  host_payout: number;
+  cancellation_reason?: string;
+  refund_status?: string;
+  tickets: Ticket[];
 }
 
 /**

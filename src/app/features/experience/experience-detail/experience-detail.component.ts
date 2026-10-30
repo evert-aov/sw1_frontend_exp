@@ -1,5 +1,10 @@
+import { I18nService } from '../../../core/services/i18n.service';
+import { ButtonComponent, ButtonLinkDirective } from '../../../shared/ui/button';
+import { FormFieldComponent, InputDirective } from '../../../shared/ui/form-field';
+import { AlertComponent } from '../../../shared/ui/feedback';
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ExperienceService } from '../../../core/services/experience.service';
 import { BookingService } from '../../../core/services/booking.service';
@@ -20,7 +25,19 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
  */
 @Component({
   selector: 'app-experience-detail',
-  imports: [DatePipe, DecimalPipe, RouterModule, TranslatePipe, IconComponent],
+  imports: [
+    ButtonComponent,
+    ButtonLinkDirective,
+    FormFieldComponent,
+    InputDirective,
+    AlertComponent,
+    DatePipe,
+    DecimalPipe,
+    RouterModule,
+    TranslatePipe,
+    IconComponent,
+    FormsModule,
+  ],
   templateUrl: './experience-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -31,6 +48,7 @@ export class ExperienceDetailComponent implements OnInit {
   private readonly bookingService = inject(BookingService);
   private readonly matchingService = inject(MatchingService);
   readonly auth = inject(AuthService);
+  readonly i18n = inject(I18nService);
 
   /** Entidad de la experiencia cargada */
   readonly experience = signal<Experience | null>(null);
@@ -43,6 +61,10 @@ export class ExperienceDetailComponent implements OnInit {
 
   /** Muestra aviso amigable si el usuario requiere autenticarse */
   readonly showAuthNotice = signal<boolean>(false);
+  readonly reserveError = signal('');
+  readonly reserving = signal(false);
+  quantity = 1;
+  private bookingKey = crypto.randomUUID();
 
   /**
    * Ciclo de vida inicial: extrae el ID de la URL y consulta el detalle al backend.
@@ -77,21 +99,32 @@ export class ExperienceDetailComponent implements OnInit {
    */
   onReserveClick(): void {
     const exp = this.experience();
-    if (!exp) return;
+    if (!exp || this.reserving()) return;
+    if (!Number.isInteger(this.quantity) || this.quantity < 1 || this.quantity > 20) {
+      this.reserveError.set(this.i18n.translate('detail.quantityError'));
+      return;
+    }
 
     if (!this.auth.isLoggedIn()) {
       this.showAuthNotice.set(true);
       return;
     }
 
-    this.bookingService.createBooking({ experience_id: exp.id, quantity: 1 }).subscribe({
-      next: (booking) => {
-        this.router.navigate(['/checkout', booking.id]);
-      },
-      error: () => {
-        this.showAuthNotice.set(true);
-      },
-    });
+    this.reserving.set(true);
+    this.reserveError.set('');
+    this.bookingService
+      .createBooking({ experience_id: exp.id, quantity: this.quantity }, this.bookingKey)
+      .subscribe({
+        next: (booking) => {
+          this.reserving.set(false);
+          this.bookingKey = crypto.randomUUID();
+          this.router.navigate(['/checkout', booking.id]);
+        },
+        error: (err) => {
+          this.reserving.set(false);
+          this.reserveError.set(err.error?.detail ?? this.i18n.translate('detail.reserveError'));
+        },
+      });
   }
 
   /**
@@ -108,13 +141,6 @@ export class ExperienceDetailComponent implements OnInit {
       return;
     }
 
-    this.matchingService.applyForMatching(exp.id).subscribe({
-      next: () => {
-        this.router.navigate(['/matching', exp.id]);
-      },
-      error: () => {
-        this.showAuthNotice.set(true);
-      },
-    });
+    this.router.navigate(['/matching', exp.id]);
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { API_CONFIG } from '../config/api.config';
 import { Category } from '../models/category.model';
 import { Venue } from '../models/venue.model';
@@ -38,43 +38,39 @@ export interface CommissionBreakdown {
   providedIn: 'root',
 })
 export class ExperienceService {
+  private readonly searchSession = crypto.randomUUID();
   private readonly http = inject(HttpClient);
   private readonly apiUrl = API_CONFIG.baseUrl;
 
-  /**
-   * HU-07: Calcula la comisión escalonada de plataforma según el precio de la entrada.
-   * Reglas de negocio:
-   * - Precio < 100 BOB: 10% de comisión (Tarifa estándar)
-   * - Precio entre 100 y 300 BOB: 8% de comisión (Tarifa intermedia)
-   * - Precio > 300 BOB: 5% de comisión (Tarifa preferencial para eventos de alto valor)
-   *
-   * @param {number} price - Precio fijado por cupo/entrada en BOB.
-   * @returns {CommissionBreakdown} Desglose completo de tarifa porcentual, monto retenido y neto por cupo.
-   */
-  calculateCommission(price: number): CommissionBreakdown {
-    const validPrice = Math.max(0, Number(price) || 0);
-    let rate = 0.1;
-    let tierKey = 'exp.breakdown.tierLow';
-
-    if (validPrice > 300) {
-      rate = 0.05;
-      tierKey = 'exp.breakdown.tierHigh';
-    } else if (validPrice >= 100) {
-      rate = 0.08;
-      tierKey = 'exp.breakdown.tierMid';
-    }
-
-    const feePerTicket = Math.round(validPrice * rate * 100) / 100;
-    const netPerTicket = Math.round((validPrice - feePerTicket) * 100) / 100;
-
-    return {
-      price: validPrice,
-      rate,
-      ratePercent: Math.round(rate * 1000) / 10,
-      feePerTicket,
-      netPerTicket,
-      tierKey,
-    };
+  getMyExperiences(): Observable<HostedExperience[]> {
+    return this.http.get<HostedExperience[]>(`${this.apiUrl}/experiences/me/hosted`);
+  }
+  getMyExperience(id: string): Observable<HostedExperience> {
+    return this.http.get<HostedExperience>(`${this.apiUrl}/experiences/me/hosted/${id}`);
+  }
+  updateExperience(
+    id: string,
+    payload: Omit<
+      CreateExperiencePayload,
+      'category_id' | 'cover_image_url' | 'venue_id' | 'virtual_meeting_url'
+    > & {
+      cover_image_url?: string | null;
+      venue_id?: string | null;
+      virtual_meeting_url?: string | null;
+    },
+  ): Observable<Experience> {
+    return this.http.put<Experience>(`${this.apiUrl}/experiences/${id}`, payload);
+  }
+  deleteExperience(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/experiences/${id}`);
+  }
+  getMyVenues(): Observable<Venue[]> {
+    return this.http.get<Venue[]>(`${this.apiUrl}/venues/me/owned`);
+  }
+  saveVenue(payload: VenuePayload, id?: string): Observable<Venue> {
+    return id
+      ? this.http.put<Venue>(`${this.apiUrl}/venues/${id}`, payload)
+      : this.http.post<Venue>(`${this.apiUrl}/venues`, payload);
   }
 
   /**
@@ -98,26 +94,16 @@ export class ExperienceService {
   getCatalog(filters?: CatalogFilters): Observable<CatalogResponse> {
     let params = new HttpParams();
 
-    if (filters?.category_id) {
-      params = params.set('category_id', filters.category_id);
-    }
-    if (filters?.modality) {
-      params = params.set('modality', filters.modality);
-    }
-    if (filters?.search?.trim()) {
-      params = params.set('search', filters.search.trim());
-    }
-    if (filters?.zone?.trim()) {
-      params = params.set('zone', filters.zone.trim());
-    }
-    if (filters?.only_open !== undefined) {
-      params = params.set('only_open', String(filters.only_open));
-    }
-    if (filters?.max_price !== undefined && filters.max_price > 0) {
-      params = params.set('max_price', String(filters.max_price));
+    for (const [key, value] of Object.entries(filters ?? {})) {
+      if (value !== undefined && value !== null && value !== '') {
+        params = params.set(key, String(value));
+      }
     }
 
-    return this.http.get<CatalogResponse>(`${this.apiUrl}/experiences/catalog`, { params });
+    return this.http.get<CatalogResponse>(`${this.apiUrl}/experiences/catalog`, {
+      params,
+      headers: { 'X-Search-Session': this.searchSession },
+    });
   }
 
   /**
@@ -147,4 +133,49 @@ export class ExperienceService {
   getVenues(): Observable<Venue[]> {
     return this.http.get<Venue[]>(`${this.apiUrl}/venues`);
   }
+
+  /** Consulta la política de comisión del servidor; no duplica escalones en el navegador. */
+  getCommissionQuote(price: number): Observable<CommissionBreakdown> {
+    return this.http
+      .get<{
+        unit_price: number;
+        commission_rate: number;
+        fee_per_ticket: number;
+        net_per_ticket: number;
+        tier: string;
+      }>(`${this.apiUrl}/experiences/commission-quote`, { params: { price } })
+      .pipe(
+        map((quote) => ({
+          price: quote.unit_price,
+          rate: quote.commission_rate,
+          ratePercent: quote.commission_rate * 100,
+          feePerTicket: quote.fee_per_ticket,
+          netPerTicket: quote.net_per_ticket,
+          tierKey: (
+            {
+              LOW: 'exp.breakdown.tierLow',
+              MID: 'exp.breakdown.tierMid',
+              HIGH: 'exp.breakdown.tierHigh',
+            } as Record<string, string>
+          )[quote.tier],
+        })),
+      );
+  }
+}
+
+export interface HostedExperience extends Experience {
+  can_edit: boolean;
+  can_delete: boolean;
+  held_slots: number;
+  management_lock_reason?: string;
+}
+export interface VenuePayload {
+  name: string;
+  address?: string | null;
+  city: string;
+  zone?: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  max_capacity: number;
+  phone?: string | null;
 }

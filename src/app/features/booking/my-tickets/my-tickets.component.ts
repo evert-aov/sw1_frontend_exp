@@ -1,67 +1,142 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { DatePipe, DecimalPipe } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { BookingService } from '../../../core/services/booking.service';
-import { AuthService } from '../../../core/services/auth.service';
-import { Booking } from '../../../core/models/booking.model';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
-import { EventSkeletonComponent } from '../../../shared/components/event-skeleton/event-skeleton.component';
+import { ButtonComponent, ButtonLinkDirective } from '../../../shared/ui/button';
+import {
+  AlertComponent,
+  PageHeaderComponent,
+  EmptyStateComponent,
+  StatusBadgeComponent,
+} from '../../../shared/ui/feedback';
+import { DialogComponent } from '../../../shared/ui/dialog';
+import { I18nService } from '../../../core/services/i18n.service';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
+import { BookingService } from '../../../core/services/booking.service';
+import { Booking, Ticket } from '../../../core/models/booking.model';
 
-/**
- * Componente de Mis Entradas y Reservas (CU-06).
- *
- * Muestra el listado de tickets adquiridos por el usuario con:
- * - Carga asíncrona respaldada por skeleton loaders para rendimiento percibido.
- * - Despliegue de estado de confirmación y fecha del evento.
- * - Acceso a código QR digital para control de acceso en puerta.
- */
+/** Historial propio, estados de devolución y QR generado por la API autorizada. */
 @Component({
   selector: 'app-my-tickets',
-  imports: [DatePipe, DecimalPipe, RouterModule, TranslatePipe, IconComponent, EventSkeletonComponent],
+  imports: [
+    TranslatePipe,
+    IconComponent,
+    ButtonComponent,
+    ButtonLinkDirective,
+    AlertComponent,
+    PageHeaderComponent,
+    EmptyStateComponent,
+    StatusBadgeComponent,
+    DialogComponent,
+    DatePipe,
+    DecimalPipe,
+    RouterLink,
+  ],
   templateUrl: './my-tickets.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MyTicketsComponent implements OnInit {
-  private readonly bookingService = inject(BookingService);
-  readonly auth = inject(AuthService);
-
-  /** Reservas y tickets adquiridos */
+export class MyTicketsComponent implements OnInit, OnDestroy {
+  readonly i18n = inject(I18nService);
+  private readonly api = inject(BookingService);
   readonly bookings = signal<Booking[]>([]);
+  readonly loading = signal(true);
+  readonly error = signal('');
+  readonly filter = signal<'all' | 'upcoming' | 'past'>('all');
+  readonly selected = signal<Ticket | null>(null);
+  qrTrigger: HTMLElement | null = null;
+  readonly qrUrl = signal('');
+  readonly qrLoading = signal(false);
+  readonly refundBusy = signal('');
+  readonly visible = computed(() =>
+    this.bookings().filter((item) => {
+      const future = !!item.event_date && new Date(item.event_date).getTime() > Date.now();
+      return this.filter() === 'all' || (this.filter() === 'upcoming' ? future : !future);
+    }),
+  );
 
-  /** Estado de carga mientras se consulta la API */
-  readonly loading = signal<boolean>(true);
-
-  /**
-   * Ciclo de vida inicial: carga las entradas del usuario autenticado actual.
-   *
-   * @returns {void}
-   */
   ngOnInit(): void {
-    if (!this.auth.isLoggedIn()) {
-      this.loading.set(false);
-      return;
-    }
-
-    this.bookingService.getMyTickets().subscribe({
-      next: (items) => {
-        this.bookings.set(items);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.bookings.set([]);
-        this.loading.set(false);
-      },
-    });
+    this.load();
+  }
+  ngOnDestroy(): void {
+    this.closeQR();
   }
 
-  /**
-   * Despliega el modal con el código QR digital de la entrada para validación en puerta.
-   *
-   * @param {string} ticketId - Identificador único del ticket o reserva (UUID).
-   * @returns {void}
-   */
-  onShowTicketQR(ticketId: string): void {
-    // Despliega código QR de acceso digital
+  load(): void {
+    this.loading.set(true);
+    this.error.set('');
+    this.api
+      .getMyTickets()
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: (items) => this.bookings.set(items),
+        error: (err) =>
+          this.error.set(err.error?.detail ?? this.i18n.translate('tickets.loadError')),
+      });
+  }
+
+  onShowTicketQR(ticket: Ticket, event?: Event): void {
+    if (this.qrLoading()) return;
+    this.closeQR();
+    this.selected.set(ticket);
+    this.qrLoading.set(true);
+    this.error.set('');
+    this.qrTrigger = event?.currentTarget as HTMLElement | null;
+    this.api
+      .getTicketQR(ticket.id)
+      .pipe(finalize(() => this.qrLoading.set(false)))
+      .subscribe({
+        next: (blob) => {
+          if (this.selected()?.id === ticket.id) this.qrUrl.set(URL.createObjectURL(blob));
+        },
+        error: (err) => {
+          this.closeQR();
+          this.error.set(this.i18n.translate('tickets.qrError'));
+        },
+      });
+  }
+
+  closeQR(): void {
+    if (this.qrUrl()) URL.revokeObjectURL(this.qrUrl());
+    this.qrUrl.set('');
+    this.selected.set(null);
+  }
+
+  canRefund(item: Booking): boolean {
+    return (
+      item.status === 'PAID' &&
+      item.total_amount > 0 &&
+      !item.refund_status &&
+      !!item.event_date &&
+      new Date(item.event_date).getTime() > Date.now() &&
+      !item.tickets.some((ticket) => ticket.is_used)
+    );
+  }
+
+  refund(item: Booking): void {
+    if (this.refundBusy() || !this.canRefund(item)) return;
+    if (!window.confirm(this.i18n.translate('tickets.refundConfirm'))) return;
+    this.refundBusy.set(item.id);
+    this.error.set('');
+    this.api
+      .refund(item.id)
+      .pipe(finalize(() => this.refundBusy.set('')))
+      .subscribe({
+        next: (updated) =>
+          this.bookings.update((items) =>
+            items.map((value) => (value.id === updated.id ? updated : value)),
+          ),
+        error: (err) => {
+          this.error.set(err.error?.detail ?? this.i18n.translate('tickets.refundError'));
+        },
+      });
   }
 }

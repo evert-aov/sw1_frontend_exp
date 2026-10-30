@@ -1,136 +1,114 @@
-<div>
-  <p class="text-[11px] font-bold tracking-[0.2em] text-violet-600 dark:text-violet-400">
-    {{ 'auth.eyebrow' | translate }}
-  </p>
-  <h2 class="mt-1 text-2xl sm:text-3xl font-extrabold tracking-tight">
-    {{ 'auth.register.title' | translate }}
-  </h2>
-  <p class="mt-0.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-    {{ 'auth.register.subtitle' | translate }}
-  </p>
-
-  <div class="mt-3">
-    <app-auth-tabs />
+<div class="space-y-5">
+  <div>
+    <p class="ui-eyebrow">{{ 'auth.eyebrow' | translate }}</p>
+    <h1 class="ui-title">{{ 'auth.register.title' | translate }}</h1>
+    <p class="ui-description">{{ 'auth.register.subtitle' | translate }}</p>
   </div>
-
+  <app-auth-tabs />
   @if (errorMessage()) {
-    <div class="mt-2.5 p-2.5 rounded-xl border border-red-300 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-xs text-red-700 dark:text-red-300 flex items-center gap-2">
-      <app-icon name="exclamation-triangle" sizeClass="w-4 h-4 shrink-0" />
-      <span>{{ errorMessage() }}</span>
-    </div>
+    <app-alert tone="error">{{ errorMessage() }}</app-alert>
   }
-
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-3 space-y-2.5" novalidate>
-    <div>
-      <label for="fullName" class="block text-xs font-semibold text-slate-700 dark:text-slate-200">
-        {{ 'auth.register.fullName' | translate }}
-      </label>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4" novalidate>
+    <app-field
+      controlId="fullName"
+      [label]="'auth.register.fullName' | translate"
+      [error]="
+        form.controls.fullName.touched && form.controls.fullName.invalid
+          ? ('auth.required' | translate)
+          : ''
+      "
+    >
       <input
-        id="fullName"
+        appInput
         formControlName="fullName"
         autocomplete="name"
+        required
         [placeholder]="'auth.register.fullNamePlaceholder' | translate"
-        class="mt-1 w-full h-10 px-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.03] text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
       />
-      @if (form.controls.fullName.touched && form.controls.fullName.invalid) {
-        <p class="mt-0.5 text-[11px] text-red-500">{{ 'auth.required' | translate }}</p>
-      }
-    </div>
-
-    <div>
-      <label for="email" class="block text-xs font-semibold text-slate-700 dark:text-slate-200">
-        {{ 'auth.email' | translate }}
-      </label>
+    </app-field>
+    <app-field
+      controlId="email"
+      [label]="'auth.email' | translate"
+      [error]="
+        form.controls.email.touched && form.controls.email.invalid
+          ? ((form.controls.email.hasError('required') ? 'auth.required' : 'auth.invalidEmail')
+            | translate)
+          : ''
+      "
+    >
       <input
-        id="email"
+        appInput
         type="email"
         formControlName="email"
         autocomplete="email"
+        required
         [placeholder]="'auth.emailPlaceholder' | translate"
-        class="mt-1 w-full h-10 px-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.03] text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
       />
-      @if (form.controls.email.touched && form.controls.email.invalid) {
-        <p class="mt-0.5 text-[11px] text-red-500">
-          {{ (form.controls.email.hasError('required') ? 'auth.required' : 'auth.invalidEmail') | translate }}
-        </p>
-      }
-    </div>
-
-    <div>
-      <label for="password" class="block text-xs font-semibold text-slate-700 dark:text-slate-200">
-        {{ 'auth.password' | translate }}
-      </label>
-      <div class="relative mt-1">
+    </app-field>
+    <app-field
+      controlId="password"
+      [label]="'auth.password' | translate"
+      [error]="
+        form.controls.password.touched && form.controls.password.invalid
+          ? ('auth.register.minPassword' | translate)
+          : ''
+      "
+    >
+      <div class="relative">
         <input
-          id="password"
+          appInput
           [type]="showPassword() ? 'text' : 'password'"
           formControlName="password"
           autocomplete="new-password"
+          required
+          minlength="8"
+          class="pr-24"
+          style="padding-right: 6rem"
           [placeholder]="'auth.passwordPlaceholder' | translate"
-          class="w-full h-10 pl-3.5 pr-20 rounded-xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-white/[0.03] text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
         />
         <button
-          type="button"
+          appButton
+          variant="ghost"
+          size="sm"
+          class="absolute right-1 top-0.5"
           (click)="showPassword.set(!showPassword())"
-          class="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center gap-1 text-xs font-semibold text-violet-600 dark:text-violet-400 cursor-pointer"
+          [attr.aria-pressed]="showPassword()"
+          [attr.aria-label]="(showPassword() ? 'auth.hide' : 'auth.show') | translate"
         >
-          <app-icon [name]="showPassword() ? 'eye-slash' : 'eye'" sizeClass="w-3.5 h-3.5" />
-          <span>{{ (showPassword() ? 'auth.hide' : 'auth.show') | translate }}</span>
+          <app-icon [name]="showPassword() ? 'eye-slash' : 'eye'" sizeClass="w-4 h-4" />{{
+            (showPassword() ? 'auth.hide' : 'auth.show') | translate
+          }}
         </button>
       </div>
-      @if (form.controls.password.touched && form.controls.password.invalid) {
-        <p class="mt-0.5 text-[11px] text-red-500">
-          {{ (form.controls.password.hasError('required') ? 'auth.required' : 'auth.register.minPassword') | translate }}
-        </p>
-      }
-    </div>
-
-    <div>
-      <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">
-        {{ 'auth.register.roleQuestion' | translate }}
-      </p>
-      <div class="mt-1.5 grid grid-cols-2 gap-2.5">
+    </app-field>
+    <fieldset>
+      <legend class="ui-label mb-3">{{ 'auth.register.roleQuestion' | translate }}</legend>
+      <div class="grid sm:grid-cols-2 gap-3">
         @for (option of roleOptions; track option.value) {
           <button
-            type="button"
+            appButton
+            variant="secondary"
+            class="ui-choice"
             (click)="role.set(option.value)"
-            class="p-2.5 rounded-xl border text-left transition-colors cursor-pointer"
-            [class]="
-              role() === option.value
-                ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/10'
-                : 'border-slate-200 dark:border-white/10 hover:border-violet-300 dark:hover:border-violet-500/40'
-            "
+            [attr.aria-pressed]="role() === option.value"
           >
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-semibold">{{ option.labelKey | translate }}</span>
-              <span
-                class="flex w-3.5 h-3.5 rounded-full border items-center justify-center"
-                [class]="role() === option.value ? 'border-violet-500 bg-violet-600 text-white' : 'border-slate-400'"
-              >
-                @if (role() === option.value) {
-                  <app-icon name="check" sizeClass="w-2.5 h-2.5" />
-                }
-              </span>
-            </div>
-            <span class="mt-0.5 block text-[11px] text-slate-500 dark:text-slate-400">
-              {{ option.descKey | translate }}
+            <span class="flex items-center justify-between gap-2"
+              ><span class="text-sm font-semibold">{{ option.labelKey | translate }}</span>
+              @if (role() === option.value) {
+                <app-icon name="check-circle" sizeClass="w-5 h-5" />
+              }
             </span>
+            <span class="text-xs ui-muted font-normal leading-relaxed">{{
+              option.descKey | translate
+            }}</span>
           </button>
         }
       </div>
-    </div>
-
-    <button
-      type="submit"
-      [disabled]="loading()"
-      class="w-full h-11 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-60 text-white text-sm font-semibold shadow-md shadow-violet-600/20 transition-colors flex items-center justify-center gap-2 cursor-pointer"
-    >
-      <span>{{ (loading() ? 'auth.register.loading' : 'auth.register.submit') | translate }}</span>
-      <app-icon name="arrow-right" sizeClass="w-4 h-4" />
+    </fieldset>
+    <button appButton type="submit" [busy]="loading()" class="w-full">
+      {{ (loading() ? 'auth.register.loading' : 'auth.register.submit') | translate
+      }}<app-icon name="arrow-right" sizeClass="w-4 h-4" />
     </button>
-
-    <p class="text-center text-[11px] text-slate-400 dark:text-slate-500">
-      {{ 'auth.terms' | translate }}
-    </p>
+    <p class="ui-muted text-xs text-center leading-relaxed">{{ 'auth.terms' | translate }}</p>
   </form>
 </div>

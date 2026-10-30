@@ -1,10 +1,16 @@
 // Diccionarios de traducción para internacionalización (Inglés y Español)
 import { authTranslations } from './auth.translations';
+import { sprintTranslations } from './sprint.translations';
+import { uiTranslations } from './ui.translations';
+import { roleTranslations } from './roles.translations';
 
 export type Language = 'en' | 'es';
 
 export const translations: Record<Language, Record<string, string>> = {
   en: {
+    ...roleTranslations.en,
+    ...uiTranslations.en,
+    ...sprintTranslations.en,
     ...authTranslations.en,
     // Navigation
     'nav.brand': 'EXPERIENCIA',
@@ -173,6 +179,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'exp.create.mockupTicket': 'VIP Access QR · Confirmed',
   },
   es: {
+    ...roleTranslations.es,
+    ...uiTranslations.es,
+    ...sprintTranslations.es,
     ...authTranslations.es,
     // Navegación
     'nav.brand': 'EXPERIENCIA',

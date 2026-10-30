@@ -1,10 +1,19 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { ThemeService } from '../../../core/services/theme.service';
 import { I18nService } from '../../../core/services/i18n.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { NavigationService } from '../../../core/services/navigation.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { IconComponent } from '../icon/icon.component';
+import { ButtonComponent, ButtonLinkDirective } from '../../ui/button';
 
 /**
  * Componente de Navegación Principal (Appbar).
@@ -17,14 +26,20 @@ import { IconComponent } from '../icon/icon.component';
  */
 @Component({
   selector: 'app-navbar',
-  imports: [RouterModule, TranslatePipe, IconComponent],
+  imports: [RouterModule, TranslatePipe, IconComponent, ButtonComponent, ButtonLinkDirective],
+  host: {
+    '(document:keydown.escape)': 'closeMenus()',
+    '(document:click)': 'onOutsideClick($event)',
+  },
   templateUrl: './navbar.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavbarComponent {
+  private readonly element = inject(ElementRef<HTMLElement>);
   readonly themeService = inject(ThemeService);
   readonly i18n = inject(I18nService);
   readonly auth = inject(AuthService);
+  readonly navigation = inject(NavigationService);
 
   /** Estado del menú flotante de usuario */
   readonly userMenuOpen = signal<boolean>(false);
@@ -65,6 +80,10 @@ export class NavbarComponent {
   closeMenus(): void {
     this.userMenuOpen.set(false);
     this.mobileMenuOpen.set(false);
+  }
+
+  onOutsideClick(event: Event): void {
+    if (!this.element.nativeElement.contains(event.target as Node)) this.closeMenus();
   }
 
   /**

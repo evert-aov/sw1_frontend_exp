@@ -25,4 +25,5 @@ export interface Venue {
   longitude?: number;
   /** Capacidad máxima estructural permitida */
   max_capacity: number;
+  phone?: string | null;
 }

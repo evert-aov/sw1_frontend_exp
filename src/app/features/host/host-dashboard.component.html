@@ -1,0 +1,113 @@
+<section class="space-y-6">
+  <app-page-header
+    [eyebrow]="'workspace.host' | translate"
+    [title]="'host.title' | translate"
+    [description]="'host.description' | translate"
+  >
+    <button appButton variant="secondary" [busy]="loading()" (click)="load()">
+      {{ 'ui.refresh' | translate }}
+    </button>
+    <a appButton variant="primary" routerLink="/experiences/create"
+      ><app-icon name="plus" sizeClass="w-4 h-4" />{{ 'nav.createExperience' | translate }}</a
+    >
+  </app-page-header>
+  <dl class="grid sm:grid-cols-3 gap-4">
+    <div class="ui-stat">
+      <dt>{{ 'host.total' | translate }}</dt>
+      <dd>{{ items().length }}</dd>
+    </div>
+    <div class="ui-stat">
+      <dt>{{ 'host.active' | translate }}</dt>
+      <dd>{{ activeCount() }}</dd>
+    </div>
+    <div class="ui-stat">
+      <dt>{{ 'host.seats' | translate }}</dt>
+      <dd>{{ seats() }}</dd>
+    </div>
+  </dl>
+  @if (error()) {
+    <app-alert tone="error">{{ error() }}</app-alert>
+  }
+  @if (loading()) {
+    <app-alert>{{ 'ui.loading' | translate }}</app-alert>
+  } @else {
+    <div class="grid lg:grid-cols-2 gap-5">
+      @for (item of items(); track item.id) {
+        <article class="ui-surface ui-panel space-y-4">
+          <div class="flex flex-wrap justify-between items-start gap-3">
+            <h2 class="ui-section-title">{{ item.title }}</h2>
+            <app-status-badge [value]="item.status" />
+          </div>
+          <p class="ui-muted text-sm">
+            {{ item.event_date | date: 'medium' : undefined : i18n.currentLang() }}
+          </p>
+          <p class="ui-muted text-sm">
+            {{ item.venue_name || ('catalog.modVirtual' | translate) }}
+          </p>
+          <div class="flex justify-between gap-3 text-sm">
+            <p>
+              {{ item.reserved_slots }} / {{ item.max_capacity }} {{ 'host.seats' | translate }}
+            </p>
+            <p class="font-semibold">BOB {{ item.price | number: '1.2-2' }}</p>
+          </div>
+          @if (item.held_slots) {
+            <p class="ui-muted text-xs">{{ item.held_slots }} {{ 'host.holds' | translate }}</p>
+          }
+          <div class="ui-divider pt-4 ui-actions">
+            @if (item.can_edit) {
+              <a appButton [routerLink]="['/host/experiences', item.id, 'edit']">{{
+                'host.edit' | translate
+              }}</a>
+            } @else {
+              <button appButton variant="secondary" [disabled]="true">
+                {{ 'host.edit' | translate }}
+              </button>
+            }
+            <button
+              appButton
+              variant="danger"
+              [disabled]="!item.can_delete"
+              (click)="requestDelete(item, $event)"
+            >
+              {{ 'host.delete' | translate }}
+            </button>
+          </div>
+          @if (item.management_lock_reason) {
+            <p class="ui-muted text-xs leading-relaxed">
+              {{ 'host.lock.' + item.management_lock_reason | translate }}
+            </p>
+          }
+        </article>
+      } @empty {
+        @if (!error()) {
+          <app-empty-state
+            icon="calendar"
+            [title]="'host.empty' | translate"
+            [description]="'host.emptyHint' | translate"
+            ><a appButton routerLink="/host/venues">{{
+              'workspace.venues' | translate
+            }}</a></app-empty-state
+          >
+        }
+      }
+    </div>
+  }
+  @if (deleting(); as item) {
+    <app-dialog
+      [title]="'host.deleteTitle' | translate"
+      [closeLabel]="'ui.close' | translate"
+      [returnFocus]="deleteTrigger"
+      (closed)="!busy() && deleting.set(null)"
+    >
+      <p class="font-semibold">{{ item.title }}</p>
+      <p class="ui-muted text-sm">{{ 'host.deleteHint' | translate }}</p>
+      <div class="ui-actions">
+        <button appButton variant="danger" [busy]="busy()" (click)="confirmDelete()">
+          {{ 'host.delete' | translate }}</button
+        ><button appButton variant="secondary" [disabled]="busy()" (click)="deleting.set(null)">
+          {{ 'common.cancel' | translate }}
+        </button>
+      </div>
+    </app-dialog>
+  }
+</section>

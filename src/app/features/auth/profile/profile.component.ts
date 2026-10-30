@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
@@ -9,6 +16,16 @@ import { Category } from '../../../core/models/category.model';
 import { Booking } from '../../../core/models/booking.model';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { RouterLink } from '@angular/router';
+import { I18nService } from '../../../core/services/i18n.service';
+import { ButtonComponent, ButtonLinkDirective } from '../../../shared/ui/button';
+import { FormFieldComponent, InputDirective } from '../../../shared/ui/form-field';
+import {
+  AlertComponent,
+  EmptyStateComponent,
+  PageHeaderComponent,
+  StatusBadgeComponent,
+} from '../../../shared/ui/feedback';
 
 /**
  * Pestañas disponibles en el centro de perfil.
@@ -26,13 +43,29 @@ export type ProfileTab = 'profile' | 'billing';
  */
 @Component({
   selector: 'app-profile',
-  imports: [DatePipe, DecimalPipe, ReactiveFormsModule, TranslatePipe, IconComponent],
+  imports: [
+    DatePipe,
+    DecimalPipe,
+    ReactiveFormsModule,
+    TranslatePipe,
+    IconComponent,
+    RouterLink,
+    ButtonComponent,
+    ButtonLinkDirective,
+    FormFieldComponent,
+    InputDirective,
+    AlertComponent,
+    EmptyStateComponent,
+    PageHeaderComponent,
+    StatusBadgeComponent,
+  ],
   templateUrl: './profile.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   readonly auth = inject(AuthService);
+  readonly i18n = inject(I18nService);
   private readonly bookingService = inject(BookingService);
   private readonly experienceService = inject(ExperienceService);
 
@@ -58,16 +91,17 @@ export class ProfileComponent implements OnInit {
   readonly saving = signal<boolean>(false);
 
   /** Bandera indicadora de proceso de cambio de rol */
-  readonly switchingRole = signal<boolean>(false);
 
   /** Mensaje de éxito de cambio de rol */
-  readonly roleChangeSuccess = signal<string | null>(null);
 
   /** Bandera indicadora de guardado exitoso */
   readonly saved = signal<boolean>(false);
 
   /** Bandera indicadora de error de carga inicial */
   readonly loadError = signal<boolean>(false);
+  readonly saveError = signal(false);
+  readonly historyLoading = signal(true);
+  readonly historyError = signal(false);
 
   /** Iniciales del usuario para renderizado del avatar */
   readonly userInitials = computed<string>(() => {
@@ -85,11 +119,9 @@ export class ProfileComponent implements OnInit {
 
   /** Formulario reactivo para la edición de perfil */
   readonly form = this.fb.nonNullable.group({
-    first_name: ['', Validators.required],
+    first_name: ['', [Validators.required, Validators.pattern(/\S/)]],
     last_name: [''],
     phone: [''],
-    city: [''],
-    zone: [''],
     avatar_url: [''],
     bio: [''],
   });
@@ -122,10 +154,17 @@ export class ProfileComponent implements OnInit {
       error: () => this.categories.set([]),
     });
 
-    this.bookingService.getMyTickets().subscribe({
-      next: (items) => this.bookings.set(items),
-      error: () => this.bookings.set([]),
-    });
+    if (this.auth.isAttendee())
+      this.bookingService.getMyTickets().subscribe({
+        next: (items) => {
+          this.bookings.set(items);
+          this.historyLoading.set(false);
+        },
+        error: () => {
+          this.historyError.set(true);
+          this.historyLoading.set(false);
+        },
+      });
   }
 
   /**
@@ -155,8 +194,9 @@ export class ProfileComponent implements OnInit {
    * @returns {void}
    */
   toggleInterest(topic: string): void {
+    this.saved.set(false);
     this.interests.update((list) =>
-      list.includes(topic) ? list.filter((t) => t !== topic) : [...list, topic]
+      list.includes(topic) ? list.filter((t) => t !== topic) : [...list, topic],
     );
   }
 
@@ -169,6 +209,7 @@ export class ProfileComponent implements OnInit {
   addCustomInterest(input: HTMLInputElement): void {
     const value = input.value.trim();
     if (value && !this.interests().includes(value)) {
+      this.saved.set(false);
       this.interests.update((list) => [...list, value]);
     }
     input.value = '';
@@ -180,22 +221,6 @@ export class ProfileComponent implements OnInit {
    * @param {'HOST' | 'ATTENDEE'} targetRole - Rol de destino.
    * @returns {void}
    */
-  onSwitchRole(targetRole: 'HOST' | 'ATTENDEE'): void {
-    this.switchingRole.set(true);
-    this.roleChangeSuccess.set(null);
-    this.auth.switchRole(targetRole).subscribe({
-      next: (u) => {
-        this.user.set(u);
-        this.switchingRole.set(false);
-        this.roleChangeSuccess.set(
-          targetRole === 'HOST' ? 'role.switchSuccess' : 'profile.alert.saved'
-        );
-      },
-      error: () => {
-        this.switchingRole.set(false);
-      },
-    });
-  }
 
   /**
    * Guarda los cambios del perfil comunicándose con el endpoint `/users/me` de FastAPI.
@@ -203,12 +228,14 @@ export class ProfileComponent implements OnInit {
    * @returns {void}
    */
   onSaveProfile(): void {
+    if (this.saving()) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
     this.saving.set(true);
     this.saved.set(false);
+    this.saveError.set(false);
 
     this.auth
       .updateProfile({
@@ -223,6 +250,7 @@ export class ProfileComponent implements OnInit {
         },
         error: () => {
           this.saving.set(false);
+          this.saveError.set(true);
         },
       });
   }
@@ -239,8 +267,6 @@ export class ProfileComponent implements OnInit {
       first_name: u.first_name,
       last_name: u.last_name ?? '',
       phone: u.phone ?? '',
-      city: u.city ?? '',
-      zone: u.zone ?? '',
       avatar_url: u.avatar_url ?? '',
       bio: u.bio ?? '',
     });

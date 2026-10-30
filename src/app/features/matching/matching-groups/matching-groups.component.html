@@ -1,3 +1,83 @@
-<div class="p-6 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10">
-  <h2 class="text-xl font-bold text-slate-900 dark:text-white">Matching Groups Component (CU-07)</h2>
-</div>
+<section class="max-w-4xl mx-auto space-y-6">
+  <app-page-header
+    [eyebrow]="'nav.matching' | translate"
+    [title]="'matching.title' | translate"
+    [description]="'matching.subtitle' | translate"
+  >
+    <a appButton routerLink="/notifications"
+      ><app-icon name="bell" sizeClass="w-4 h-4" />{{ 'nav.notifications' | translate }}</a
+    >
+  </app-page-header>
+  @if (error()) {
+    <app-alert tone="error">{{ error() }}</app-alert>
+  }
+  @if (group(); as item) {
+    <section class="ui-surface ui-panel space-y-5">
+      <div class="flex flex-wrap justify-between items-center gap-3">
+        <h2 class="ui-section-title">
+          {{ item.current_members }} / {{ item.target_quorum }}
+          {{ 'matching.interested' | translate }}
+        </h2>
+        <app-status-badge [value]="item.status" />
+      </div>
+      <progress
+        [value]="item.current_members"
+        [max]="item.target_quorum"
+        [attr.aria-label]="'matching.interested' | translate"
+        class="w-full h-3 accent-violet-600"
+      ></progress>
+      <dl class="grid sm:grid-cols-2 gap-3">
+        <div class="ui-stat">
+          <dt>{{ 'matching.deadline' | translate }}</dt>
+          <dd class="!text-base">{{ item.deadline | date: 'dd/MM/yyyy HH:mm' }}</dd>
+        </div>
+        <div class="ui-stat">
+          <dt>{{ 'matching.paid' | translate }}</dt>
+          <dd>{{ item.paid_slots }}</dd>
+        </div>
+      </dl>
+      @if (item.current_members > 1) {
+        <p class="ui-muted text-sm">
+          {{ 'matching.affinity' | translate }}:
+          <strong>{{ item.affinity_score | percent }}</strong>
+        </p>
+      }
+      <app-status-badge [value]="item.experience_confirmed ? 'CONFIRMED' : 'FORMING'" />
+      @if (item.is_quorum_reached) {
+        <app-alert tone="success">{{ 'matching.ready' | translate }}</app-alert>
+      }
+      @if (item.is_member) {
+        <button appButton variant="danger" [busy]="busy()" (click)="leave()">
+          {{ 'matching.leave' | translate }}
+        </button>
+      }
+    </section>
+  } @else {
+    <app-alert>{{ 'matching.first' | translate }}</app-alert>
+  }
+  @if (!group()?.is_member) {
+    <form (ngSubmit)="onJoinQuorum()" class="ui-surface ui-panel space-y-5">
+      <div>
+        <h2 class="ui-section-title">{{ 'matching.preferences' | translate }}</h2>
+        <p class="ui-muted text-sm mt-2">{{ 'matching.timeHint' | translate }}</p>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-5">
+        <app-field controlId="available-from" [label]="'matching.from' | translate"
+          ><input appInput type="datetime-local" name="availableFrom" [(ngModel)]="availableFrom"
+        /></app-field>
+        <app-field controlId="available-to" [label]="'matching.to' | translate"
+          ><input appInput type="datetime-local" name="availableTo" [(ngModel)]="availableTo"
+        /></app-field>
+      </div>
+      <app-field controlId="matching-zone" [label]="'matching.zone' | translate"
+        ><input appInput name="zone" [(ngModel)]="zone" maxlength="100"
+      /></app-field>
+      <button appButton type="submit" [busy]="busy()" [disabled]="group()?.status === 'EXPIRED'">
+        <app-icon name="users" sizeClass="w-4 h-4" />{{ 'matching.join' | translate }}
+      </button>
+    </form>
+  }
+  <a appButton variant="secondary" [routerLink]="['/experiences', experienceId]"
+    >{{ 'matching.reserve' | translate }}<app-icon name="arrow-right" sizeClass="w-4 h-4"
+  /></a>
+</section>

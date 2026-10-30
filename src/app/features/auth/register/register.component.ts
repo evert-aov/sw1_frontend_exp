@@ -1,3 +1,6 @@
+import { ButtonComponent } from '../../../shared/ui/button';
+import { FormFieldComponent, InputDirective } from '../../../shared/ui/form-field';
+import { AlertComponent } from '../../../shared/ui/feedback';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -20,7 +23,16 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
  */
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, TranslatePipe, AuthTabsComponent, IconComponent],
+  imports: [
+    ButtonComponent,
+    FormFieldComponent,
+    InputDirective,
+    AlertComponent,
+    ReactiveFormsModule,
+    TranslatePipe,
+    AuthTabsComponent,
+    IconComponent,
+  ],
   templateUrl: './register.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -45,7 +57,11 @@ export class RegisterComponent {
 
   /** Opciones de roles con claves de traducción */
   readonly roleOptions: { value: UserRole; labelKey: string; descKey: string }[] = [
-    { value: 'ATTENDEE', labelKey: 'auth.register.roleAttendee', descKey: 'auth.register.roleAttendeeDesc' },
+    {
+      value: 'ATTENDEE',
+      labelKey: 'auth.register.roleAttendee',
+      descKey: 'auth.register.roleAttendeeDesc',
+    },
     { value: 'HOST', labelKey: 'auth.register.roleHost', descKey: 'auth.register.roleHostDesc' },
   ];
 
@@ -62,6 +78,7 @@ export class RegisterComponent {
    * @returns {void}
    */
   onSubmit(): void {
+    if (this.loading()) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -81,7 +98,7 @@ export class RegisterComponent {
         role: this.role(),
       })
       .subscribe({
-        next: () => this.router.navigate(['/profile']),
+        next: () => this.router.navigateByUrl(this.auth.homeRoute()),
         error: (err: HttpErrorResponse) => {
           this.loading.set(false);
           const detail = typeof err.error?.detail === 'string' ? err.error.detail : null;

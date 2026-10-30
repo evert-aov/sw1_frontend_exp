@@ -19,7 +19,6 @@ export function getFriendlyErrorMessage(
 
   const isTechnicalAuthError =
     err.status === 401 ||
-    err.status === 403 ||
     lowerDetail.includes('bearer') ||
     lowerDetail.includes('token') ||
     lowerDetail.includes('authorization') ||

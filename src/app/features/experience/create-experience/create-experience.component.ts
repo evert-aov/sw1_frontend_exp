@@ -1,17 +1,43 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ButtonComponent, ButtonLinkDirective } from '../../../shared/ui/button';
+import { InputDirective } from '../../../shared/ui/form-field';
+import { AlertComponent } from '../../../shared/ui/feedback';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ExperienceService, CommissionBreakdown } from '../../../core/services/experience.service';
+import {
+  catchError,
+  concat,
+  debounceTime,
+  distinctUntilChanged,
+  of,
+  startWith,
+  switchMap,
+  tap,
+} from 'rxjs';
+import { ExperienceService } from '../../../core/services/experience.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { I18nService } from '../../../core/services/i18n.service';
 import { getFriendlyErrorMessage } from '../../../core/utils/http-error.util';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { IconComponent, HeroIconName } from '../../../shared/components/icon/icon.component';
 import { Category } from '../../../core/models/category.model';
-import { CreateExperiencePayload, Experience, Modality } from '../../../core/models/experience.model';
+import {
+  CreateExperiencePayload,
+  Experience,
+  Modality,
+} from '../../../core/models/experience.model';
+import { Venue } from '../../../core/models/venue.model';
+import { eventTimeInBolivia } from '../../../core/utils/event-time.util';
 
 /**
  * Paso activo del asistente/wizard de publicación.
@@ -39,11 +65,26 @@ export interface ModalityOption {
  */
 @Component({
   selector: 'app-create-experience',
-  imports: [DecimalPipe, ReactiveFormsModule, RouterModule, TranslatePipe, IconComponent],
+  imports: [
+    ButtonComponent,
+    ButtonLinkDirective,
+    InputDirective,
+    AlertComponent,
+    DecimalPipe,
+    ReactiveFormsModule,
+    RouterModule,
+    TranslatePipe,
+    IconComponent,
+  ],
   templateUrl: './create-experience.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateExperienceComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute, { optional: true });
+  readonly editId = this.route?.snapshot.paramMap?.get('id') ?? null;
+  readonly editLoading = signal(false);
+  readonly editAllowed = signal(!this.editId);
+
   private readonly fb = inject(FormBuilder);
   private readonly experienceService = inject(ExperienceService);
   private readonly i18n = inject(I18nService);
@@ -71,7 +112,6 @@ export class CreateExperienceComponent implements OnInit {
   readonly requiresAuthPrompt = signal<boolean>(false);
 
   /** Bandera indicadora de proceso de ascenso a rol Anfitrión */
-  readonly switchingToHost = signal<boolean>(false);
 
   /** Configuración de navegación por pasos */
   readonly steps: { step: WizardStep; code: string; labelKey: string }[] = [
@@ -98,17 +138,18 @@ export class CreateExperienceComponent implements OnInit {
     // Paso 2: Logística
     event_date_only: ['', Validators.required],
     event_time_only: ['20:30', Validators.required],
-    duration_minutes: [120, [Validators.required, Validators.min(30), Validators.max(720)]],
+    duration_minutes: [120, [Validators.required, Validators.min(15), Validators.max(1440)]],
     modality: ['IN_PERSON' as Modality, Validators.required],
+    venue_id: [''],
     venue_name: [''],
     zone: [''],
     address: [''],
     virtual_meeting_url: [''],
 
     // Paso 3: Aforo y Economía (HU-04 & HU-07)
-    min_capacity: [10, [Validators.required, Validators.min(2), Validators.max(500)]],
-    max_capacity: [24, [Validators.required, Validators.min(2), Validators.max(1000)]],
-    price: [290, [Validators.required, Validators.min(1)]],
+    min_capacity: [10, [Validators.required, Validators.min(1), Validators.max(10000)]],
+    max_capacity: [24, [Validators.required, Validators.min(1), Validators.max(10000)]],
+    price: [290, [Validators.required, Validators.min(0)]],
   });
 
   /** Señal de los valores del formulario reactivo */
@@ -138,12 +179,39 @@ export class CreateExperienceComponent implements OnInit {
 
   /** Bandera de validación: advierte si el cupo mínimo excede el cupo máximo */
   readonly hasCapacityConflict = computed<boolean>(() => {
-    return this.minCapacity() > 0 && this.maxCapacity() > 0 && this.minCapacity() > this.maxCapacity();
+    return (
+      this.minCapacity() > 0 && this.maxCapacity() > 0 && this.minCapacity() > this.maxCapacity()
+    );
   });
 
   /** Desglose de comisiones escalonadas reactivo (HU-07) */
-  readonly commission = computed<CommissionBreakdown>(() => {
-    return this.experienceService.calculateCommission(this.currentPrice());
+  readonly venues = signal<Venue[]>([]);
+  readonly venuesLoading = signal(false);
+  readonly venueError = signal(false);
+  readonly commissionError = signal(false);
+  private readonly quote = toSignal(
+    this.form.controls.price.valueChanges.pipe(
+      startWith(this.form.controls.price.value),
+      debounceTime(150),
+      distinctUntilChanged(),
+      tap(() => this.commissionError.set(false)),
+      switchMap((price) =>
+        concat(
+          of(null),
+          this.experienceService.getCommissionQuote(Number(price)).pipe(
+            catchError(() => {
+              this.commissionError.set(true);
+              return of(null);
+            }),
+          ),
+        ),
+      ),
+    ),
+    { initialValue: null },
+  );
+  readonly commission = computed(() => {
+    const quote = this.quote();
+    return quote?.price === this.currentPrice() ? quote : null;
   });
 
   /** Ingresos brutos garantizados al alcanzar el quórum mínimo viable */
@@ -153,18 +221,17 @@ export class CreateExperienceComponent implements OnInit {
 
   /** Tarifa de plataforma retenida sobre el quórum mínimo */
   readonly quorumPlatformFee = computed<number>(() => {
-    return Math.round(this.guaranteedGrossRevenue() * this.commission().rate * 100) / 100;
+    return (this.commission()?.feePerTicket ?? 0) * this.minCapacity();
   });
 
   /** Ingreso neto garantizado que recibirá el anfitrión al alcanzar el quórum */
   readonly guaranteedNetRevenue = computed<number>(() => {
-    return Math.max(0, this.guaranteedGrossRevenue() - this.quorumPlatformFee());
+    return (this.commission()?.netPerTicket ?? 0) * this.minCapacity();
   });
 
   /** Ingreso neto potencial en caso de agotarse todas las entradas (aforo máximo) */
   readonly maxNetRevenue = computed<number>(() => {
-    const gross = this.maxCapacity() * this.currentPrice();
-    return Math.max(0, Math.round(gross * (1 - this.commission().rate) * 100) / 100);
+    return (this.commission()?.netPerTicket ?? 0) * this.maxCapacity();
   });
 
   /**
@@ -173,11 +240,90 @@ export class CreateExperienceComponent implements OnInit {
    * @returns {void}
    */
   ngOnInit(): void {
+    const draft = this.route?.snapshot.queryParamMap;
+    const title = draft?.get('title');
+    const price = Number(draft?.get('price'));
+    if (title) this.form.controls.title.setValue(title.slice(0, 200));
+    if (draft?.has('price') && Number.isFinite(price) && price >= 0 && price <= 10000000)
+      this.form.controls.price.setValue(price);
     const nextWeek = new Date();
     nextWeek.setDate(nextWeek.getDate() + 7);
     this.form.controls.event_date_only.setValue(nextWeek.toISOString().split('T')[0]);
 
     this.loadCategories();
+    this.loadVenues();
+    if (this.editId) {
+      this.editLoading.set(true);
+      this.experienceService.getMyExperience(this.editId).subscribe({
+        next: (item) => {
+          this.editLoading.set(false);
+          this.editAllowed.set(item.can_edit);
+          if (!item.can_edit) {
+            this.submitError.set(this.i18n.translate('host.editLocked'));
+            return;
+          }
+          const local = new Date(
+            new Date(item.event_date).getTime() - 4 * 60 * 60 * 1000,
+          ).toISOString();
+          this.form.patchValue({
+            title: item.title,
+            category_id: item.category_id,
+            description: item.description,
+            cover_image_url: item.cover_image_url ?? '',
+            modality: item.modality,
+            venue_id: item.venue_id ?? '',
+            event_date_only: local.slice(0, 10),
+            event_time_only: local.slice(11, 16),
+            duration_minutes: item.duration_minutes,
+            min_capacity: item.min_capacity,
+            max_capacity: item.max_capacity,
+            price: item.price,
+            virtual_meeting_url: item.virtual_meeting_url ?? '',
+          });
+          this.form.controls.category_id.disable();
+          this.selectVenue();
+        },
+        error: () => {
+          this.editLoading.set(false);
+          this.submitError.set(this.i18n.translate('host.editLocked'));
+        },
+      });
+    }
+  }
+
+  /** Carga sedes persistidas para enviar su UUID real al publicar. */
+  loadVenues(): void {
+    this.venueError.set(false);
+    this.venuesLoading.set(true);
+    this.experienceService.getMyVenues().subscribe({
+      next: (venues) => {
+        this.venuesLoading.set(false);
+        this.venues.set(venues);
+        this.selectVenue();
+        const zone = this.route?.snapshot.queryParamMap.get('zone');
+        const venue = zone
+          ? venues.find((item) => item.zone?.toLocaleLowerCase() === zone.toLocaleLowerCase())
+          : undefined;
+        if (venue) {
+          this.form.controls.venue_id.setValue(venue.id);
+          this.selectVenue();
+        }
+      },
+      error: () => {
+        this.venuesLoading.set(false);
+        this.venueError.set(true);
+      },
+    });
+  }
+
+  /** Muestra los datos de la sede seleccionada sin inventar una sede en el payload. */
+  selectVenue(): void {
+    const venue = this.venues().find((item) => item.id === this.form.controls.venue_id.value);
+    this.form.patchValue({
+      venue_name: venue?.name ?? '',
+      zone: venue?.zone ?? '',
+      address: venue?.address ?? '',
+    });
   }
 
   /**
@@ -190,6 +336,9 @@ export class CreateExperienceComponent implements OnInit {
     this.experienceService.getCategories().subscribe({
       next: (cats) => {
         this.categories.set(cats);
+        const requested = this.route?.snapshot.queryParamMap.get('category_id');
+        if (requested && cats.some((item) => item.id === requested))
+          this.form.controls.category_id.setValue(requested);
         if (cats.length > 0 && !this.form.controls.category_id.value) {
           this.form.controls.category_id.setValue(cats[0].id);
         }
@@ -267,13 +416,18 @@ export class CreateExperienceComponent implements OnInit {
    * @returns {void}
    */
   onSubmit(): void {
+    if (this.isSubmitting() || this.editLoading() || (this.editId && !this.editAllowed())) return;
+    if (!this.commission() || this.commission()?.price !== this.currentPrice()) {
+      this.submitError.set(this.i18n.translate('exp.quoteUnavailable'));
+      return;
+    }
     if (!this.auth.isLoggedIn()) {
       this.requiresAuthPrompt.set(true);
       this.submitError.set(this.i18n.translate('auth.friendlyRequiredDesc'));
       return;
     }
 
-    if (this.auth.isAttendee()) {
+    if (!this.auth.canPublishExperiences()) {
       this.submitError.set(this.i18n.translate('exp.create.attendeeBlockedDesc'));
       return;
     }
@@ -304,7 +458,7 @@ export class CreateExperienceComponent implements OnInit {
     this.publishedExperience.set(null);
 
     const raw = this.form.getRawValue();
-    const combinedIsoDate = new Date(`${raw.event_date_only}T${raw.event_time_only || '20:30'}:00Z`).toISOString();
+    const combinedIsoDate = eventTimeInBolivia(raw.event_date_only, raw.event_time_only || '20:30');
 
     const payload: CreateExperiencePayload = {
       title: raw.title.trim(),
@@ -312,10 +466,9 @@ export class CreateExperienceComponent implements OnInit {
       description: raw.description.trim(),
       cover_image_url: raw.cover_image_url.trim() || undefined,
       modality: raw.modality,
-      venue_name: raw.modality !== 'VIRTUAL' ? raw.venue_name.trim() || undefined : undefined,
-      zone: raw.modality !== 'VIRTUAL' ? raw.zone.trim() || undefined : undefined,
-      address: raw.modality !== 'VIRTUAL' ? raw.address.trim() || undefined : undefined,
-      virtual_meeting_url: raw.modality !== 'IN_PERSON' ? raw.virtual_meeting_url.trim() || undefined : undefined,
+      venue_id: raw.modality !== 'VIRTUAL' ? raw.venue_id : undefined,
+      virtual_meeting_url:
+        raw.modality !== 'IN_PERSON' ? raw.virtual_meeting_url.trim() || undefined : undefined,
       event_date: combinedIsoDate,
       duration_minutes: Number(raw.duration_minutes),
       min_capacity: Number(raw.min_capacity),
@@ -323,7 +476,17 @@ export class CreateExperienceComponent implements OnInit {
       price: Number(raw.price),
     };
 
-    this.experienceService.createExperience(payload).subscribe({
+    const { category_id, ...update } = payload;
+    const request = this.editId
+      ? this.experienceService.updateExperience(this.editId, {
+          ...update,
+          cover_image_url: raw.cover_image_url.trim() || null,
+          venue_id: raw.modality === 'VIRTUAL' ? null : raw.venue_id,
+          virtual_meeting_url:
+            raw.modality === 'IN_PERSON' ? null : raw.virtual_meeting_url.trim() || null,
+        })
+      : this.experienceService.createExperience(payload);
+    request.subscribe({
       next: (created) => {
         this.isSubmitting.set(false);
         this.publishedExperience.set(created);
@@ -342,18 +505,6 @@ export class CreateExperienceComponent implements OnInit {
    *
    * @returns {void}
    */
-  onUpgradeToHost(): void {
-    this.switchingToHost.set(true);
-    this.auth.switchRole('HOST').subscribe({
-      next: () => {
-        this.switchingToHost.set(false);
-        this.submitError.set(null);
-      },
-      error: () => {
-        this.switchingToHost.set(false);
-      },
-    });
-  }
 
   /**
    * Valida los campos obligatorios del Paso 1 (Título, Categoría, Descripción).
@@ -366,7 +517,7 @@ export class CreateExperienceComponent implements OnInit {
     title.markAsTouched();
     category_id.markAsTouched();
     description.markAsTouched();
-    return title.valid && category_id.valid && description.valid;
+    return title.valid && (category_id.disabled || category_id.valid) && description.valid;
   }
 
   /**
@@ -376,15 +527,24 @@ export class CreateExperienceComponent implements OnInit {
    * @returns {boolean} True si la logística es coherente con la modalidad.
    */
   private validateStep2(): boolean {
-    const { event_date_only, event_time_only, duration_minutes, modality, address, virtual_meeting_url } =
-      this.form.controls;
+    const {
+      event_date_only,
+      event_time_only,
+      duration_minutes,
+      modality,
+      venue_id,
+      virtual_meeting_url,
+    } = this.form.controls;
     event_date_only.markAsTouched();
     event_time_only.markAsTouched();
     duration_minutes.markAsTouched();
 
-    if (modality.value !== 'VIRTUAL' && !address.value.trim()) {
-      address.setErrors({ required: true });
-      address.markAsTouched();
+    if (
+      modality.value !== 'VIRTUAL' &&
+      !this.venues().some((venue) => venue.id === venue_id.value)
+    ) {
+      venue_id.setErrors({ required: true });
+      venue_id.markAsTouched();
       return false;
     }
     if (modality.value !== 'IN_PERSON' && !virtual_meeting_url.value.trim()) {

@@ -1,7 +1,10 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { IconComponent, HeroIconName } from '../../../shared/components/icon/icon.component';
+import { ButtonComponent } from '../../../shared/ui/button';
+import { I18nService } from '../../../core/services/i18n.service';
+import { ThemeService } from '../../../core/services/theme.service';
 
 /**
  * Característica destacada en el panel de marca de autenticación.
@@ -20,11 +23,13 @@ interface BrandFeature {
  */
 @Component({
   selector: 'app-auth-layout',
-  imports: [RouterOutlet, RouterLink, TranslatePipe, IconComponent],
+  imports: [RouterOutlet, RouterLink, TranslatePipe, IconComponent, ButtonComponent],
   templateUrl: './auth-layout.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthLayoutComponent {
+  readonly i18n = inject(I18nService);
+  readonly theme = inject(ThemeService);
   /** Características de valor mostradas en el panel de marca */
   readonly features: BrandFeature[] = [
     {

@@ -2,6 +2,7 @@ import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { API_CONFIG } from '../config/api.config';
 
 /**
  * Interceptor HTTP de Autenticación JWT.
@@ -18,14 +19,15 @@ import { AuthService } from '../services/auth.service';
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
-  const token = auth.token;
+  const isApiRequest = req.url === API_CONFIG.baseUrl || req.url.startsWith(`${API_CONFIG.baseUrl}/`);
+  const token = isApiRequest ? auth.token : null;
 
   const authReq = token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401 && token) {
-        auth.logout();
+        auth.expireSession();
       }
       return throwError(() => error);
     })

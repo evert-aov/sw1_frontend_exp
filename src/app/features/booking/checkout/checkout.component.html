@@ -1,3 +1,122 @@
-<div class="p-6 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10">
-  <h2 class="text-xl font-bold text-slate-900 dark:text-white">Checkout & Payment Component (CU-05, CU-06)</h2>
-</div>
+<section class="max-w-5xl mx-auto space-y-6">
+  <app-page-header
+    [eyebrow]="'nav.myTickets' | translate"
+    [title]="'booking.title' | translate"
+    [description]="'booking.subtitle' | translate"
+  >
+    <a appButton routerLink="/my-tickets"
+      ><app-icon name="arrow-left" sizeClass="w-4 h-4" />{{ 'nav.myTickets' | translate }}</a
+    >
+  </app-page-header>
+  @if (error()) {
+    <app-alert tone="error">{{ error() }}</app-alert>
+  }
+  @if (notice()) {
+    <app-alert>{{ notice() }}</app-alert>
+  }
+  @if (busy() && !booking()) {
+    <app-alert>{{ 'ui.loading' | translate }}</app-alert>
+  }
+  @if (booking(); as item) {
+    <div class="grid lg:grid-cols-[minmax(0,1fr)_20rem] gap-6 items-start">
+      <div class="ui-surface ui-panel space-y-6">
+        <div class="flex items-start gap-4">
+          <span class="p-3 rounded-2xl bg-violet-500/10 text-violet-600 dark:text-violet-300"
+            ><app-icon name="ticket" sizeClass="w-6 h-6"
+          /></span>
+          <div class="min-w-0">
+            <h2 class="text-xl font-bold">{{ item.experience_title }}</h2>
+            <p class="ui-muted text-sm mt-2">
+              {{ item.event_date | date: 'dd/MM/yyyy HH:mm' }} · {{ item.quantity }}
+              {{ 'booking.tickets' | translate }}
+            </p>
+          </div>
+        </div>
+        <dl class="space-y-4 ui-divider pt-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <dt class="ui-muted text-sm">{{ 'booking.status' | translate }}</dt>
+            <dd><app-status-badge [value]="item.status" /></dd>
+          </div>
+          @if (item.experience_status) {
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <dt class="ui-muted text-sm">{{ 'booking.event' | translate }}</dt>
+              <dd><app-status-badge [value]="item.experience_status" /></dd>
+            </div>
+          }
+          @if (item.refund_status) {
+            <div class="flex items-center justify-between gap-3">
+              <dt class="ui-muted text-sm">{{ 'booking.refundStatus' | translate }}</dt>
+              <dd><app-status-badge [value]="item.refund_status" /></dd>
+            </div>
+          }
+        </dl>
+        @if (item.status === 'PAID') {
+          <app-alert tone="success">{{ 'booking.paid' | translate }}</app-alert>
+          @if (item.experience_status !== 'CONFIRMED') {
+            <p class="ui-muted text-sm">{{ 'booking.quorumPending' | translate }}</p>
+          }
+          <a appButton variant="primary" routerLink="/my-tickets"
+            ><app-icon name="qr-code" sizeClass="w-4 h-4" />{{
+              'booking.viewTickets' | translate
+            }}</a
+          >
+        } @else if (item.status === 'PENDING') {
+          <app-alert
+            ><p>
+              {{ 'booking.hold' | translate }}
+              <strong>{{ item.expires_at | date: 'dd/MM/yyyy HH:mm:ss' }}</strong
+              >.
+            </p>
+            <p class="mt-1">{{ 'booking.returnHint' | translate }}</p></app-alert
+          >
+        } @else {
+          <p class="ui-muted text-sm">
+            {{ 'booking.closed' | translate }} {{ item.cancellation_reason }}
+          </p>
+        }
+        <div class="ui-actions ui-divider pt-5">
+          <button appButton variant="secondary" [busy]="busy()" (click)="refresh()">
+            {{ 'booking.refresh' | translate }}
+          </button>
+          @if (item.status === 'PENDING') {
+            <button appButton variant="danger" [disabled]="busy()" (click)="cancel()">
+              {{ 'booking.cancel' | translate }}
+            </button>
+          }
+        </div>
+      </div>
+      <aside class="ui-surface ui-panel space-y-5">
+        <h2 class="ui-section-title">{{ 'booking.summary' | translate }}</h2>
+        <div>
+          <p class="ui-muted text-sm">{{ 'booking.total' | translate }}</p>
+          <p class="text-3xl font-bold tracking-tight mt-2 tabular-nums">
+            <span class="text-base font-medium ui-muted">{{ item.currency }}</span>
+            {{ item.total_amount | number: '1.2-2' }}
+          </p>
+        </div>
+        <p class="ui-muted text-xs">
+          {{ 'booking.fee' | translate }}: {{ item.currency }}
+          {{ item.platform_fee | number: '1.2-2' }}
+        </p>
+        @if (item.status === 'PENDING') {
+          <button
+            appButton
+            class="w-full"
+            [busy]="busy()"
+            [disabled]="!canPay()"
+            (click)="onConfirmPayment()"
+          >
+            {{ 'booking.pay' | translate }}<app-icon name="arrow-right" sizeClass="w-4 h-4" />
+          </button>
+        }
+        <div class="ui-divider pt-4 flex items-start gap-2 ui-muted text-xs leading-relaxed">
+          <app-icon name="shield-check" sizeClass="w-4 h-4" />
+          <div>
+            <p class="font-semibold">{{ 'booking.secure' | translate }}</p>
+            <p class="mt-1">{{ 'booking.secureHint' | translate }}</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  }
+</section>

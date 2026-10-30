@@ -1,31 +1,43 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ButtonComponent, ButtonLinkDirective } from '../../../shared/ui/button';
+import { FormFieldComponent, InputDirective } from '../../../shared/ui/form-field';
+import {
+  AlertComponent,
+  EmptyStateComponent,
+  PageHeaderComponent,
+} from '../../../shared/ui/feedback';
+import { I18nService } from '../../../core/services/i18n.service';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, debounceTime, of, startWith, Subject, switchMap } from 'rxjs';
 import { ExperienceService } from '../../../core/services/experience.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { EventSkeletonComponent } from '../../../shared/components/event-skeleton/event-skeleton.component';
 import { Category } from '../../../core/models/category.model';
-import { Experience, Modality } from '../../../core/models/experience.model';
+import { CatalogFilters, Experience, Modality } from '../../../core/models/experience.model';
+import { eventTimeInBolivia } from '../../../core/utils/event-time.util';
 
-/**
- * Componente del Catálogo de Experiencias (CU-04 / HU-05, HU-06).
- *
- * Muestra el listado de experiencias obtenidas del backend FastAPI con:
- * - Skeleton loaders reactivos para mejorar el rendimiento percibido mientras se cargan los datos.
- * - Filtro dinámico por categorías temáticas.
- * - Filtro por modalidad (Presencial, Virtual, Híbrido, Todas).
- * - Búsqueda por texto y zona urbana.
- * - Toggle para filtrar solo eventos con cupos abiertos.
- * - Barra de progreso visual del quórum mínimo viable.
- * - Inyección directa de AuthService para adaptación de vistas según rol (host vs attendee).
- */
 @Component({
   selector: 'app-catalog',
   imports: [
+    ButtonComponent,
+    ButtonLinkDirective,
+    FormFieldComponent,
+    InputDirective,
+    AlertComponent,
+    EmptyStateComponent,
+    PageHeaderComponent,
     DatePipe,
     DecimalPipe,
     ReactiveFormsModule,
@@ -38,177 +50,141 @@ import { Experience, Modality } from '../../../core/models/experience.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CatalogComponent implements OnInit {
+  readonly i18n = inject(I18nService);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly experienceService = inject(ExperienceService);
+  private readonly reload = new Subject<void>();
   readonly auth = inject(AuthService);
-
-  /** Listado de categorías temáticas disponibles */
   readonly categories = signal<Category[]>([]);
-
-  /** Estado de carga de las categorías */
-  readonly loadingCategories = signal<boolean>(true);
-
-  /** Colección completa de experiencias obtenidas de FastAPI */
+  readonly loadingCategories = signal(true);
   readonly allExperiences = signal<Experience[]>([]);
-
-  /** Estado de carga del catálogo (activa skeleton loaders) */
-  readonly loading = signal<boolean>(true);
-
-  /** Bandera de error de conectividad con el servidor */
-  readonly backendError = signal<boolean>(false);
-
-  /** Categoría seleccionada actualmente (cadena vacía para Todas) */
-  readonly selectedCategoryId = signal<string>('');
-
-  /** Modalidad seleccionada actualmente (cadena vacía para Todas) */
+  readonly filteredExperiences = this.allExperiences.asReadonly();
+  readonly loading = signal(true);
+  readonly backendError = signal(false);
+  readonly selectedCategoryId = signal('');
   readonly selectedModality = signal<Modality | ''>('');
-
-  /** Formulario reactivo para filtros de texto y zona */
+  readonly page = signal(1);
+  readonly totalPages = signal(1);
+  readonly total = signal(0);
+  readonly locationIncomplete = signal(false);
   readonly filterForm = this.fb.nonNullable.group({
     search: [''],
     zone: [''],
     onlyOpen: [false],
+    dateFrom: [''],
+    dateTo: [''],
+    latitude: this.fb.control<number | null>(null),
+    longitude: this.fb.control<number | null>(null),
+    radius: [10],
   });
 
-  /** Señal de los valores del formulario de filtros */
-  private readonly filterValues = toSignal(this.filterForm.valueChanges, {
-    initialValue: this.filterForm.getRawValue(),
-  });
-
-  /**
-   * Lista reactiva de experiencias filtradas según los criterios seleccionados por el usuario.
-   */
-  readonly filteredExperiences = computed<Experience[]>(() => {
-    const catId = this.selectedCategoryId();
-    const mod = this.selectedModality();
-    const { search, zone, onlyOpen } = this.filterValues();
-
-    let items = this.allExperiences();
-
-    if (catId) {
-      items = items.filter((exp) => exp.category_id === catId);
-    }
-
-    if (mod) {
-      items = items.filter((exp) => exp.modality === mod);
-    }
-
-    if (onlyOpen) {
-      items = items.filter((exp) => exp.reserved_slots < exp.max_capacity && exp.status !== 'CANCELLED');
-    }
-
-    if (zone && zone.trim()) {
-      const z = zone.toLowerCase().trim();
-      items = items.filter(
-        (exp) =>
-          (exp.zone && exp.zone.toLowerCase().includes(z)) ||
-          (exp.venue_name && exp.venue_name.toLowerCase().includes(z))
-      );
-    }
-
-    if (search && search.trim()) {
-      const q = search.toLowerCase().trim();
-      items = items.filter(
-        (exp) =>
-          exp.title.toLowerCase().includes(q) ||
-          exp.description.toLowerCase().includes(q) ||
-          (exp.category_name && exp.category_name.toLowerCase().includes(q)) ||
-          (exp.venue_name && exp.venue_name.toLowerCase().includes(q))
-      );
-    }
-
-    return items;
-  });
-
-  /**
-   * Inicialización del componente: invoca la carga de categorías y el catálogo.
-   *
-   * @returns {void}
-   */
+  /** Consulta filtros y páginas en el servidor y cancela respuestas de búsquedas anteriores. */
   ngOnInit(): void {
     this.loadCategories();
+    this.filterForm.valueChanges
+      .pipe(debounceTime(250), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.page.set(1);
+        this.loadCatalog();
+      });
+    this.reload
+      .pipe(
+        startWith(undefined),
+        switchMap(() => {
+          const raw = this.filterForm.getRawValue();
+          const incomplete = (raw.latitude === null) !== (raw.longitude === null);
+          this.locationIncomplete.set(incomplete);
+          this.loading.set(!incomplete);
+          this.backendError.set(false);
+          if (incomplete) return of(null);
+          const filters: CatalogFilters = {
+            search: raw.search.trim(),
+            zone: raw.zone.trim(),
+            category_id: this.selectedCategoryId(),
+            modality: this.selectedModality(),
+            only_available: raw.onlyOpen,
+            page: this.page(),
+            page_size: 12,
+            date_from: raw.dateFrom ? eventTimeInBolivia(raw.dateFrom, '00:00') : undefined,
+            date_to: raw.dateTo
+              ? new Date(`${raw.dateTo}T23:59:59.999-04:00`).toISOString()
+              : undefined,
+            latitude: raw.latitude ?? undefined,
+            longitude: raw.longitude ?? undefined,
+            radius_km: raw.latitude !== null && raw.longitude !== null ? raw.radius : undefined,
+          };
+          return this.experienceService.getCatalog(filters).pipe(
+            catchError(() => {
+              this.backendError.set(true);
+              return of(null);
+            }),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((result) => {
+        this.allExperiences.set(result?.experiences ?? []);
+        this.total.set(result?.total ?? 0);
+        this.totalPages.set(result?.total_pages ?? 1);
+        this.loading.set(false);
+      });
+  }
+
+  /** Carga categorías oficiales; evita identificadores inventados en filtros. */
+  loadCategories(): void {
+    this.loadingCategories.set(true);
+    this.experienceService
+      .getCategories()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (categories) => {
+          this.categories.set(categories);
+          this.loadingCategories.set(false);
+        },
+        error: () => {
+          this.categories.set([]);
+          this.loadingCategories.set(false);
+        },
+      });
+  }
+
+  /** Repite la consulta actual, conservando sus filtros. */
+  loadCatalog(): void {
+    this.reload.next();
+  }
+
+  /** Selecciona categoría y vuelve a la primera página del servidor. */
+  selectCategory(id: string): void {
+    this.selectedCategoryId.set(id);
+    this.page.set(1);
     this.loadCatalog();
   }
 
-  /**
-   * Consulta las categorías temáticas en el backend FastAPI.
-   *
-   * @returns {void}
-   */
-  loadCategories(): void {
-    this.loadingCategories.set(true);
-    this.experienceService.getCategories().subscribe({
-      next: (cats) => {
-        this.categories.set(cats);
-        this.loadingCategories.set(false);
-      },
-      error: () => {
-        this.categories.set([]);
-        this.loadingCategories.set(false);
-      },
-    });
-  }
-
-  /**
-   * Consulta las experiencias publicadas en el backend FastAPI.
-   *
-   * @returns {void}
-   */
-  loadCatalog(): void {
-    this.loading.set(true);
-    this.backendError.set(false);
-
-    this.experienceService.getCatalog().subscribe({
-      next: (res) => {
-        this.allExperiences.set(res.experiences ?? []);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.allExperiences.set([]);
-        this.loading.set(false);
-        this.backendError.set(true);
-      },
-    });
-  }
-
-  /**
-   * Filtra las experiencias por una categoría específica.
-   *
-   * @param {string} id - Identificador de la categoría ('' para 'Todas').
-   * @returns {void}
-   */
-  selectCategory(id: string): void {
-    this.selectedCategoryId.set(id);
-  }
-
-  /**
-   * Filtra las experiencias por una modalidad (Presencial, Virtual, Híbrido, Todas).
-   *
-   * @param {Modality | ''} modality - Modalidad seleccionada o cadena vacía para ver todas.
-   * @returns {void}
-   */
+  /** Selecciona modalidad y vuelve a la primera página del servidor. */
   selectModality(modality: Modality | ''): void {
     this.selectedModality.set(modality);
+    this.page.set(1);
+    this.loadCatalog();
   }
 
-  /**
-   * Calcula el porcentaje visual de avance hacia el aforo del evento.
-   *
-   * @param {Experience} exp - Entidad de la experiencia.
-   * @returns {number} Porcentaje entre 0 y 100.
-   */
-  quorumProgressPercent(exp: Experience): number {
-    const target = exp.max_capacity > 0 ? exp.max_capacity : exp.min_capacity || 1;
-    return Math.min(100, Math.round((exp.reserved_slots / target) * 100));
+  /** Navega entre páginas reales del resultado. */
+  changePage(page: number): void {
+    if (page < 1 || page > this.totalPages()) return;
+    this.page.set(page);
+    this.loadCatalog();
   }
 
-  /**
-   * Determina si la experiencia alcanzó o superó su quórum mínimo viable.
-   *
-   * @param {Experience} exp - Entidad de la experiencia.
-   * @returns {boolean} True si se alcanzó el quórum mínimo para confirmar el evento.
-   */
-  isQuorumMet(exp: Experience): boolean {
-    return exp.is_quorum_reached || exp.reserved_slots >= exp.min_capacity;
+  /** Mide progreso contra el mínimo viable, diferenciado de la capacidad máxima. */
+  quorumProgressPercent(experience: Experience): number {
+    return Math.min(
+      100,
+      Math.round((100 * experience.reserved_slots) / Math.max(1, experience.min_capacity)),
+    );
+  }
+
+  /** Usa el estado de quórum canónico del backend. */
+  isQuorumMet(experience: Experience): boolean {
+    return experience.is_quorum_reached;
   }
 }

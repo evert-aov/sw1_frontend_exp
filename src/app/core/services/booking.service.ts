@@ -24,8 +24,10 @@ export class BookingService {
    * @param {number} bookingData.quantity - Cantidad de cupos solicitados.
    * @returns {Observable<Booking>} Flujo observable con la orden de reserva generada.
    */
-  createBooking(bookingData: { experience_id: string; quantity: number }): Observable<Booking> {
-    return this.http.post<Booking>(`${this.apiUrl}/bookings`, bookingData);
+  createBooking(bookingData: { experience_id: string; quantity: number }, key: string = crypto.randomUUID()): Observable<Booking> {
+    return this.http.post<Booking>(`${this.apiUrl}/bookings`, bookingData, {
+      headers: { "Idempotency-Key": key },
+    });
   }
 
   /**
@@ -35,7 +37,7 @@ export class BookingService {
    * @returns {Observable<{ checkout_url: string }>} Flujo observable con la URL segura de checkout o pasarela.
    */
   createCheckoutSession(bookingId: string): Observable<{ checkout_url: string }> {
-    return this.http.post<{ checkout_url: string }>(`${this.apiUrl}/bookings/${bookingId}/checkout`, {});
+    return this.http.post<{ checkout_url: string }>(`${this.apiUrl}/payments/checkout/${bookingId}`, {});
   }
 
   /**
@@ -44,7 +46,7 @@ export class BookingService {
    * @returns {Observable<Booking[]>} Flujo observable con la lista de reservas históricas y activas.
    */
   getMyTickets(): Observable<Booking[]> {
-    return this.http.get<Booking[]>(`${this.apiUrl}/bookings/me`);
+    return this.http.get<Booking[]>(`${this.apiUrl}/bookings/my-tickets`);
   }
 
   /**
@@ -53,9 +55,16 @@ export class BookingService {
    * @param {string} ticketId - Identificador de la entrada (UUID).
    * @returns {Observable<Ticket>} Flujo observable con la entidad del ticket y su payload QR.
    */
-  getTicketById(ticketId: string): Observable<Ticket> {
-    return this.http.get<Ticket>(`${this.apiUrl}/tickets/${ticketId}`);
+  getTicketQR(ticketId: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/bookings/tickets/${ticketId}/qr`, { responseType: 'blob' });
   }
+
+  getBooking(id: string): Observable<Booking> { return this.http.get<Booking>(`${this.apiUrl}/bookings/${id}`); }
+  cancelBooking(id: string): Observable<Booking> { return this.http.post<Booking>(`${this.apiUrl}/bookings/${id}/cancel`, {}); }
+  reconcile(id: string): Observable<Booking> { return this.http.post<Booking>(`${this.apiUrl}/payments/status/${id}`, {}); }
+  refund(id: string): Observable<Booking> { return this.http.post<Booking>(`${this.apiUrl}/payments/refund/${id}`, {}); }
+  scanTicket(code: string): Observable<Ticket> { return this.http.post<Ticket>(`${this.apiUrl}/bookings/tickets/check-in`, { code }); }
+  hostIncome(): Observable<HostIncome[]> { return this.http.get<HostIncome[]>(`${this.apiUrl}/bookings/host-income`); }
 
   /**
    * CU-14: Consulta los planes de suscripción SaaS disponibles para anfitriones y sedes.
@@ -63,6 +72,8 @@ export class BookingService {
    * @returns {Observable<SaaSPlan[]>} Flujo observable con el catálogo de planes comerciales activos.
    */
   getSaaSPlans(): Observable<SaaSPlan[]> {
-    return this.http.get<SaaSPlan[]>(`${this.apiUrl}/saas/plans`);
+    return this.http.get<SaaSPlan[]>(`${this.apiUrl}/subscriptions/plans`);
   }
 }
+
+export interface HostIncome { currency: string; gross: number; platform_fee: number; net: number; refunded: number; refund_pending: number; }

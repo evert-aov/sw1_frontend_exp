@@ -1,16 +1,17 @@
 <div class="max-w-5xl mx-auto space-y-6">
-  <a
-    routerLink="/catalog"
-    class="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
-  >
+  <a appButton variant="secondary" routerLink="/catalog">
     <app-icon name="arrow-left" sizeClass="w-4 h-4" />
     <span>{{ 'common.back' | translate }}</span>
   </a>
 
   @if (showAuthNotice()) {
-    <div class="p-5 rounded-2xl bg-violet-50/80 dark:bg-[#19152b] border border-violet-200 dark:border-violet-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div
+      class="p-5 rounded-2xl bg-violet-50/80 dark:bg-[#19152b] border border-violet-200 dark:border-violet-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+    >
       <div class="flex items-start gap-3.5">
-        <div class="w-10 h-10 rounded-xl bg-violet-600/15 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
+        <div
+          class="w-10 h-10 rounded-xl bg-violet-600/15 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0"
+        >
           <app-icon name="user" sizeClass="w-5 h-5" />
         </div>
         <div>
@@ -24,9 +25,10 @@
       </div>
 
       <a
+        appButton
+        variant="primary"
         routerLink="/auth/login"
         [queryParams]="{ returnUrl: '/experiences/' + experience()?.id }"
-        class="self-start sm:self-center px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5 whitespace-nowrap"
       >
         <span>{{ 'auth.friendlyLoginBtn' | translate }}</span>
         <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5" />
@@ -35,7 +37,9 @@
   }
 
   @if (loading()) {
-    <div class="rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 overflow-hidden animate-pulse">
+    <div
+      class="rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 overflow-hidden animate-pulse"
+    >
       <div class="h-72 sm:h-96 w-full bg-slate-200 dark:bg-white/[0.06]"></div>
       <div class="p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-8 space-y-4">
@@ -48,14 +52,18 @@
       </div>
     </div>
   } @else if (error() || !experience()) {
-    <div class="p-12 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 text-center space-y-3">
+    <div
+      class="p-12 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 text-center space-y-3"
+    >
       <app-icon name="exclamation-triangle" sizeClass="w-8 h-8 text-red-500 mx-auto" />
       <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">
         {{ 'catalog.emptyTitle' | translate }}
       </p>
     </div>
   } @else if (experience(); as exp) {
-    <div class="rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 overflow-hidden">
+    <div
+      class="rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 overflow-hidden"
+    >
       @if (exp.cover_image_url) {
         <div class="h-72 sm:h-96 w-full overflow-hidden bg-slate-900">
           <img
@@ -69,7 +77,9 @@
 
       <div class="p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <div class="lg:col-span-8 space-y-5">
-          <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-violet-600 dark:text-violet-400">
+          <div
+            class="flex flex-wrap items-center gap-2 text-xs font-semibold text-violet-600 dark:text-violet-400"
+          >
             <span>{{ exp.category_name || exp.modality }}</span>
             <span aria-hidden="true">·</span>
             <span>{{ exp.event_date | date: 'dd MMM yyyy, HH:mm' }}</span>
@@ -77,7 +87,9 @@
             <span>{{ exp.duration_minutes }} min</span>
           </div>
 
-          <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          <h1
+            class="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white"
+          >
             {{ exp.title }}
           </h1>
 
@@ -85,22 +97,30 @@
             {{ exp.description }}
           </p>
 
-          @if (exp.venue_name || exp.address || exp.zone) {
-            <div class="pt-4 border-t border-slate-200 dark:border-white/10 flex items-start gap-3 text-xs text-slate-500 dark:text-slate-400">
+          @if (exp.venue_name || exp.venue_address || exp.venue_zone) {
+            <div
+              class="pt-4 border-t border-slate-200 dark:border-white/10 flex items-start gap-3 text-xs text-slate-500 dark:text-slate-400"
+            >
               <app-icon name="map-pin" sizeClass="w-4 h-4 text-violet-500 mt-0.5" />
               <div>
-                <p class="font-bold text-slate-800 dark:text-slate-200">{{ exp.venue_name || exp.zone }}</p>
-                @if (exp.address) {
-                  <p>{{ exp.address }}</p>
+                <p class="font-bold text-slate-800 dark:text-slate-200">
+                  {{ exp.venue_name || exp.venue_zone }}
+                </p>
+                @if (exp.venue_address) {
+                  <p>{{ exp.venue_address }}</p>
                 }
               </div>
             </div>
           }
         </div>
 
-        <div class="lg:col-span-4 p-6 rounded-2xl bg-slate-50 dark:bg-[#0b0a10] border border-slate-200 dark:border-white/10 space-y-5">
+        <div
+          class="lg:col-span-4 p-6 rounded-2xl bg-slate-50 dark:bg-[#0b0a10] border border-slate-200 dark:border-white/10 space-y-5"
+        >
           <div class="flex items-baseline justify-between">
-            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">{{ 'common.price' | translate }}</span>
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">{{
+              'common.price' | translate
+            }}</span>
             <span class="text-3xl font-extrabold text-slate-900 dark:text-white tabular-nums">
               Bs {{ exp.price | number: '1.0-2' }}
             </span>
@@ -113,24 +133,44 @@
             </div>
             <div class="flex justify-between">
               <span class="text-slate-500">{{ 'exp.form.maxCapLabel' | translate }}</span>
-              <span class="font-bold tabular-nums">{{ exp.reserved_slots }} / {{ exp.max_capacity }}</span>
+              <span class="font-bold tabular-nums"
+                >{{ exp.reserved_slots }} / {{ exp.max_capacity }}</span
+              >
             </div>
           </div>
 
           <div class="space-y-2.5 pt-2">
+            <app-field controlId="reservation-quantity" [label]="'detail.quantity' | translate"
+              ><input
+                appInput
+                type="number"
+                min="1"
+                max="20"
+                step="1"
+                [(ngModel)]="quantity"
+                [disabled]="reserving()"
+            /></app-field>
             <button
+              appButton
+              variant="primary"
+              class="w-full items-center justify-center gap-2"
               type="button"
+              [busy]="reserving()"
               (click)="onReserveClick()"
-              class="w-full py-3 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              [disabled]="reserving()"
             >
               <app-icon name="ticket" sizeClass="w-4 h-4" />
-              <span>{{ 'catalog.reserveBtn' | translate }}</span>
+              <span>{{
+                (reserving() ? 'detail.reserving' : 'catalog.reserveBtn') | translate
+              }}</span>
             </button>
 
             <button
+              appButton
+              variant="secondary"
+              class="w-full items-center justify-center gap-2"
               type="button"
               (click)="onJoinMatchingClick()"
-              class="w-full py-3 px-4 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
               <app-icon name="users" sizeClass="w-4 h-4" />
               <span>{{ 'nav.matching' | translate }}</span>
@@ -139,5 +179,8 @@
         </div>
       </div>
     </div>
+  }
+  @if (reserveError()) {
+    <app-alert tone="error">{{ reserveError() }}</app-alert>
   }
 </div>

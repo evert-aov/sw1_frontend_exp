@@ -1,15 +1,15 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, catchError, of, switchMap, tap, throwError } from 'rxjs';
+import { Observable, switchMap, tap, throwError, timeout } from 'rxjs';
 import { API_CONFIG } from '../config/api.config';
-import { User, ProfileUpdateRequest, UserRole } from '../models/user.model';
+import { User, ProfileUpdateRequest } from '../models/user.model';
 import { AuthResponse, RegisterRequest } from '../models/auth.model';
 
 /**
  * Roles estandarizados y normalizados en la plataforma.
  */
-export type RoleMode = 'HOST' | 'ATTENDEE' | 'GUEST';
+export type RoleMode = 'ADMIN' | 'HOST' | 'ATTENDEE' | 'UNASSIGNED' | 'GUEST';
 
 /**
  * Servicio Reutilizable de Autenticación y Gestión Centralizada de Roles (CU-01, CU-02).
@@ -35,7 +35,8 @@ export class AuthService {
   private readonly USER_KEY = 'experiencia_user';
 
   /** Bandera que indica si la sesión actual debe persistir en localStorage o sessionStorage */
-  private remember = typeof localStorage !== 'undefined' && localStorage.getItem(this.TOKEN_KEY) !== null;
+  private remember =
+    typeof localStorage !== 'undefined' && localStorage.getItem(this.TOKEN_KEY) !== null;
 
   /** Señal reactiva interna del token JWT de acceso */
   private readonly tokenSignal = signal<string | null>(this.readStorage(this.TOKEN_KEY));
@@ -55,46 +56,30 @@ export class AuthService {
    */
   readonly isGuest = computed<boolean>(() => !this.isLoggedIn());
 
-  /**
-   * Señal computada que indica si el usuario posee rol de Anfitrión ('HOST' / 'host') o Administrador ('ADMIN' / 'admin').
-   * Permite publicar experiencias, supervisar consolas en vivo y acceder a analíticas de demanda insatisfecha.
-   */
-  readonly isHost = computed<boolean>(() => {
-    if (!this.isLoggedIn()) return false;
-    const roles = (this.currentUser()?.roles ?? []).map((r) => String(r).toUpperCase());
-    return roles.includes('HOST') || roles.includes('ADMIN');
-  });
-
-  /**
-   * Señal computada que indica si el usuario posee rol de Asistente ('ATTENDEE' / 'attendee').
-   * En caso de estar autenticado y no ser Anfitrión, el sistema lo trata con privilegio de Asistente.
-   * Los asistentes disfrutan de catálogo, compra de entradas, gestión de tickets y la App Móvil.
-   */
-  readonly isAttendee = computed<boolean>(() => {
-    return this.isLoggedIn() && !this.isHost();
-  });
-
-  /**
-   * Señal computada que expone el rol actual normalizado ('HOST' | 'ATTENDEE' | 'GUEST').
-   */
+  /** Cada capacidad exige un rol asignado: ADMIN no implica HOST ni ATTENDEE. */
+  readonly isAdmin = computed(() => this.hasRole('ADMIN'));
+  readonly isHost = computed(() => this.hasAnyRole(['HOST', 'VENUE']));
+  readonly isAttendee = computed(() => this.hasRole('ATTENDEE'));
   readonly currentRole = computed<RoleMode>(() => {
     if (!this.isLoggedIn()) return 'GUEST';
-    return this.isHost() ? 'HOST' : 'ATTENDEE';
+    if (this.isAdmin()) return 'ADMIN';
+    if (this.isHost()) return 'HOST';
+    return this.isAttendee() ? 'ATTENDEE' : 'UNASSIGNED';
   });
-
-  /**
-   * Señal computada con el nombre legible en español del rol activo para visualización en plantillas.
-   */
-  readonly roleLabel = computed<string>(() => {
+  readonly homeRoute = computed(() => {
     switch (this.currentRole()) {
+      case 'ADMIN':
+        return '/admin';
       case 'HOST':
-        return 'Anfitrión';
+        return '/host';
       case 'ATTENDEE':
-        return 'Asistente';
+      case 'GUEST':
+        return '/catalog';
       default:
-        return 'Invitado';
+        return '/profile';
     }
   });
+  readonly roleLabel = computed(() => 'role.' + this.currentRole());
 
   /**
    * Señal computada con el nombre completo del usuario para badges de avatar o perfiles.
@@ -163,7 +148,7 @@ export class AuthService {
         this.remember = remember;
         this.setToken(res.access_token);
       }),
-      switchMap(() => this.getProfile())
+      switchMap(() => this.getProfile()),
     );
   }
 
@@ -195,7 +180,9 @@ export class AuthService {
    * @returns {Observable<User>} Flujo observable con el usuario modificado.
    */
   updateProfile(profileData: ProfileUpdateRequest): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/users/me`, profileData).pipe(tap((user) => this.setUser(user)));
+    return this.http
+      .put<User>(`${this.apiUrl}/users/me`, profileData)
+      .pipe(tap((user) => this.setUser(user)));
   }
 
   /**
@@ -207,25 +194,13 @@ export class AuthService {
    * @returns {Observable<User>} Flujo observable con el perfil y roles actualizados.
    */
   switchRole(targetRole: 'HOST' | 'ATTENDEE' | 'host' | 'attendee' | string): Observable<User> {
-    const normalized = String(targetRole).toUpperCase() as UserRole;
-    const current = this.currentUser();
-    const currentRoles = current?.roles ? [...current.roles] : [];
-    const otherRoles = currentRoles.filter(
-      (r) => r.toUpperCase() !== 'HOST' && r.toUpperCase() !== 'ATTENDEE'
-    );
-    const updatedRoles = [...otherRoles, normalized];
-
-    return this.updateProfile({ roles: updatedRoles }).pipe(
-      catchError(() => {
-        // En caso de que el backend esté en modo simulado o fallback local
-        if (current) {
-          const fallbackUser: User = { ...current, roles: updatedRoles };
-          this.setUser(fallbackUser);
-          return of(fallbackUser);
-        }
-        return throwError(() => new Error('No active user session to switch role'));
-      })
-    );
+    const normalized = String(targetRole).toUpperCase();
+    if (normalized !== 'HOST' && normalized !== 'ATTENDEE') {
+      return throwError(() => new Error('Public role not allowed'));
+    }
+    return this.http
+      .post<User>(`${this.apiUrl}/users/me/role`, { role: normalized })
+      .pipe(tap((user) => this.setUser(user)));
   }
 
   /**
@@ -256,9 +231,32 @@ export class AuthService {
    *
    * @returns {void}
    */
-  logout(): void {
+  expireSession(): void {
     this.clearAuth();
     this.router.navigate(['/auth/login']);
+  }
+
+  /** Revoca la sesión actual conservando su JWT únicamente para la petición de logout. */
+  logout(): void {
+    const token = this.token;
+    this.expireSession();
+    if (token) {
+      // La cabecera conserva el JWT que se acaba de limpiar localmente.
+      this.http
+        .post(
+          `${this.apiUrl}/auth/logout`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        )
+        .pipe(timeout(5000))
+        .subscribe({
+          error: () => {
+            /* Sin red, el JWT vence en el servidor. */
+          },
+        });
+    }
   }
 
   /**

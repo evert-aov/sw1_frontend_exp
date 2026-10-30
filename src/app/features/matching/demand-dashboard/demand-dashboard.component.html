@@ -1,54 +1,69 @@
-<div class="max-w-5xl mx-auto space-y-6">
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-violet-600/10 text-violet-600 dark:text-violet-400 flex items-center justify-center">
-        <app-icon name="chart-bar" sizeClass="w-5 h-5" />
-      </div>
-      <div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-          {{ 'nav.demandInsights' | translate }}
-        </h1>
-        <p class="text-xs text-slate-500 dark:text-slate-400">
-          Prospección de mercado y categorías no cubiertas en tiempo real
-        </p>
-      </div>
-    </div>
-
-    @if (auth.isHost()) {
-      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-violet-500/10 text-violet-700 dark:text-violet-300 border border-violet-500/20 self-start sm:self-auto">
-        <app-icon name="sparkles" sizeClass="w-3.5 h-3.5" />
-        <span>{{ 'role.hostBadge' | translate }}</span>
-      </span>
-    } @else if (auth.isAttendee()) {
-      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 self-start sm:self-auto">
-        <app-icon name="device-phone-mobile" sizeClass="w-3.5 h-3.5" />
-        <span>Vista de Demanda para Asistentes</span>
-      </span>
-    }
-  </div>
-
-  @if (loading()) {
-    <app-event-skeleton [count]="4" variant="list" />
-  } @else if (insights().length === 0) {
-    <div class="p-12 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 text-center text-sm text-slate-500">
-      {{ 'catalog.emptyTitle' | translate }}
-    </div>
-  } @else {
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      @for (item of insights(); track item.id) {
-        <div class="p-5 rounded-2xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 flex items-center justify-between">
+<section class="max-w-5xl mx-auto space-y-6">
+  <app-page-header
+    [eyebrow]="'nav.demandInsights' | translate"
+    [title]="'demand.title' | translate"
+    [description]="'demand.subtitle' | translate"
+  />
+  <form
+    (ngSubmit)="onSelectZone(zone)"
+    class="ui-surface ui-panel flex flex-col sm:flex-row sm:items-end gap-4"
+  >
+    <app-field class="flex-1" controlId="demand-zone" [label]="'demand.zone' | translate"
+      ><input
+        appInput
+        name="zone"
+        [(ngModel)]="zone"
+        maxlength="100"
+        [placeholder]="'demand.allZones' | translate"
+    /></app-field>
+    <button appButton type="submit" [busy]="loading()">
+      <app-icon name="magnifying-glass" sizeClass="w-4 h-4" />{{ 'demand.search' | translate }}
+    </button>
+  </form>
+  <app-alert>{{ 'demand.explanation' | translate }}</app-alert>
+  @if (error()) {
+    <app-alert tone="error">{{ error() }}</app-alert>
+  }
+  @if (!loading() && !error() && !insights().length) {
+    <app-empty-state
+      icon="chart-bar"
+      [title]="'demand.empty' | translate"
+      [description]="'demand.emptyHint' | translate"
+    />
+  }
+  @if (!loading() && !error()) {
+    <div class="grid gap-5 md:grid-cols-2">
+      @for (item of suggestions(); track item.zone + ':' + item.category_keyword) {
+        <article class="ui-surface ui-panel space-y-4 flex flex-col">
           <div>
-            <p class="text-sm font-bold text-slate-900 dark:text-white">{{ item.category_keyword }}</p>
-            <p class="text-xs text-slate-500 dark:text-slate-400">{{ item.zone }} · {{ item.suggested_time_slot }}</p>
+            <p class="ui-eyebrow">{{ item.zone }}</p>
+            <h2 class="text-xl font-bold">{{ item.category_keyword }}</h2>
           </div>
-          <div class="text-right tabular-nums">
-            <p class="text-sm font-extrabold text-violet-600 dark:text-violet-400">{{ item.search_count }} búsquedas</p>
-            @if (item.suggested_price) {
-              <p class="text-xs text-slate-500">Bs {{ item.suggested_price | number: '1.0-0' }}</p>
-            }
-          </div>
-        </div>
+          <p class="text-3xl font-bold text-violet-700 dark:text-violet-300">
+            {{ item.estimated_interest_count }}
+            <span class="text-sm font-normal ui-muted">{{ 'demand.count' | translate }}</span>
+          </p>
+          <p class="ui-muted text-sm leading-relaxed">{{ item.rationale }}</p>
+          @if (item.suggested_price != null) {
+            <p class="text-sm">
+              {{ 'demand.budget' | translate }}:
+              <strong>{{ item.suggested_price | number: '1.2-2' }} BOB</strong>
+            </p>
+          } @else {
+            <p class="ui-muted text-sm">{{ 'demand.noBudget' | translate }}</p>
+          }
+          @if (item.recommended_time_slot) {
+            <p class="text-sm">{{ 'demand.time' | translate }}: {{ item.recommended_time_slot }}</p>
+          }
+          @if (auth.canPublishExperiences()) {
+            <div class="pt-3 mt-auto">
+              <a appButton routerLink="/experiences/create" [queryParams]="draft(item)"
+                >{{ 'demand.prepare' | translate }}<app-icon name="arrow-right" sizeClass="w-4 h-4"
+              /></a>
+            </div>
+          }
+        </article>
       }
     </div>
   }
-</div>
+</section>
