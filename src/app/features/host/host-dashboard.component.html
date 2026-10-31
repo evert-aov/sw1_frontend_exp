@@ -1,97 +1,322 @@
-<section class="space-y-6">
+<section class="max-w-6xl mx-auto space-y-8 pb-12">
+  <!-- Cabecera Ejecutiva del Anfitrión -->
   <app-page-header
     [eyebrow]="'workspace.host' | translate"
     [title]="'host.title' | translate"
     [description]="'host.description' | translate"
   >
-    <button appButton variant="secondary" [busy]="loading()" (click)="load()">
+    <button appButton variant="secondary" [busy]="loading()" (click)="load()" [attr.aria-label]="'ui.refresh' | translate">
+      <app-icon name="adjustments-horizontal" sizeClass="w-4 h-4" />
       {{ 'ui.refresh' | translate }}
     </button>
-    <a appButton variant="primary" routerLink="/experiences/create"
-      ><app-icon name="plus" sizeClass="w-4 h-4" />{{ 'nav.createExperience' | translate }}</a
-    >
+    <a appButton variant="primary" routerLink="/experiences/create">
+      <app-icon name="plus" sizeClass="w-4 h-4" />
+      {{ 'nav.createExperience' | translate }}
+    </a>
   </app-page-header>
-  <dl class="grid sm:grid-cols-3 gap-4">
+
+  <!-- Tarjetas de Métricas Ejecutivas de la Cuenta (KPIs) -->
+  <dl class="grid grid-cols-2 lg:grid-cols-4 gap-4">
     <div class="ui-stat">
-      <dt>{{ 'host.total' | translate }}</dt>
-      <dd>{{ items().length }}</dd>
+      <dt class="flex items-center justify-between">
+        <span>{{ 'host.total' | translate }}</span>
+        <app-icon name="calendar" sizeClass="w-4 h-4 text-violet-500" />
+      </dt>
+      <dd class="text-3xl text-slate-900 dark:text-slate-100">{{ items().length }}</dd>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Eventos organizados</p>
     </div>
+
     <div class="ui-stat">
-      <dt>{{ 'host.active' | translate }}</dt>
-      <dd>{{ activeCount() }}</dd>
+      <dt class="flex items-center justify-between">
+        <span>{{ 'host.active' | translate }}</span>
+        <app-icon name="bolt" sizeClass="w-4 h-4 text-violet-500" />
+      </dt>
+      <dd class="text-3xl text-violet-600 dark:text-violet-400">{{ activeCount() }}</dd>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Abiertas o confirmadas</p>
     </div>
+
     <div class="ui-stat">
-      <dt>{{ 'host.seats' | translate }}</dt>
-      <dd>{{ seats() }}</dd>
+      <dt class="flex items-center justify-between">
+        <span>{{ 'host.seats' | translate }}</span>
+        <app-icon name="ticket" sizeClass="w-4 h-4 text-violet-500" />
+      </dt>
+      <dd class="text-3xl text-emerald-600 dark:text-emerald-400">{{ seats() }}</dd>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ 'host.seats' | translate }}</p>
+    </div>
+
+    <div class="ui-stat">
+      <dt class="flex items-center justify-between">
+        <span>{{ 'host.revenue' | translate }}</span>
+        <app-icon name="currency-dollar" sizeClass="w-4 h-4 text-violet-500" />
+      </dt>
+      <dd class="text-xl sm:text-2xl font-extrabold text-violet-700 dark:text-violet-300 truncate">
+        BOB {{ totalRevenue() | number: '1.2-2' }}
+      </dd>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ 'host.revenueHint' | translate }}</p>
     </div>
   </dl>
+
+  <!-- Barra de Filtros, Pestañas y Búsqueda en Vivo -->
+  <section class="ui-surface ui-panel space-y-4">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <!-- Pestañas de Estado -->
+      <div class="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/10 text-xs">
+        <button
+          type="button"
+          (click)="setFilterTab('ALL')"
+          class="px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer"
+          [class.bg-white]="filterTab() === 'ALL'"
+          [class.dark:bg-violet-600]="filterTab() === 'ALL'"
+          [class.text-slate-900]="filterTab() === 'ALL'"
+          [class.dark:text-white]="filterTab() === 'ALL'"
+          [class.shadow-sm]="filterTab() === 'ALL'"
+          [class.text-slate-600]="filterTab() !== 'ALL'"
+          [class.dark:text-slate-300]="filterTab() !== 'ALL'"
+        >
+          {{ 'host.filterAll' | translate }}
+          <span class="ml-1 text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200/80 dark:bg-white/20">{{ items().length }}</span>
+        </button>
+
+        <button
+          type="button"
+          (click)="setFilterTab('ACTIVE')"
+          class="px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer"
+          [class.bg-white]="filterTab() === 'ACTIVE'"
+          [class.dark:bg-violet-600]="filterTab() === 'ACTIVE'"
+          [class.text-slate-900]="filterTab() === 'ACTIVE'"
+          [class.dark:text-white]="filterTab() === 'ACTIVE'"
+          [class.shadow-sm]="filterTab() === 'ACTIVE'"
+          [class.text-slate-600]="filterTab() !== 'ACTIVE'"
+          [class.dark:text-slate-300]="filterTab() !== 'ACTIVE'"
+        >
+          {{ 'host.filterActive' | translate }}
+          <span class="ml-1 text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200/80 dark:bg-white/20">{{ activeCount() }}</span>
+        </button>
+
+        <button
+          type="button"
+          (click)="setFilterTab('QUORUM')"
+          class="px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer"
+          [class.bg-white]="filterTab() === 'QUORUM'"
+          [class.dark:bg-violet-600]="filterTab() === 'QUORUM'"
+          [class.text-slate-900]="filterTab() === 'QUORUM'"
+          [class.dark:text-white]="filterTab() === 'QUORUM'"
+          [class.shadow-sm]="filterTab() === 'QUORUM'"
+          [class.text-slate-600]="filterTab() !== 'QUORUM'"
+          [class.dark:text-slate-300]="filterTab() !== 'QUORUM'"
+        >
+          {{ 'host.filterQuorum' | translate }}
+          <span class="ml-1 text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">{{ quorumReachedCount() }}</span>
+        </button>
+
+        <button
+          type="button"
+          (click)="setFilterTab('PENDING')"
+          class="px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer"
+          [class.bg-white]="filterTab() === 'PENDING'"
+          [class.dark:bg-violet-600]="filterTab() === 'PENDING'"
+          [class.text-slate-900]="filterTab() === 'PENDING'"
+          [class.dark:text-white]="filterTab() === 'PENDING'"
+          [class.shadow-sm]="filterTab() === 'PENDING'"
+          [class.text-slate-600]="filterTab() !== 'PENDING'"
+          [class.dark:text-slate-300]="filterTab() !== 'PENDING'"
+        >
+          {{ 'host.filterPending' | translate }}
+        </button>
+      </div>
+
+      <!-- Buscador en tiempo real -->
+      <div class="w-full md:w-72">
+        <app-field controlId="host-search" [label]="'host.searchPlaceholder' | translate">
+          <input
+            appInput
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            [placeholder]="'host.searchPlaceholder' | translate"
+            class="text-xs"
+          />
+        </app-field>
+      </div>
+    </div>
+  </section>
+
   @if (error()) {
     <app-alert tone="error">{{ error() }}</app-alert>
   }
+
   @if (loading()) {
     <app-alert>{{ 'ui.loading' | translate }}</app-alert>
   } @else {
+    <!-- Cuadrícula de Tarjetas de Experiencias Organizadas -->
     <div class="grid lg:grid-cols-2 gap-5">
-      @for (item of items(); track item.id) {
-        <article class="ui-surface ui-panel space-y-4">
-          <div class="flex flex-wrap justify-between items-start gap-3">
-            <h2 class="ui-section-title">{{ item.title }}</h2>
-            <app-status-badge [value]="item.status" />
-          </div>
-          <p class="ui-muted text-sm">
-            {{ item.event_date | date: 'medium' : undefined : i18n.currentLang() }}
-          </p>
-          <p class="ui-muted text-sm">
-            {{ item.venue_name || ('catalog.modVirtual' | translate) }}
-          </p>
-          <div class="flex justify-between gap-3 text-sm">
-            <p>
-              {{ item.reserved_slots }} / {{ item.max_capacity }} {{ 'host.seats' | translate }}
-            </p>
-            <p class="font-semibold">BOB {{ item.price | number: '1.2-2' }}</p>
-          </div>
-          @if (item.held_slots) {
-            <p class="ui-muted text-xs">{{ item.held_slots }} {{ 'host.holds' | translate }}</p>
-          }
-          <div class="ui-divider pt-4 ui-actions">
-            @if (item.can_edit) {
-              <a appButton [routerLink]="['/host/experiences', item.id, 'edit']">{{
-                'host.edit' | translate
-              }}</a>
-            } @else {
-              <button appButton variant="secondary" [disabled]="true">
-                {{ 'host.edit' | translate }}
-              </button>
-            }
-            <button
-              appButton
-              variant="danger"
-              [disabled]="!item.can_delete"
-              (click)="requestDelete(item, $event)"
+      @for (item of filteredItems(); track item.id) {
+        <article class="ui-surface ui-panel flex flex-col justify-between space-y-4 hover:border-violet-500/40 transition-all shadow-sm">
+          <!-- Encabezado de la Tarjeta con Badges -->
+          <div class="space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <app-status-badge [value]="item.status" />
+                @if (item.modality === 'IN_PERSON') {
+                  <span class="ui-badge text-[11px]">
+                    <app-icon name="map-pin" sizeClass="w-3 h-3 mr-1" />
+                    {{ 'catalog.modInPerson' | translate }}
+                  </span>
+                } @else if (item.modality === 'VIRTUAL') {
+                  <span class="ui-badge text-[11px]">
+                    <app-icon name="globe-alt" sizeClass="w-3 h-3 mr-1" />
+                    {{ 'catalog.modVirtual' | translate }}
+                  </span>
+                } @else {
+                  <span class="ui-badge text-[11px]">
+                    <app-icon name="building-office" sizeClass="w-3 h-3 mr-1" />
+                    {{ 'catalog.modHybrid' | translate }}
+                  </span>
+                }
+              </div>
+
+              <!-- Indicador de Quórum -->
+              @if (item.is_quorum_reached) {
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1">
+                  <app-icon name="check-circle" sizeClass="w-3 h-3" />
+                  {{ 'host.quorumReached' | translate }}
+                </span>
+              } @else {
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 inline-flex items-center gap-1">
+                  <app-icon name="clock" sizeClass="w-3 h-3" />
+                  {{ 'host.quorumPending' | translate }}
+                </span>
+              }
+            </div>
+
+            <!-- Título del Evento con Enlace -->
+            <a
+              [routerLink]="['/experiences', item.id]"
+              class="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 hover:text-violet-600 dark:hover:text-violet-400 transition-colors block"
             >
-              {{ 'host.delete' | translate }}
-            </button>
+              {{ item.title }}
+            </a>
+
+            <!-- Metadatos de Fecha y Ubicación -->
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-300">
+              <span class="inline-flex items-center gap-1.5">
+                <app-icon name="calendar" sizeClass="w-3.5 h-3.5 text-violet-500 shrink-0" />
+                {{ item.event_date | date: 'dd/MM/yyyy · HH:mm' : undefined : i18n.currentLang() }}
+              </span>
+              <span class="inline-flex items-center gap-1.5 truncate max-w-[240px]">
+                <app-icon name="building-office" sizeClass="w-3.5 h-3.5 text-violet-500 shrink-0" />
+                {{ item.venue_name || ('catalog.modVirtual' | translate) }}
+              </span>
+            </div>
           </div>
+
+          <!-- Barra de Progreso de Ocupación y Quórum -->
+          <div class="bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200/60 dark:border-white/5 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="ui-muted font-medium">
+                {{ 'host.occupancy' | translate }}:
+                <strong class="text-slate-900 dark:text-slate-100">{{ item.reserved_slots }} / {{ item.max_capacity }}</strong>
+                ({{ getOccupancyPercent(item) }}%)
+              </span>
+              <span class="text-[11px] text-slate-500 dark:text-slate-400">
+                {{ 'host.quorum' | translate }}: <strong>{{ item.min_capacity }}</strong>
+              </span>
+            </div>
+
+            <!-- Barra de Progreso Visual -->
+            <div class="w-full h-2.5 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden relative">
+              <div
+                class="h-full rounded-full transition-all duration-500"
+                [style.width.%]="getOccupancyPercent(item)"
+                [class.bg-emerald-500]="item.is_quorum_reached"
+                [class.bg-violet-600]="!item.is_quorum_reached"
+              ></div>
+            </div>
+
+            <!-- Precios y Retenciones -->
+            <div class="flex items-center justify-between text-xs pt-0.5">
+              <span class="font-bold text-slate-900 dark:text-slate-100">
+                BOB {{ item.price | number: '1.2-2' }} <span class="text-[10px] font-normal text-slate-500">/ cupo</span>
+              </span>
+              <span class="text-violet-600 dark:text-violet-400 font-semibold">
+                BOB {{ (item.reserved_slots * item.price) | number: '1.2-2' }} <span class="text-[10px] font-normal text-slate-500">acumulado</span>
+              </span>
+            </div>
+
+            @if (item.held_slots) {
+              <p class="text-[11px] text-amber-600 dark:text-amber-400 font-medium inline-flex items-center gap-1 pt-1 border-t border-slate-200/50 dark:border-white/5">
+                <app-icon name="clock" sizeClass="w-3 h-3" />
+                {{ item.held_slots }} {{ 'host.holds' | translate }}
+              </p>
+            }
+          </div>
+
+          <!-- Acciones Rápidas -->
+          <div class="pt-2 border-t border-slate-200/60 dark:border-white/10 flex flex-wrap items-center justify-between gap-2 mt-auto">
+            <div class="flex items-center gap-1.5">
+              <a appButton variant="ghost" [routerLink]="['/experiences', item.id]" class="!py-1.5 !px-2.5 !text-xs">
+                <app-icon name="eye" sizeClass="w-3.5 h-3.5" />
+                {{ 'host.viewPublic' | translate }}
+              </a>
+              <a appButton variant="ghost" [routerLink]="['/matching/group', item.id]" class="!py-1.5 !px-2.5 !text-xs">
+                <app-icon name="users" sizeClass="w-3.5 h-3.5" />
+                {{ 'host.group' | translate }}
+              </a>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              @if (item.can_edit) {
+                <a appButton variant="secondary" [routerLink]="['/host/experiences', item.id, 'edit']" class="!py-1.5 !px-2.5 !text-xs">
+                  {{ 'host.edit' | translate }}
+                </a>
+              } @else {
+                <button appButton variant="secondary" [disabled]="true" class="!py-1.5 !px-2.5 !text-xs">
+                  {{ 'host.edit' | translate }}
+                </button>
+              }
+              <button
+                appButton
+                variant="danger"
+                [disabled]="!item.can_delete"
+                (click)="requestDelete(item, $event)"
+                class="!py-1.5 !px-2.5 !text-xs"
+              >
+                {{ 'host.delete' | translate }}
+              </button>
+            </div>
+          </div>
+
           @if (item.management_lock_reason) {
-            <p class="ui-muted text-xs leading-relaxed">
+            <p class="text-[11px] ui-muted bg-slate-100 dark:bg-white/5 p-2 rounded-lg">
               {{ 'host.lock.' + item.management_lock_reason | translate }}
             </p>
           }
         </article>
       } @empty {
         @if (!error()) {
-          <app-empty-state
-            icon="calendar"
-            [title]="'host.empty' | translate"
-            [description]="'host.emptyHint' | translate"
-            ><a appButton routerLink="/host/venues">{{
-              'workspace.venues' | translate
-            }}</a></app-empty-state
-          >
+          <div class="lg:col-span-2 ui-surface ui-panel p-8 text-center space-y-4">
+            <app-empty-state
+              icon="calendar"
+              [title]="searchQuery() || filterTab() !== 'ALL' ? ('host.noFilteredResults' | translate) : ('host.empty' | translate)"
+              [description]="searchQuery() || filterTab() !== 'ALL' ? ('demand.emptyHint' | translate) : ('host.emptyHint' | translate)"
+            />
+            @if (searchQuery() || filterTab() !== 'ALL') {
+              <button appButton variant="secondary" (click)="clearFilters()">
+                <app-icon name="arrow-left" sizeClass="w-4 h-4" />
+                {{ 'host.clearFilter' | translate }}
+              </button>
+            } @else {
+              <a appButton variant="primary" routerLink="/experiences/create">
+                <app-icon name="plus" sizeClass="w-4 h-4" />
+                {{ 'nav.createExperience' | translate }}
+              </a>
+            }
+          </div>
         }
       }
     </div>
   }
+
+  <!-- Diálogo Accesible para Confirmar Eliminación -->
   @if (deleting(); as item) {
     <app-dialog
       [title]="'host.deleteTitle' | translate"
@@ -99,12 +324,13 @@
       [returnFocus]="deleteTrigger"
       (closed)="!busy() && deleting.set(null)"
     >
-      <p class="font-semibold">{{ item.title }}</p>
+      <p class="font-semibold text-slate-900 dark:text-slate-100">{{ item.title }}</p>
       <p class="ui-muted text-sm">{{ 'host.deleteHint' | translate }}</p>
-      <div class="ui-actions">
+      <div class="ui-actions pt-2">
         <button appButton variant="danger" [busy]="busy()" (click)="confirmDelete()">
-          {{ 'host.delete' | translate }}</button
-        ><button appButton variant="secondary" [disabled]="busy()" (click)="deleting.set(null)">
+          {{ 'host.delete' | translate }}
+        </button>
+        <button appButton variant="secondary" [disabled]="busy()" (click)="deleting.set(null)">
           {{ 'common.cancel' | translate }}
         </button>
       </div>

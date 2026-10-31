@@ -46,6 +46,16 @@ export interface UnmetDemandInsight {
 }
 
 export interface SuggestedExperience {
-  zone: string; category_keyword: string; category_id?: string; estimated_interest_count: number;
-  suggested_price?: number | null; recommended_time_slot?: string | null; rationale: string; confidence_score?: number | null;
+  zone: string;
+  category_keyword: string;
+  category_id?: string | null;
+  estimated_interest_count: number;
+  suggested_price?: number | null;
+  suggested_currency?: string | null;
+  recommended_time_slot?: string | null;
+  recommended_modality?: string | null;
+  rationale: string;
+  confidence_score?: number | null;
+  quorum_probability?: number | null;
+  recommendation_source?: string | null;
 }

@@ -20,11 +20,15 @@ Se muestran interés del grupo, afinidad, cupos confirmados y estado del evento 
 
 La ruta /notifications recupera avisos propios por páginas de 50, consulta cada 30 segundos y permite marcarlos leídos. El enlace está en navegación y en Mis entradas. Los errores conservan su estado visible y permiten recuperación; no se reutiliza el WebSocket de live.
 
-## Demanda para establecimientos
+## Demanda para establecimientos (HU-10 & HU-11)
 
-/demand-insights exige HOST/VENUE/ADMIN en guard y API. Consulta /demand/insights y /demand/suggestions con zona opcional. switchMap cancela consultas anteriores al cambiar de zona. Se muestran búsquedas sin oferta de 30 días y su evidencia, con precio/franja solo cuando existen filtros observados.
+/demand-insights exige HOST/VENUE/ADMIN en guard y API. Consulta /demand/insights y /demand/suggestions con zona opcional. El tablero analítico incorpora:
+- **KPIs Ejecutivos**: Total de búsquedas insatisfechas, nichos temáticos activos, zona focal principal y conteo de oportunidades sugeridas.
+- **Filtro y Selector Rápido de Zonas**: Chips interactivos de un toque para "Todas las zonas", "Equipetrol", "Centro", "Urbarí", "Las Palmas", "Plan 3000", "Pampa de la Isla", etc.
+- **Mapa de Calor de Demanda No Cubierta (HU-10)**: Cuadrícula visual con gradiente térmico de intensidad relativa (Alta, Moderada, Emergente), porcentaje sobre volumen máximo y alerta de ausencia de oferta activa en catálogo.
+- **Tarjetas de Sugerencias Automáticas de Eventos (HU-11)**: Estimaciones explicadas por IA/estadística con desglose de presupuestos sugeridos, franjas horarias óptimas, modalidades recomendadas y viabilidad de quórum.
 
-Preparar experiencia abre un borrador editable con título/categoría/precio. La zona solo propone una sede persistida coincidente; el formulario mantiene venue_id real y no inventa dirección/establecimiento.
+Preparar experiencia abre un borrador editable prellenado con título/categoría/precio hacia `/experiences/create`. La zona solo propone una sede persistida coincidente; el formulario mantiene venue_id real y no inventa dirección/establecimiento.
 
 El catálogo envía X-Search-Session efímero. El servidor registra la búsqueda y deduplica reintentos/paginación; los componentes no afirman si hubo resultados.
 

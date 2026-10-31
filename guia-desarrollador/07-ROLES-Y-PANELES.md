@@ -8,7 +8,7 @@ Los guards consultan /users/me antes de autorizar una ruta privada. publicCatalo
 
 ## Funcionalidades
 
-- features/host/host-dashboard: listado propio con acciones autorizadas por can_edit/can_delete de la API y confirmación de eliminación.
+- features/host/host-dashboard: panel analítico y listado propio con KPIs ejecutivos (total, activas, cupos confirmados, recaudación acumulada), buscador en vivo, pestañas de filtrado (Todas, Activas, Con quórum, Pendientes), barra de progreso de aforo con indicador de quórum mínimo viable y acciones autorizadas por can_edit/can_delete de la API con confirmación de eliminación.
 - features/host/venues: formulario reutilizable para alta/edición de lugares propios, con ubicación, teléfono y capacidad.
 - features/host/host-operations: ingresos reales por moneda y registro de acceso; estas herramientas ya no están en Mis entradas.
 - features/admin/admin-dashboard: métricas agregadas y consulta paginada de experiencias de plataforma.
