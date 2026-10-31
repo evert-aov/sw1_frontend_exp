@@ -110,11 +110,31 @@ export class ProfileComponent implements OnInit {
     return `${u.first_name.charAt(0)}${u.last_name?.charAt(0) ?? ''}`.toUpperCase();
   });
 
+  /** Lista estandarizada de temas e intereses por defecto para matching y afinidad */
+  private static readonly DEFAULT_TOPICS: readonly string[] = [
+    'Gastronomía',
+    'Café de especialidad',
+    'Cata y Maridaje',
+    'Arte y Pintura',
+    'Música y Conciertos',
+    'Música en vivo',
+    'DJ y Electrónica',
+    'Talleres y Educación',
+    'Tecnología y Software',
+    'Networking y Negocios',
+    'Bienestar y Outdoors',
+    'Yoga y Mindfulness',
+    'Diseño UI/UX',
+    'Fotografía',
+  ];
+
   /** Lista unificada de temas e intereses disponibles para selección */
   readonly availableTopics = computed<string[]>(() => {
     const fromBackend = this.categories().map((c) => c.name);
     const current = this.interests();
-    return Array.from(new Set([...fromBackend, ...current]));
+    return Array.from(
+      new Set([...ProfileComponent.DEFAULT_TOPICS, ...fromBackend, ...current]),
+    );
   });
 
   /** Formulario reactivo para la edición de perfil */
