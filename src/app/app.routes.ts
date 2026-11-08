@@ -101,7 +101,6 @@ export const routes: Routes = [
   },
   {
     path: 'experiences/:id',
-    canActivate: [publicCatalogGuard],
     loadComponent: () =>
       import('./features/experience/experience-detail/experience-detail.component').then(
         (m) => m.ExperienceDetailComponent,
