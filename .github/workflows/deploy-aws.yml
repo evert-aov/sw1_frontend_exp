@@ -1,0 +1,228 @@
+name: Deploy AWS (Frontend Web)
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-aws-frontend-production
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Validate deployment target and configuration
+    runs-on: ubuntu-latest
+    outputs:
+      allowed: ${{ steps.gate.outputs.allowed }}
+      revision: ${{ steps.gate.outputs.revision }}
+    steps:
+      - name: Checkout candidate without write credentials
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate branch, revision, and required AWS variables
+        id: gate
+        env:
+          DEPLOY_REVISION: ${{ github.event.workflow_run.head_sha || github.sha }}
+          DEPLOY_ENVIRONMENT: aws-production
+          WORKFLOW_RUN_EVENT: ${{ github.event.workflow_run.event || '' }}
+          WORKFLOW_RUN_BRANCH: ${{ github.event.workflow_run.head_branch || '' }}
+          WORKFLOW_RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion || '' }}
+          AWS_DEPLOY_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_API_HOST: ${{ vars.AWS_API_HOST }}
+          AWS_S3_WEBAPP_BUCKET: ${{ vars.AWS_S3_WEBAPP_BUCKET }}
+          AWS_CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.AWS_CLOUDFRONT_DISTRIBUTION_ID }}
+          DEPLOYMENT_REPORT_PATH: ${{ runner.temp }}/deployment-preflight/report.json
+        run: node scripts/deployment-preflight.mjs
+
+      - name: Upload deployment preflight report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-preflight-frontend
+          path: ${{ runner.temp }}/deployment-preflight/report.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  deploy:
+    name: Build & Publish to S3 and CloudFront
+    needs: preflight
+    if: >-
+      needs.preflight.result == 'success' &&
+      needs.preflight.outputs.allowed == 'true' &&
+      ((github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+       (github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'main'))
+    runs-on: ubuntu-latest
+    environment: aws-production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.preflight.outputs.revision }}
+          persist-credentials: false
+
+      - name: Set up pnpm
+        id: setup_pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.17.0
+
+      - name: Setup Node.js 22
+        id: setup_node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Authenticate with AWS via OIDC
+        id: aws_auth
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Inject production API endpoints
+        id: inject_api
+        run: |
+          cat << 'EOF' > src/app/core/config/api.config.ts
+          export const API_CONFIG = {
+            baseUrl: 'https://${{ vars.AWS_API_HOST }}/api',
+            wsUrl: 'wss://${{ vars.AWS_API_HOST }}/api/live/ws',
+          } as const;
+          EOF
+
+      - name: Install dependencies
+        id: install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Angular SPA
+        id: build
+        run: pnpm run build
+
+      - name: Sync artifacts to S3
+        id: publish_s3
+        env:
+          BUCKET: ${{ vars.AWS_S3_WEBAPP_BUCKET }}
+        run: aws s3 sync dist/experiencia_front/browser "s3://${BUCKET}" --delete
+
+      - name: Invalidate CloudFront index.html
+        id: invalidate_cloudfront
+        env:
+          DISTRIBUTION_ID: ${{ vars.AWS_CLOUDFRONT_DISTRIBUTION_ID }}
+        run: aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths "/index.html"
+
+      - name: Publish deployment phase diagnostics
+        if: always()
+        env:
+          VERSION: ${{ needs.preflight.outputs.revision }}
+          CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
+          SETUP_PNPM_OUTCOME: ${{ steps.setup_pnpm.outcome }}
+          SETUP_NODE_OUTCOME: ${{ steps.setup_node.outcome }}
+          AWS_AUTH_OUTCOME: ${{ steps.aws_auth.outcome }}
+          INJECT_API_OUTCOME: ${{ steps.inject_api.outcome }}
+          INSTALL_OUTCOME: ${{ steps.install.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          PUBLISH_S3_OUTCOME: ${{ steps.publish_s3.outcome }}
+          INVALIDATE_CLOUDFRONT_OUTCOME: ${{ steps.invalidate_cloudfront.outcome }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+
+          version = os.environ.get("VERSION", "unknown") or "unknown"
+          reports = []
+
+          def add_report(phase, status, *, code=None, evidence, causes=None, actions=None):
+              reports.append({
+                  "schema": "diagnostic-report/v1",
+                  "service": "experiencia-frontend",
+                  "version": version,
+                  "phase": phase,
+                  "status": status,
+                  "code": code,
+                  "cause_status": "hypothesis" if status == "failed" else "unknown",
+                  "evidence": evidence,
+                  "possible_causes": causes or [],
+                  "recommended_actions": actions or [],
+              })
+
+          def step_outcome(env_name):
+              return os.environ.get(env_name, "unknown")
+
+          def status_for(outcome):
+              if outcome == "success":
+                  return "passed"
+              if outcome in ("failure", "cancelled"):
+                  return "failed"
+              return "not_verified"
+
+          preparation_steps = [
+              ("checkout", step_outcome("CHECKOUT_OUTCOME")),
+              ("setup_pnpm", step_outcome("SETUP_PNPM_OUTCOME")),
+              ("setup_node", step_outcome("SETUP_NODE_OUTCOME")),
+              ("aws_auth", step_outcome("AWS_AUTH_OUTCOME")),
+              ("inject_api", step_outcome("INJECT_API_OUTCOME")),
+              ("install", step_outcome("INSTALL_OUTCOME")),
+          ]
+          issue = next(((step, outcome) for step, outcome in preparation_steps if outcome != "success"), None)
+          preparation = status_for(issue[1]) if issue else "passed"
+          add_report(
+              "preparation", preparation,
+              code="DEPLOY.PREPARATION_FAILED" if preparation == "failed" else None,
+              evidence={"probe": "github_step_outcome", "source": "github", "step": issue[0] if issue else "install", "outcome": issue[1] if issue else "success"},
+              causes=["An Actions preparation step failed; the underlying cause is not yet confirmed."] if preparation == "failed" else [],
+              actions=["Inspect the first failed preparation step in this run's Actions logs; confirm the cause before remediation."] if preparation != "passed" else [],
+          )
+
+          for phase, step, env_name, code in (
+              ("build", "build", "BUILD_OUTCOME", "DEPLOY.BUILD_FAILED"),
+              ("publication", "publish_s3", "PUBLISH_S3_OUTCOME", "DEPLOY.PUBLICATION_FAILED"),
+              ("publication", "invalidate_cloudfront", "INVALIDATE_CLOUDFRONT_OUTCOME", "DEPLOY.PUBLICATION_FAILED"),
+          ):
+              outcome = step_outcome(env_name)
+              phase_status = status_for(outcome)
+              add_report(
+                  phase, phase_status,
+                  code=code if phase_status == "failed" else None,
+                  evidence={"probe": "github_step_outcome", "source": "github", "step": step, "outcome": outcome},
+                  causes=["The reported Actions step failed; the underlying cause is not yet confirmed."] if phase_status == "failed" else [],
+                  actions=["Inspect the named Actions step and verify its inputs and permissions."] if phase_status != "passed" else [],
+              )
+
+          for phase in ("startup", "readiness", "postdeploy"):
+              add_report(
+                  phase, "not_verified",
+                  evidence={"probe": "runtime_health_check", "source": "github", "outcome": "skipped"},
+                  actions=["Run an authorized postdeploy smoke check and record evidence before declaring the site healthy."],
+              )
+
+          rendered = json.dumps(reports, indent=2, sort_keys=True)
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary_path:
+              with open(summary_path, "a", encoding="utf-8") as summary:
+                  summary.write("## Deployment diagnostic report\n\n")
+                  summary.write("Startup, readiness, and postdeploy are not verified by this workflow.\n\n")
+                  summary.write("```json\n" + rendered + "\n```\n")
+          print(rendered)
+          PY
