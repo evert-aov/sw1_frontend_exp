@@ -1,0 +1,38 @@
+name: Bug report
+description: Something does not work as expected in the Angular frontend.
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Actual behavior, including browser console errors or visual glitches.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1. Open route...
+        2. Click on...
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [auth, catalog, experiences, booking, payments, state, ui-components, i18n, routing]
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: "Chrome 120 / Firefox / Edge · Local npm start or S3 CloudFront"

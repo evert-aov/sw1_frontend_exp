@@ -8,7 +8,14 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "check:i18n": "node scripts/check-translations.mjs"
+    "test:ci": "ng test --watch=false",
+    "typecheck": "tsc --noEmit",
+    "check:i18n": "node scripts/check-translations.mjs",
+    "test:i18n-checker": "node --test scripts/check-translations.test.mjs",
+    "test:deploy-preflight": "node --test scripts/deployment-preflight.test.mjs",
+    "test:deploy-revision": "node --test scripts/check-deploy-revision.test.mjs",
+    "format:check": "prettier --check",
+    "quality": "node scripts/check-translations.mjs && node --test scripts/check-translations.test.mjs scripts/check-deploy-revision.test.mjs scripts/deployment-preflight.test.mjs && tsc --noEmit && ng test --watch=false"
   },
   "private": true,
   "dependencies": {

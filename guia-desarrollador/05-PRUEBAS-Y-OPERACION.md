@@ -5,10 +5,16 @@
 Desde `experiencia_front/`:
 
 ```sh
-npm test -- --watch=false
-npm run check:i18n
-npm run build
+# CI y ruta reproducible del repositorio
+pnpm install --frozen-lockfile
+pnpm run quality
+pnpm run build
+
 ```
+
+CI fija pnpm 12.17.0 y usa `pnpm-lock.yaml` con instalación congelada. Ese es el gestor y lockfile reproducibles del proyecto; no se mantiene un lockfile alternativo.
+
+`quality` valida paridad de traducciones, TypeScript y pruebas Vitest en modo no interactivo. Para comprobar formato manualmente, usá `pnpm run format:check -- src/ruta/archivo.ts`. CI aplica Prettier a los archivos fuente y scripts modificados; la línea base inicial reportó 40 archivos con deuda, que no se reformatearon en bloque. La compilación de producción se ejecuta aparte.
 
 La suite incluye App y pruebas de sesión/roles, HTTP, filtros/paginación, publicación por UUID, conversión horaria y cotización del servidor. No ejecuta compras reales ni acredita PostgreSQL. La compilación de producción comprueba templates/tipos y presupuestos, pero no detecta por sí sola rutas HTTP incorrectas.
 
