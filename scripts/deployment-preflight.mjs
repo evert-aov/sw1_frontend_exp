@@ -36,9 +36,8 @@ function eventEvidence(env) {
     if (ref !== 'refs/heads/main') {
       return { allowed: false, evidence, code: 'DEPLOY.BRANCH_NOT_ALLOWED' };
     }
-    evidence.confirmation = (env.DEPLOY_CONFIRMATION ?? '').toLowerCase() === 'true'
-      ? 'confirmed'
-      : 'not_confirmed';
+    evidence.confirmation =
+      (env.DEPLOY_CONFIRMATION ?? '').toLowerCase() === 'true' ? 'confirmed' : 'not_confirmed';
   } else {
     return { allowed: false, evidence, code: 'DEPLOY.TRIGGER_NOT_ALLOWED' };
   }
