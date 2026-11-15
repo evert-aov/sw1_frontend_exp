@@ -27,6 +27,7 @@ function eventEvidence(env) {
     source_event: 'not_applicable',
     source_branch: 'not_applicable',
     source_conclusion: 'not_applicable',
+    confirmation: 'not_applicable',
   };
 
   if (eventName === 'workflow_dispatch') {
@@ -35,22 +36,9 @@ function eventEvidence(env) {
     if (ref !== 'refs/heads/main') {
       return { allowed: false, evidence, code: 'DEPLOY.BRANCH_NOT_ALLOWED' };
     }
-  } else if (eventName === 'workflow_run') {
-    const sourceEvent = env.WORKFLOW_RUN_EVENT ?? '';
-    const sourceBranch = env.WORKFLOW_RUN_BRANCH ?? '';
-    const sourceConclusion = env.WORKFLOW_RUN_CONCLUSION ?? '';
-    evidence.trigger = 'workflow_run';
-    evidence.ref_class = sourceBranch === 'main' ? 'main' : 'non_main';
-    evidence.source_event = ['push', 'pull_request', 'workflow_dispatch'].includes(sourceEvent)
-      ? sourceEvent
-      : 'other';
-    evidence.source_branch = sourceBranch === 'main' ? 'main' : 'other';
-    evidence.source_conclusion = ['success', 'failure', 'cancelled'].includes(sourceConclusion)
-      ? sourceConclusion
-      : 'other';
-    if (sourceEvent !== 'push' || sourceBranch !== 'main' || sourceConclusion !== 'success') {
-      return { allowed: false, evidence, code: 'DEPLOY.VALIDATION_NOT_PASSED' };
-    }
+    evidence.confirmation = (env.DEPLOY_CONFIRMATION ?? '').toLowerCase() === 'true'
+      ? 'confirmed'
+      : 'not_confirmed';
   } else {
     return { allowed: false, evidence, code: 'DEPLOY.TRIGGER_NOT_ALLOWED' };
   }
@@ -77,7 +65,7 @@ export function buildPreflightReport(env = process.env) {
     status = 'blocked';
     causeStatus = 'confirmed';
     actions = [
-      'Run deployment only from main after successful CI on a main push; do not deploy feature or pull-request revisions.',
+      'Run deployment only with workflow_dispatch from main; automatic deployments after CI are disabled.',
     ];
   } else {
     missingVariables = [...validators.keys()].filter((name) => !(env[name] ?? '').trim()).sort();
@@ -102,6 +90,13 @@ export function buildPreflightReport(env = process.env) {
       causeStatus = 'confirmed';
       actions = [
         'Correct the format of the listed GitHub Actions variables and rerun preflight; values are intentionally omitted from this report.',
+      ];
+    } else if (event.evidence.confirmation !== 'confirmed') {
+      status = 'blocked';
+      code = 'DEPLOY.CONFIRMATION_REQUIRED';
+      causeStatus = 'confirmed';
+      actions = [
+        'Set confirm_deployment to true only after reviewing the revision and confirming the protected aws-production environment.',
       ];
     } else {
       code = null;

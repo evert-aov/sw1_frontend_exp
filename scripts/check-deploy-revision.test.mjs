@@ -6,7 +6,7 @@ const workflow = readFileSync(
   new URL('../.github/workflows/deploy-aws.yml', import.meta.url),
   'utf8',
 );
-const expectedRevision = '${{ github.event.workflow_run.head_sha || github.sha }}';
+const expectedRevision = '${{ github.sha }}';
 const validatedRevision = '${{ needs.preflight.outputs.revision }}';
 
 test('deployment report identifies the same revision that checkout builds', () => {

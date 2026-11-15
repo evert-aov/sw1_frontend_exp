@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { buildPreflightReport } from './deployment-preflight.mjs';
 
 const scriptPath = fileURLToPath(new URL('./deployment-preflight.mjs', import.meta.url));
+const workflowPath = fileURLToPath(new URL('../.github/workflows/deploy-aws.yml', import.meta.url));
 const revision = 'a'.repeat(40);
 
 function validEnvironment(overrides = {}) {
@@ -16,6 +17,7 @@ function validEnvironment(overrides = {}) {
     GITHUB_EVENT_NAME: 'workflow_dispatch',
     GITHUB_REF: 'refs/heads/main',
     GITHUB_SHA: revision,
+    DEPLOY_CONFIRMATION: 'true',
     WORKFLOW_RUN_EVENT: '',
     WORKFLOW_RUN_BRANCH: '',
     WORKFLOW_RUN_CONCLUSION: '',
@@ -70,12 +72,12 @@ test('blocks manual dispatch from non-main without echoing the branch', () => {
   assert.equal(JSON.stringify(report).includes('feature/unreviewed'), false);
 });
 
-test('blocks workflow runs unless CI was a successful main push', () => {
+test('blocks workflow runs even when CI was a successful main push', () => {
   const report = buildPreflightReport(
     validEnvironment({
       GITHUB_EVENT_NAME: 'workflow_run',
-      WORKFLOW_RUN_EVENT: 'pull_request',
-      WORKFLOW_RUN_BRANCH: 'feature/unreviewed',
+      WORKFLOW_RUN_EVENT: 'push',
+      WORKFLOW_RUN_BRANCH: 'main',
       WORKFLOW_RUN_CONCLUSION: 'success',
       DEPLOY_REVISION: revision,
     }),
@@ -83,13 +85,21 @@ test('blocks workflow runs unless CI was a successful main push', () => {
 
   assert.equal(report.status, 'blocked');
   assert.equal(report.gate_status, 'blocked');
-  assert.equal(report.code, 'DEPLOY.VALIDATION_NOT_PASSED');
-  assert.equal(report.evidence.source_event, 'pull_request');
+  assert.equal(report.code, 'DEPLOY.TRIGGER_NOT_ALLOWED');
+});
+
+test('blocks manual dispatch unless the confirmation input is true', () => {
+  const report = buildPreflightReport(validEnvironment({ DEPLOY_CONFIRMATION: 'false' }));
+
+  assert.equal(report.status, 'blocked');
+  assert.equal(report.gate_status, 'blocked');
+  assert.equal(report.code, 'DEPLOY.CONFIRMATION_REQUIRED');
+  assert.equal(report.cause_status, 'confirmed');
 });
 
 test('reports missing AWS variables without exposing configured values', () => {
   const report = buildPreflightReport(
-    validEnvironment({ AWS_REGION: '', AWS_S3_WEBAPP_BUCKET: '' }),
+    validEnvironment({ AWS_REGION: '', AWS_S3_WEBAPP_BUCKET: '', DEPLOY_CONFIRMATION: 'false' }),
   );
 
   assert.equal(report.status, 'not_configured');
@@ -119,7 +129,7 @@ test('rejects whitespace around values consumed verbatim', () => {
   assert.equal(JSON.stringify(report).includes('api.example.test'), false);
 });
 
-test('accepts an authorized main dispatch and successful main push', () => {
+test('accepts a confirmed main dispatch only', () => {
   const dispatch = buildPreflightReport(validEnvironment());
   const push = buildPreflightReport(
     validEnvironment({
@@ -132,12 +142,24 @@ test('accepts an authorized main dispatch and successful main push', () => {
   );
 
   assert.equal(dispatch.status, 'success');
-  assert.equal(push.status, 'success');
+  assert.equal(push.status, 'blocked');
   assert.equal(dispatch.gate_status, 'allowed');
-  assert.equal(push.gate_status, 'allowed');
+  assert.equal(push.gate_status, 'blocked');
+  assert.equal(push.code, 'DEPLOY.TRIGGER_NOT_ALLOWED');
   assert.equal(dispatch.revision, revision);
-  assert.equal(push.revision, revision);
   assert.equal(dispatch.schema, 'deployment-report/v1');
+});
+
+test('deployment workflow has only the guarded manual trigger', () => {
+  const workflow = readFileSync(workflowPath, 'utf8');
+
+  assert.equal(workflow.includes('\n  workflow_run:'), false);
+  assert.match(workflow, /\n  workflow_dispatch:\n    inputs:\n      confirm_deployment:/);
+  assert.match(workflow, /default: false/);
+  assert.match(workflow, /inputs\.confirm_deployment/);
+  assert.match(workflow, /needs\.preflight\.outputs\.allowed == 'true'/);
+  assert.ok(workflow.indexOf('id: gate') < workflow.indexOf('id: aws_auth'));
+  assert.ok(workflow.indexOf('  deploy:') < workflow.indexOf('id-token: write'));
 });
 
 test('CLI writes a blocked report, markdown summary, and closed GitHub output', () => {
