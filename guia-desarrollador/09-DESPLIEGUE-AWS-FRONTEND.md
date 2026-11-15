@@ -1,6 +1,6 @@
 # Despliegue de EXPERIENCIA Frontend en AWS
 
-Esta guía prepara el despliegue manual de Angular a S3 y CloudFront. El workflow construye `dist/experiencia_front/browser`, archiva una copia de rollback, sincroniza a S3 y solicita una invalidación de `/index.html`; ahora espera a que CloudFront termine esa invalidación. **Ni el éxito de S3 ni el estado `Deployed` de la invalidación verifican por sí solos la respuesta HTTP real o la conectividad con la API.**
+Esta guía prepara el despliegue manual de Angular a S3 y CloudFront. El workflow construye `dist/experiencia_front/browser`, archiva una copia de rollback, sincroniza a S3 y solicita una invalidación de `/index.html`; ahora espera a que CloudFront termine esa invalidación. **Ni el éxito de S3 ni el finalización `Completed` de la invalidación verifican por sí solos la respuesta HTTP real o la conectividad con la API.**
 
 ## Recorrido rápido
 
@@ -46,7 +46,7 @@ En GitHub **Settings → Environments**, cree `aws-production`, permita desplieg
 ### Permisos mínimos del rol de despliegue
 
 - S3 bucket: `s3:ListBucket` sobre el ARN del bucket; `s3:PutObject` y `s3:DeleteObject` sobre `arn:aws:s3:::<BUCKET>/*`. El delete es necesario porque el sync actual usa `--delete`; por eso el bucket debe ser exclusivo de esta aplicación.
-- CloudFront: `cloudfront:CreateInvalidation` sobre el ARN de la distribución específica. El job ahora espera la invalidación con CloudFront waiter; si la policy del waiter exige otra acción de lectura en su cuenta/partición, agregue solo la acción documentada que el error indique y vuelva a validar.
+- CloudFront: `cloudfront:CreateInvalidation` y `cloudfront:GetInvalidation` sobre el ARN de la distribución específica. El segundo permiso es requerido por el waiter para consultar el estado de la invalidación; no otorgue permisos administrativos de CloudFront.
 - Región de sesión en OIDC igual a la seleccionada para el bucket; CloudFront es global, pero el workflow configura región AWS.
 
 ## 2. Bucket S3, CloudFront y DNS
