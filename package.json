@@ -14,8 +14,9 @@
     "test:i18n-checker": "node --test scripts/check-translations.test.mjs",
     "test:deploy-preflight": "node --test scripts/deployment-preflight.test.mjs",
     "test:deploy-revision": "node --test scripts/check-deploy-revision.test.mjs",
+    "test:deploy-report": "node --test scripts/deployment-report.test.mjs",
     "format:check": "prettier --check",
-    "quality": "node scripts/check-translations.mjs && node --test scripts/check-translations.test.mjs scripts/check-deploy-revision.test.mjs scripts/deployment-preflight.test.mjs && tsc --noEmit && ng test --watch=false"
+    "quality": "node scripts/check-translations.mjs && node --test scripts/check-translations.test.mjs scripts/check-deploy-revision.test.mjs scripts/deployment-preflight.test.mjs scripts/deployment-report.test.mjs && tsc --noEmit && ng test --watch=false"
   },
   "private": true,
   "dependencies": {

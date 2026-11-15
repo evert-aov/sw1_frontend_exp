@@ -93,20 +93,15 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - name: Authenticate with AWS via OIDC
-        id: aws_auth
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
-
       - name: Inject production API endpoints
         id: inject_api
+        env:
+          AWS_API_HOST: ${{ vars.AWS_API_HOST }}
         run: |
-          cat << 'EOF' > src/app/core/config/api.config.ts
+          cat << EOF > src/app/core/config/api.config.ts
           export const API_CONFIG = {
-            baseUrl: 'https://${{ vars.AWS_API_HOST }}/api',
-            wsUrl: 'wss://${{ vars.AWS_API_HOST }}/api/live/ws',
+            baseUrl: 'https://${AWS_API_HOST}/api',
+            wsUrl: 'wss://${AWS_API_HOST}/api/live/ws',
           } as const;
           EOF
 
@@ -118,6 +113,22 @@ jobs:
         id: build
         run: pnpm run build
 
+      - name: Archive release bundle for rollback
+        id: archive_release
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-release-${{ github.run_id }}
+          path: dist/experiencia_front/browser
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Authenticate with AWS via OIDC
+        id: aws_auth
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
       - name: Sync artifacts to S3
         id: publish_s3
         env:
@@ -128,7 +139,25 @@ jobs:
         id: invalidate_cloudfront
         env:
           DISTRIBUTION_ID: ${{ vars.AWS_CLOUDFRONT_DISTRIBUTION_ID }}
-        run: aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths "/index.html"
+        run: |
+          invalidation_id="$(aws cloudfront create-invalidation \
+            --distribution-id "$DISTRIBUTION_ID" \
+            --paths "/index.html" \
+            --query 'Invalidation.Id' \
+            --output text)"
+          if [[ -z "$invalidation_id" || "$invalidation_id" == "None" ]]; then
+            echo "CloudFront did not return an invalidation ID." >&2
+            exit 1
+          fi
+          echo "invalidation_id=$invalidation_id" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for CloudFront invalidation to complete
+        id: wait_cloudfront
+        timeout-minutes: 35
+        env:
+          DISTRIBUTION_ID: ${{ vars.AWS_CLOUDFRONT_DISTRIBUTION_ID }}
+          INVALIDATION_ID: ${{ steps.invalidate_cloudfront.outputs.invalidation_id }}
+        run: aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION_ID" --id "$INVALIDATION_ID"
 
       - name: Publish deployment phase diagnostics
         if: always()
@@ -137,90 +166,12 @@ jobs:
           CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
           SETUP_PNPM_OUTCOME: ${{ steps.setup_pnpm.outcome }}
           SETUP_NODE_OUTCOME: ${{ steps.setup_node.outcome }}
-          AWS_AUTH_OUTCOME: ${{ steps.aws_auth.outcome }}
           INJECT_API_OUTCOME: ${{ steps.inject_api.outcome }}
           INSTALL_OUTCOME: ${{ steps.install.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
+          ARCHIVE_OUTCOME: ${{ steps.archive_release.outcome }}
+          AWS_AUTH_OUTCOME: ${{ steps.aws_auth.outcome }}
           PUBLISH_S3_OUTCOME: ${{ steps.publish_s3.outcome }}
           INVALIDATE_CLOUDFRONT_OUTCOME: ${{ steps.invalidate_cloudfront.outcome }}
-        run: |
-          python3 - <<'PY'
-          import json
-          import os
-
-          version = os.environ.get("VERSION", "unknown") or "unknown"
-          reports = []
-
-          def add_report(phase, status, *, code=None, evidence, causes=None, actions=None):
-              reports.append({
-                  "schema": "diagnostic-report/v1",
-                  "service": "experiencia-frontend",
-                  "version": version,
-                  "phase": phase,
-                  "status": status,
-                  "code": code,
-                  "cause_status": "hypothesis" if status == "failed" else "unknown",
-                  "evidence": evidence,
-                  "possible_causes": causes or [],
-                  "recommended_actions": actions or [],
-              })
-
-          def step_outcome(env_name):
-              return os.environ.get(env_name, "unknown")
-
-          def status_for(outcome):
-              if outcome == "success":
-                  return "passed"
-              if outcome in ("failure", "cancelled"):
-                  return "failed"
-              return "not_verified"
-
-          preparation_steps = [
-              ("checkout", step_outcome("CHECKOUT_OUTCOME")),
-              ("setup_pnpm", step_outcome("SETUP_PNPM_OUTCOME")),
-              ("setup_node", step_outcome("SETUP_NODE_OUTCOME")),
-              ("aws_auth", step_outcome("AWS_AUTH_OUTCOME")),
-              ("inject_api", step_outcome("INJECT_API_OUTCOME")),
-              ("install", step_outcome("INSTALL_OUTCOME")),
-          ]
-          issue = next(((step, outcome) for step, outcome in preparation_steps if outcome != "success"), None)
-          preparation = status_for(issue[1]) if issue else "passed"
-          add_report(
-              "preparation", preparation,
-              code="DEPLOY.PREPARATION_FAILED" if preparation == "failed" else None,
-              evidence={"probe": "github_step_outcome", "source": "github", "step": issue[0] if issue else "install", "outcome": issue[1] if issue else "success"},
-              causes=["An Actions preparation step failed; the underlying cause is not yet confirmed."] if preparation == "failed" else [],
-              actions=["Inspect the first failed preparation step in this run's Actions logs; confirm the cause before remediation."] if preparation != "passed" else [],
-          )
-
-          for phase, step, env_name, code in (
-              ("build", "build", "BUILD_OUTCOME", "DEPLOY.BUILD_FAILED"),
-              ("publication", "publish_s3", "PUBLISH_S3_OUTCOME", "DEPLOY.PUBLICATION_FAILED"),
-              ("publication", "invalidate_cloudfront", "INVALIDATE_CLOUDFRONT_OUTCOME", "DEPLOY.PUBLICATION_FAILED"),
-          ):
-              outcome = step_outcome(env_name)
-              phase_status = status_for(outcome)
-              add_report(
-                  phase, phase_status,
-                  code=code if phase_status == "failed" else None,
-                  evidence={"probe": "github_step_outcome", "source": "github", "step": step, "outcome": outcome},
-                  causes=["The reported Actions step failed; the underlying cause is not yet confirmed."] if phase_status == "failed" else [],
-                  actions=["Inspect the named Actions step and verify its inputs and permissions."] if phase_status != "passed" else [],
-              )
-
-          for phase in ("startup", "readiness", "postdeploy"):
-              add_report(
-                  phase, "not_verified",
-                  evidence={"probe": "runtime_health_check", "source": "github", "outcome": "skipped"},
-                  actions=["Run an authorized postdeploy smoke check and record evidence before declaring the site healthy."],
-              )
-
-          rendered = json.dumps(reports, indent=2, sort_keys=True)
-          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
-          if summary_path:
-              with open(summary_path, "a", encoding="utf-8") as summary:
-                  summary.write("## Deployment diagnostic report\n\n")
-                  summary.write("Startup, readiness, and postdeploy are not verified by this workflow.\n\n")
-                  summary.write("```json\n" + rendered + "\n```\n")
-          print(rendered)
-          PY
+          WAIT_CLOUDFRONT_OUTCOME: ${{ steps.wait_cloudfront.outcome }}
+        run: node scripts/deployment-report.mjs
