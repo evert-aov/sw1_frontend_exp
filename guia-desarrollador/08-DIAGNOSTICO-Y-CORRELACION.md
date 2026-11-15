@@ -34,6 +34,8 @@ Pruebas locales sin acceso cloud: `pnpm run test:deploy-preflight` o `node --tes
 
 Preparación, build y publicación reflejan los resultados observables de sus pasos. El workflow no ejecuta un probe de producción: `startup`, `readiness` y `postdeploy` siempre figuran como `not_verified`, nunca como éxito. Antes de afirmar que el servicio funciona, una persona autorizada debe ejecutar un smoke check post-deploy y registrar evidencia segura. El reporte no agrega solicitudes de producción ni credenciales.
 
+El preflight usa el contrato independiente `deployment-report/v1` (no el contrato de diagnóstico de la aplicación), con `project`, `revision`, `environment`, `phase`, `status`, `duration_ms`, `gate_status`, `code`, `cause_status`, `evidence`, `possible_causes` y `recommended_actions`. Los reportes separan evidencia de hipótesis y omiten valores de configuración.
+
 ## Verificación local
 
 Desde `sw1_frontend_exp`, use los scripts existentes:

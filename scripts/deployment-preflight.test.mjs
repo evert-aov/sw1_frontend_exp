@@ -29,6 +29,34 @@ function validEnvironment(overrides = {}) {
   };
 }
 
+test('preflight report matches the stable deployment contract', () => {
+  const report = buildPreflightReport(validEnvironment());
+  const requiredFields = [
+    'schema',
+    'project',
+    'revision',
+    'environment',
+    'phase',
+    'status',
+    'duration_ms',
+    'gate_status',
+    'code',
+    'cause_status',
+    'evidence',
+    'possible_causes',
+    'recommended_actions',
+  ];
+
+  for (const field of requiredFields) {
+    assert.ok(Object.hasOwn(report, field), `missing report field: ${field}`);
+  }
+  assert.equal(report.schema, 'deployment-report/v1');
+  assert.equal(typeof report.duration_ms, 'number');
+  assert.equal(typeof report.evidence, 'object');
+  assert.ok(Array.isArray(report.possible_causes));
+  assert.ok(Array.isArray(report.recommended_actions));
+});
+
 test('blocks manual dispatch from non-main without echoing the branch', () => {
   const report = buildPreflightReport(
     validEnvironment({ GITHUB_REF: 'refs/heads/feature/unreviewed' }),
