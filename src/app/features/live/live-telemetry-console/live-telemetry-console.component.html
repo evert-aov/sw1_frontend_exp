@@ -83,6 +83,34 @@
         </dl>
       }
 
+      <article class="ui-surface ui-panel monitor-panel">
+        <div class="min-w-0">
+          <h2 class="ui-section-title flex items-center gap-2">
+            <app-icon name="device-phone-mobile" sizeClass="w-5 h-5" />
+            {{ 'telemetry.monitor.title' | translate }}
+          </h2>
+          @if (monitorCode()) {
+            <p class="ui-muted text-sm mt-1">{{ 'telemetry.monitor.instructions' | translate }}</p>
+          }
+          @if (monitorCodeError()) {
+            <p class="monitor-error text-sm mt-1" role="alert">{{ 'telemetry.monitor.error' | translate }}</p>
+          }
+        </div>
+        @if (monitorCode(); as pairing) {
+          <div class="monitor-code-block">
+            <output class="monitor-code" aria-live="polite">{{ pairing.code }}</output>
+            <span class="ui-muted text-xs">
+              {{ 'telemetry.monitor.expires' | translate }} {{ pairing.expiresAt | date: 'shortTime' }}
+            </span>
+          </div>
+        } @else {
+          <button type="button" class="focus-toggle" [disabled]="requestingCode()" (click)="requestMonitorCode()">
+            <app-icon name="qr-code" sizeClass="w-4 h-4" />
+            {{ 'telemetry.monitor.button' | translate }}
+          </button>
+        }
+      </article>
+
       <footer class="console-footer">
         <p class="ui-muted text-xs flex items-center gap-1.5">
           <app-icon name="shield-check" sizeClass="w-4 h-4" />

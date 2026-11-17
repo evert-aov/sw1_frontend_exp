@@ -36,6 +36,11 @@ export const liveTelemetryTranslations = {
     'telemetry.error.unauthorized': 'Tu sesión expiró. Vuelve a iniciar sesión.',
     'telemetry.error.forbidden': 'No tienes permiso para ver esta sesión en vivo.',
     'telemetry.error.not-found': 'La sesión en vivo no existe o ya no está disponible.',
+    'telemetry.monitor.button': 'Vincular tablet o celular',
+    'telemetry.monitor.title': 'Monitor en otro dispositivo',
+    'telemetry.monitor.instructions': 'En la app móvil toca "Monitor en vivo" e ingresa este código. Es de un solo uso.',
+    'telemetry.monitor.expires': 'Vence a las',
+    'telemetry.monitor.error': 'No se pudo generar el código. Intenta de nuevo.',
   },
   en: {
     'telemetry.title': 'Live console',
@@ -73,5 +78,10 @@ export const liveTelemetryTranslations = {
     'telemetry.error.unauthorized': 'Your session expired. Please log in again.',
     'telemetry.error.forbidden': 'You do not have permission to view this live session.',
     'telemetry.error.not-found': 'The live session does not exist or is no longer available.',
+    'telemetry.monitor.button': 'Pair tablet or phone',
+    'telemetry.monitor.title': 'Monitor on another device',
+    'telemetry.monitor.instructions': 'In the mobile app tap "Live monitor" and enter this code. It can be used once.',
+    'telemetry.monitor.expires': 'Expires at',
+    'telemetry.monitor.error': 'The code could not be generated. Please try again.',
   },
 };

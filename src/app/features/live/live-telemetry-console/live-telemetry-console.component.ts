@@ -1,4 +1,4 @@
-import { DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -12,6 +12,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import {
   LiveTelemetrySnapshot,
+  MonitorCode,
   TelemetryConnectionState,
   TelemetryDenialReason,
 } from '../../../core/models/live-telemetry.model';
@@ -40,6 +41,7 @@ const FOCUS_MODE_STORAGE_KEY = 'experiencia_telemetry_focus';
 @Component({
   selector: 'app-live-telemetry-console',
   imports: [
+    DatePipe,
     DecimalPipe,
     RouterLink,
     IconComponent,
@@ -70,6 +72,15 @@ export class LiveTelemetryConsoleComponent {
 
   /** Motivo del rechazo definitivo del servidor, si lo hubo. */
   readonly denial = signal<TelemetryDenialReason | null>(null);
+
+  /** Código de vinculación vigente y su hora de vencimiento. */
+  readonly monitorCode = signal<(MonitorCode & { expiresAt: Date }) | null>(null);
+
+  /** Verdadero mientras se solicita un código de vinculación. */
+  readonly requestingCode = signal(false);
+
+  /** Verdadero si falló la última solicitud de código. */
+  readonly monitorCodeError = signal(false);
 
   /** Modo discreto: solo semáforo y pulso. */
   readonly focusMode = signal<boolean>(this.readFocusPreference());
@@ -121,6 +132,24 @@ export class LiveTelemetryConsoleComponent {
       });
 
       onCleanup(() => subscription.unsubscribe());
+    });
+  }
+
+  /**
+   * Solicita un código de un solo uso para ver esta consola en una tablet o celular.
+   */
+  requestMonitorCode(): void {
+    this.requestingCode.set(true);
+    this.monitorCodeError.set(false);
+    this.telemetry.requestMonitorCode(this.sessionId()).subscribe({
+      next: (code) => {
+        this.monitorCode.set({ ...code, expiresAt: new Date(Date.now() + code.expires_in_seconds * 1000) });
+        this.requestingCode.set(false);
+      },
+      error: () => {
+        this.monitorCodeError.set(true);
+        this.requestingCode.set(false);
+      },
     });
   }
 

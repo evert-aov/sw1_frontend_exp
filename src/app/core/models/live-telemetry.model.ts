@@ -59,5 +59,14 @@ export type TelemetryStreamEvent =
   | { kind: 'connection'; state: TelemetryConnectionState }
   | { kind: 'snapshot'; snapshot: LiveTelemetrySnapshot };
 
+/** Código de un solo uso para vincular una tablet o celular como monitor (HU-17). */
+export interface MonitorCode {
+  /** Código de 6 caracteres a ingresar en la app móvil */
+  code: string;
+  session_id: string;
+  /** Segundos de validez del código */
+  expires_in_seconds: number;
+}
+
 /** Motivo por el que el servidor rechazó definitivamente la conexión. */
 export type TelemetryDenialReason = 'unauthorized' | 'forbidden' | 'not-found';

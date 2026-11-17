@@ -148,6 +148,17 @@ describe('LiveTelemetryService (HU-17)', () => {
     subscription.unsubscribe();
   });
 
+  it('solicita un código de vinculación de monitor', () => {
+    let code = '';
+    api.requestMonitorCode('session-1').subscribe((value) => (code = value.code));
+    const request = http.expectOne(
+      `${API_CONFIG.baseUrl}/live/telemetry/sessions/session-1/monitor-code`,
+    );
+    expect(request.request.method).toBe('POST');
+    request.flush({ code: 'K7P2QX', session_id: 'session-1', expires_in_seconds: 900 });
+    expect(code).toBe('K7P2QX');
+  });
+
   it('consulta la instantánea vigente por REST', () => {
     let result: LiveTelemetrySnapshot | undefined;
     api.getSnapshot('session-1').subscribe((value) => (result = value));

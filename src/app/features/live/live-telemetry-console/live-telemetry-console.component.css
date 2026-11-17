@@ -153,3 +153,35 @@
     animation: none;
   }
 }
+
+.monitor-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.monitor-code-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.monitor-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  color: var(--ui-text);
+}
+
+.monitor-error {
+  color: rgb(225 29 72);
+}
+
+.focus-toggle:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}

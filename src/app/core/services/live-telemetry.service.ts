@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { API_CONFIG } from '../config/api.config';
 import {
   LiveTelemetrySnapshot,
+  MonitorCode,
   TelemetryDenialReason,
   TelemetryStreamEvent,
 } from '../models/live-telemetry.model';
@@ -63,6 +64,20 @@ export class LiveTelemetryService {
   getSnapshot(sessionId: string): Observable<LiveTelemetrySnapshot> {
     return this.http.get<LiveTelemetrySnapshot>(
       `${this.apiUrl}/live/telemetry/sessions/${encodeURIComponent(sessionId)}`,
+    );
+  }
+
+  /**
+   * HU-17: Genera un código de un solo uso para vincular una tablet o celular como monitor.
+   * La app móvil solo admite cuentas de asistente, por eso el anfitrión no inicia sesión en ella.
+   *
+   * @param {string} sessionId - Identificador de la sesión en vivo (UUID).
+   * @returns {Observable<MonitorCode>} Código y segundos de validez.
+   */
+  requestMonitorCode(sessionId: string): Observable<MonitorCode> {
+    return this.http.post<MonitorCode>(
+      `${this.apiUrl}/live/telemetry/sessions/${encodeURIComponent(sessionId)}/monitor-code`,
+      {},
     );
   }
 
