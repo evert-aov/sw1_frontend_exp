@@ -3,6 +3,7 @@ import { authTranslations } from './auth.translations';
 import { sprintTranslations } from './sprint.translations';
 import { uiTranslations } from './ui.translations';
 import { roleTranslations } from './roles.translations';
+import { liveTelemetryTranslations } from './live-telemetry.translations';
 
 export type Language = 'en' | 'es';
 
@@ -12,6 +13,7 @@ export const translations: Record<Language, Record<string, string>> = {
     ...uiTranslations.en,
     ...sprintTranslations.en,
     ...authTranslations.en,
+    ...liveTelemetryTranslations.en,
     // Navigation
     'nav.brand': 'EXPERIENCIA',
     'nav.catalog': 'Explore',
@@ -183,6 +185,7 @@ export const translations: Record<Language, Record<string, string>> = {
     ...uiTranslations.es,
     ...sprintTranslations.es,
     ...authTranslations.es,
+    ...liveTelemetryTranslations.es,
     // Navegación
     'nav.brand': 'EXPERIENCIA',
     'nav.catalog': 'Explorar',

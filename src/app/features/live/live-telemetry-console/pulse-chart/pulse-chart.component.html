@@ -1,0 +1,45 @@
+@if (geometry().linePath) {
+  <svg
+    class="pulse-chart"
+    [attr.viewBox]="'0 0 ' + width + ' ' + height"
+    preserveAspectRatio="none"
+    [style.height.px]="heightPx()"
+    role="img"
+    [attr.aria-label]="('telemetry.pulse' | translate) + ' ' + ariaValue()"
+  >
+    <!-- Franjas de referencia del semáforo -->
+    <rect class="band band-green" x="0" y="0" [attr.width]="width" [attr.height]="geometry().greenY" />
+    <rect
+      class="band band-yellow"
+      x="0"
+      [attr.y]="geometry().greenY"
+      [attr.width]="width"
+      [attr.height]="geometry().yellowY - geometry().greenY"
+    />
+    <rect
+      class="band band-red"
+      x="0"
+      [attr.y]="geometry().yellowY"
+      [attr.width]="width"
+      [attr.height]="height - geometry().yellowY"
+    />
+    <line class="threshold" x1="0" [attr.x2]="width" [attr.y1]="geometry().greenY" [attr.y2]="geometry().greenY" />
+    <line class="threshold" x1="0" [attr.x2]="width" [attr.y1]="geometry().yellowY" [attr.y2]="geometry().yellowY" />
+
+    <path class="area" [attr.d]="geometry().areaPath" />
+    <path class="line" [attr.d]="geometry().linePath" vector-effect="non-scaling-stroke" />
+  </svg>
+
+  @if (geometry().lastPoint; as last) {
+    <!-- Punto actual en HTML para que no se deforme con el escalado del SVG -->
+    <span
+      class="pulse-dot"
+      [attr.data-light]="last.light"
+      [style.left.%]="(last.x / width) * 100"
+      [style.top.%]="(last.y / height) * 100"
+      aria-hidden="true"
+    ></span>
+  }
+} @else {
+  <p class="ui-muted text-sm py-8 text-center">{{ 'telemetry.pulseEmpty' | translate }}</p>
+}

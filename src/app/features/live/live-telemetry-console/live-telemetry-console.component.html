@@ -1,0 +1,98 @@
+<section class="console max-w-6xl mx-auto" [class.is-focus]="focusMode()" aria-labelledby="telemetry-title">
+  <header class="console-header">
+    <div class="flex items-center gap-3 min-w-0">
+      <span class="console-icon">
+        <app-icon name="bolt" sizeClass="w-5 h-5" />
+      </span>
+      <div class="min-w-0">
+        <h1 id="telemetry-title" class="ui-section-title">{{ 'telemetry.title' | translate }}</h1>
+        @if (!focusMode()) {
+          <p class="ui-muted text-xs">{{ 'telemetry.subtitle' | translate }}</p>
+        }
+      </div>
+    </div>
+
+    <div class="ui-actions">
+      <span class="ui-badge" [attr.data-tone]="statusTone()" role="status">
+        <span class="status-dot" [attr.data-tone]="statusTone()" aria-hidden="true"></span>
+        {{ statusKey() | translate }}
+      </span>
+      <button
+        type="button"
+        class="focus-toggle"
+        [attr.aria-pressed]="focusMode()"
+        [title]="'telemetry.focusHint' | translate"
+        (click)="toggleFocusMode()"
+      >
+        <app-icon [name]="focusMode() ? 'eye' : 'eye-slash'" sizeClass="w-4 h-4" />
+        {{ (focusMode() ? 'telemetry.focusOff' : 'telemetry.focusOn') | translate }}
+      </button>
+    </div>
+  </header>
+
+  @if (denial(); as reason) {
+    <app-alert tone="error">{{ 'telemetry.error.' + reason | translate }}</app-alert>
+    <a class="back-link" [routerLink]="['/live', sessionId()]">
+      <app-icon name="arrow-left" sizeClass="w-4 h-4" />
+      {{ 'telemetry.back' | translate }}
+    </a>
+  } @else {
+    @if (showNoSignal()) {
+      <app-alert tone="info">{{ 'telemetry.noSignalHint' | translate }}</app-alert>
+    }
+
+    <div class="console-grid">
+      <article class="ui-surface ui-panel light-panel">
+        <app-energy-traffic-light
+          [light]="snapshot()?.traffic_light ?? null"
+          [energyScore]="snapshot()?.energy_score ?? null"
+          [trend]="snapshot()?.trend ?? 'STABLE'"
+          [live]="isLive()"
+          [compact]="false"
+        />
+      </article>
+
+      <article class="ui-surface ui-panel pulse-panel">
+        <header class="flex items-baseline justify-between gap-2 mb-3">
+          <h2 class="ui-section-title">{{ 'telemetry.pulse' | translate }}</h2>
+          <span class="ui-muted text-xs">{{ 'telemetry.pulseWindow' | translate }}</span>
+        </header>
+        @if (snapshot(); as current) {
+          <app-pulse-chart [points]="current.pulse" [windowEnd]="current.emitted_at" />
+        } @else {
+          <div class="pulse-skeleton animate-pulse" aria-busy="true"></div>
+        }
+      </article>
+    </div>
+
+    @if (!focusMode()) {
+      @if (snapshot(); as current) {
+        <dl class="metrics">
+          <div class="ui-surface metric">
+            <dt class="ui-muted">{{ 'telemetry.attention' | translate }}</dt>
+            <dd>{{ current.attention_score === null ? '-' : (current.attention_score * 100 | number: '1.0-0') + '%' }}</dd>
+          </div>
+          <div class="ui-surface metric">
+            <dt class="ui-muted">{{ 'telemetry.joy' | translate }}</dt>
+            <dd>{{ current.joy_score === null ? '-' : (current.joy_score * 100 | number: '1.0-0') + '%' }}</dd>
+          </div>
+          <div class="ui-surface metric">
+            <dt class="ui-muted">{{ 'telemetry.faces' | translate }}</dt>
+            <dd>{{ current.detected_faces_count ?? '-' }}</dd>
+          </div>
+        </dl>
+      }
+
+      <footer class="console-footer">
+        <p class="ui-muted text-xs flex items-center gap-1.5">
+          <app-icon name="shield-check" sizeClass="w-4 h-4" />
+          {{ 'telemetry.privacy' | translate }}
+        </p>
+        <a class="back-link" [routerLink]="['/live', sessionId()]">
+          <app-icon name="arrow-left" sizeClass="w-4 h-4" />
+          {{ 'telemetry.back' | translate }}
+        </a>
+      </footer>
+    }
+  }
+</section>

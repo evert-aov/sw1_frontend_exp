@@ -1,0 +1,29 @@
+<div class="traffic-light" [class.is-compact]="compact()" [class.is-dimmed]="!live()">
+  <div class="housing" role="img" [attr.aria-label]="'telemetry.light.' + stateKey() | translate">
+    @for (lamp of lamps; track lamp) {
+      <span class="lamp" [attr.data-color]="lamp" [class.is-on]="light() === lamp"></span>
+    }
+  </div>
+
+  <div class="readout" aria-live="polite">
+    <p class="state" [attr.data-color]="light()">{{ 'telemetry.light.' + stateKey() | translate }}</p>
+
+    @if (energyPercent() !== null) {
+      <p class="energy">
+        <span class="energy-value">{{ energyPercent() }}%</span>
+        <span class="trend">
+          <app-icon
+            name="arrow-right"
+            sizeClass="w-4 h-4"
+            [style.transform]="'rotate(' + trendRotation() + 'deg)'"
+          />
+          {{ 'telemetry.trend.' + trend() | translate }}
+        </span>
+      </p>
+    }
+
+    @if (!compact()) {
+      <p class="hint ui-muted">{{ 'telemetry.lightHint.' + stateKey() | translate }}</p>
+    }
+  </div>
+</div>

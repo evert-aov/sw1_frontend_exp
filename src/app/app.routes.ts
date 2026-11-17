@@ -169,6 +169,15 @@ export const routes: Routes = [
       ),
   },
   {
+    // HU-17: consola discreta con semáforo de energía y pulso
+    path: 'live/:sessionId/console',
+    canActivate: [hostGuard],
+    loadComponent: () =>
+      import('./features/live/live-telemetry-console/live-telemetry-console.component').then(
+        (m) => m.LiveTelemetryConsoleComponent,
+      ),
+  },
+  {
     path: 'live/:sessionId/assistant',
     canActivate: [hostGuard],
     loadComponent: () =>
