@@ -1,0 +1,172 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security:
+    name: Filesystem Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Test sanitized security report handling
+        run: node --test scripts/ci/security-report.test.mjs
+
+      - name: Prepare ephemeral secret-scanner self-test
+        run: node scripts/ci/secret-scanner-self-test.mjs create "$RUNNER_TEMP/trivy-secret-self-test"
+
+      - name: Verify Trivy detects an ephemeral synthetic secret
+        id: trivy-self-test
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        continue-on-error: true
+        with:
+          scan-type: fs
+          scan-ref: ${{ runner.temp }}/trivy-secret-self-test
+          cache-dir: ${{ runner.temp }}/trivy-cache
+          scanners: secret
+          format: json
+          output: ${{ runner.temp }}/trivy-secret-self-test.json
+          version: v0.70.0
+          exit-code: '0'
+          hide-progress: true
+
+      - name: Verify synthetic-secret scanner result
+        id: verify-secret-self-test
+        if: always()
+        env:
+          SELF_TEST_JSON: ${{ runner.temp }}/trivy-secret-self-test.json
+          SELF_TEST_DIRECTORY: ${{ runner.temp }}/trivy-secret-self-test
+          SCANNER_OUTCOME: ${{ steps.trivy-self-test.outcome }}
+        run: node scripts/ci/secret-scanner-self-test.mjs verify "$SELF_TEST_JSON" "$SELF_TEST_DIRECTORY" "$SCANNER_OUTCOME"
+
+      - name: Scan repository vulnerabilities and secrets
+        id: trivy
+        if: always()
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        continue-on-error: true
+        with:
+          scan-type: fs
+          scan-ref: .
+          cache-dir: ${{ runner.temp }}/trivy-cache
+          scanners: vuln,secret
+          format: json
+          output: ${{ runner.temp }}/trivy-results.json
+          version: v0.70.0
+          exit-code: '0'
+          hide-progress: true
+
+      - name: Write sanitized security report and summary
+        if: always()
+        env:
+          TRIVY_JSON_PATH: ${{ runner.temp }}/trivy-results.json
+          SECURITY_REPORT_PATH: ${{ runner.temp }}/security-report.json
+          TRIVY_OUTCOME: ${{ steps.trivy.outcome }}
+          SECRET_SELF_TEST_OUTCOME: ${{ steps.verify-secret-self-test.outcome }}
+        run: node scripts/ci/security-report.mjs
+
+      - name: Upload sanitized security report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: ${{ runner.temp }}/security-report.json
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Remove runner-temporary scanner output
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/trivy-secret-self-test" "$RUNNER_TEMP/trivy-secret-self-test.json" "$RUNNER_TEMP/trivy-results.json" "$RUNNER_TEMP/security-report.json"
+
+  validate:
+    name: Frontend Quality, Tests & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve changed-file baseline
+        id: quality-base
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_REF: origin/${{ github.base_ref || '' }}
+          PUSH_BEFORE: ${{ github.event.before || '' }}
+        run: |
+          set -euo pipefail
+          case "$EVENT_NAME" in
+            pull_request) base="$PR_BASE_REF" ;;
+            push) base="$PUSH_BEFORE" ;;
+            *) echo "::error::Unsupported event for changed-file checks: $EVENT_NAME" >&2; exit 1 ;;
+          esac
+          if [[ -z "$base" || "$base" =~ ^0+$ ]]; then base="HEAD^"; fi
+          if ! git rev-parse --verify --quiet "${base}^{commit}" >/dev/null; then
+            echo "::error::Unable to resolve changed-file baseline: $base" >&2
+            exit 1
+          fi
+          printf 'ref=%s\n' "$base" >> "$GITHUB_OUTPUT"
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.17.0
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check formatting of changed frontend files
+        shell: bash
+        env:
+          DIFF_BASE: ${{ steps.quality-base.outputs.ref }}
+        run: |
+          set -euo pipefail
+          diff_file="$RUNNER_TEMP/changed-frontend-files"
+          git diff --name-only -z --diff-filter=ACMRT "$DIFF_BASE...HEAD" -- src scripts > "$diff_file"
+          mapfile -d '' -t changed_files < "$diff_file"
+          files=()
+          for file in "${changed_files[@]}"; do
+            case "$file" in
+              *.ts|*.html|*.css|*.scss|*.js|*.mjs) files+=("$file") ;;
+            esac
+          done
+          if ((${#files[@]} == 0)); then
+            echo "No changed frontend source or script files; format check skipped."
+          else
+            pnpm exec prettier --check "${files[@]}"
+          fi
+
+      - name: Run frontend quality checks and tests
+        run: pnpm run quality
+
+      - name: Production build verification
+        run: pnpm run build

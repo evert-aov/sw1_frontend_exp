@@ -1,5 +1,35 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
+export interface HttpDiagnostics {
+  code: string | null;
+  requestId: string | null;
+}
+
+const ERROR_CODE_PATTERN = /^[A-Z][A-Z0-9_.-]{0,79}$/;
+const REQUEST_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/** Extracts safe diagnostic identifiers without changing the legacy user-facing error mapping. */
+export function extractHttpDiagnostics(err: HttpErrorResponse): HttpDiagnostics {
+  const body =
+    err.error && typeof err.error === 'object' ? (err.error as Record<string, unknown>) : {};
+  const rawCode = typeof body['code'] === 'string' ? body['code'].trim().toUpperCase() : '';
+  const bodyRequestId =
+    typeof body['request_id'] === 'string' && body['request_id'].trim()
+      ? body['request_id'].trim()
+      : '';
+  const headerRequestId = err.headers.get('X-Request-ID')?.trim() ?? '';
+  const requestId = REQUEST_ID_PATTERN.test(bodyRequestId)
+    ? bodyRequestId
+    : REQUEST_ID_PATTERN.test(headerRequestId)
+      ? headerRequestId
+      : '';
+
+  return {
+    code: ERROR_CODE_PATTERN.test(rawCode) ? rawCode : null,
+    requestId: requestId || null,
+  };
+}
+
 /**
  * Convierte errores técnicos del backend FastAPI (ej. "Header 'Authorization: Bearer <token>' requerido")
  * en mensajes amigables y comprensibles para el usuario final.
@@ -12,7 +42,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 export function getFriendlyErrorMessage(
   err: HttpErrorResponse,
   translate: (key: string) => string,
-  fallbackKey = 'exp.alert.errorDefault'
+  fallbackKey = 'exp.alert.errorDefault',
 ): { message: string; requiresAuth: boolean } {
   const rawDetail = typeof err.error?.detail === 'string' ? err.error.detail : '';
   const lowerDetail = rawDetail.toLowerCase();

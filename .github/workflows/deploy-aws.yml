@@ -1,0 +1,177 @@
+name: Deploy AWS (Frontend Web)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_deployment:
+        description: Confirm that this reviewed revision is intended for production.
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-aws-frontend-production
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Validate deployment target and configuration
+    runs-on: ubuntu-latest
+    outputs:
+      allowed: ${{ steps.gate.outputs.allowed }}
+      revision: ${{ steps.gate.outputs.revision }}
+    steps:
+      - name: Checkout candidate without write credentials
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate branch, revision, and required AWS variables
+        id: gate
+        env:
+          DEPLOY_REVISION: ${{ github.sha }}
+          DEPLOY_ENVIRONMENT: aws-production
+          DEPLOY_CONFIRMATION: ${{ inputs.confirm_deployment }}
+          AWS_DEPLOY_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_API_HOST: ${{ vars.AWS_API_HOST }}
+          AWS_S3_WEBAPP_BUCKET: ${{ vars.AWS_S3_WEBAPP_BUCKET }}
+          AWS_CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.AWS_CLOUDFRONT_DISTRIBUTION_ID }}
+          DEPLOYMENT_REPORT_PATH: ${{ runner.temp }}/deployment-preflight/report.json
+        run: node scripts/deployment-preflight.mjs
+
+      - name: Upload deployment preflight report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-preflight-frontend
+          path: ${{ runner.temp }}/deployment-preflight/report.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  deploy:
+    name: Build & Publish to S3 and CloudFront
+    needs: preflight
+    if: >-
+      needs.preflight.result == 'success' &&
+      needs.preflight.outputs.allowed == 'true' &&
+      github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/main' &&
+      inputs.confirm_deployment
+    runs-on: ubuntu-latest
+    environment: aws-production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.preflight.outputs.revision }}
+          persist-credentials: false
+
+      - name: Set up pnpm
+        id: setup_pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.17.0
+
+      - name: Setup Node.js 22
+        id: setup_node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Inject production API endpoints
+        id: inject_api
+        env:
+          AWS_API_HOST: ${{ vars.AWS_API_HOST }}
+        run: |
+          cat << EOF > src/app/core/config/api.config.ts
+          export const API_CONFIG = {
+            baseUrl: 'https://${AWS_API_HOST}/api',
+            wsUrl: 'wss://${AWS_API_HOST}/api/live/ws',
+          } as const;
+          EOF
+
+      - name: Install dependencies
+        id: install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Angular SPA
+        id: build
+        run: pnpm run build
+
+      - name: Archive release bundle for rollback
+        id: archive_release
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-release-${{ github.run_id }}
+          path: dist/experiencia_front/browser
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Authenticate with AWS via OIDC
+        id: aws_auth
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Sync artifacts to S3
+        id: publish_s3
+        env:
+          BUCKET: ${{ vars.AWS_S3_WEBAPP_BUCKET }}
+        run: aws s3 sync dist/experiencia_front/browser "s3://${BUCKET}" --delete
+
+      - name: Invalidate CloudFront index.html
+        id: invalidate_cloudfront
+        env:
+          DISTRIBUTION_ID: ${{ vars.AWS_CLOUDFRONT_DISTRIBUTION_ID }}
+        run: |
+          invalidation_id="$(aws cloudfront create-invalidation \
+            --distribution-id "$DISTRIBUTION_ID" \
+            --paths "/index.html" \
+            --query 'Invalidation.Id' \
+            --output text)"
+          if [[ -z "$invalidation_id" || "$invalidation_id" == "None" ]]; then
+            echo "CloudFront did not return an invalidation ID." >&2
+            exit 1
+          fi
+          echo "invalidation_id=$invalidation_id" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for CloudFront invalidation to complete
+        id: wait_cloudfront
+        timeout-minutes: 35
+        env:
+          DISTRIBUTION_ID: ${{ vars.AWS_CLOUDFRONT_DISTRIBUTION_ID }}
+          INVALIDATION_ID: ${{ steps.invalidate_cloudfront.outputs.invalidation_id }}
+        run: aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION_ID" --id "$INVALIDATION_ID"
+
+      - name: Publish deployment phase diagnostics
+        if: always()
+        env:
+          VERSION: ${{ needs.preflight.outputs.revision }}
+          CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
+          SETUP_PNPM_OUTCOME: ${{ steps.setup_pnpm.outcome }}
+          SETUP_NODE_OUTCOME: ${{ steps.setup_node.outcome }}
+          INJECT_API_OUTCOME: ${{ steps.inject_api.outcome }}
+          INSTALL_OUTCOME: ${{ steps.install.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          ARCHIVE_OUTCOME: ${{ steps.archive_release.outcome }}
+          AWS_AUTH_OUTCOME: ${{ steps.aws_auth.outcome }}
+          PUBLISH_S3_OUTCOME: ${{ steps.publish_s3.outcome }}
+          INVALIDATE_CLOUDFRONT_OUTCOME: ${{ steps.invalidate_cloudfront.outcome }}
+          WAIT_CLOUDFRONT_OUTCOME: ${{ steps.wait_cloudfront.outcome }}
+        run: node scripts/deployment-report.mjs
