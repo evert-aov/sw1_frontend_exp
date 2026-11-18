@@ -1,3 +1,156 @@
-<div class="p-6 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10">
-  <h2 class="text-xl font-bold text-slate-900 dark:text-white">Live Host Dashboard Component (CU-09, CU-10)</h2>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+  <!-- Barra Superior de Navegación y Estado -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-white/10">
+    <div>
+      <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1">
+        <span>Panel del Anfitrión</span>
+        <span>•</span>
+        <span>Transmisión en Vivo</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+        Monitoreo de Audiencia en Vivo
+      </h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        Evento: <code class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 font-mono text-xs text-violet-600 dark:text-violet-400">{{ sessionId() }}</code>
+      </p>
+    </div>
+
+    <!-- Enlaces y Estado de Conexión -->
+    <div class="flex items-center gap-3">
+      <div
+        class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border"
+        [class]="
+          isSocketConnected()
+            ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/40'
+            : 'bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800/40'
+        "
+      >
+        <span class="w-2 h-2 rounded-full" [class]="isSocketConnected() ? 'bg-emerald-500' : 'bg-rose-500'"></span>
+        <span>{{ isSocketConnected() ? 'Conexión Activa' : 'Desconectado' }}</span>
+      </div>
+
+      <a
+        [routerLink]="['/live', sessionId(), 'assistant']"
+        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all cursor-pointer"
+      >
+        <span>Asistente del Evento</span>
+        <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5" />
+      </a>
+    </div>
+  </div>
+
+  <!-- Banner de Consentimiento Informado -->
+  @if (showConsentBanner()) {
+    <app-gdpr-consent-dialog (accepted)="handleConsent($event)" />
+  }
+
+  <!-- Mensaje de Error en Hardware / Cámara -->
+  @if (errorMessage()) {
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/40 flex items-center justify-between text-xs text-rose-700 dark:text-rose-300">
+      <span>{{ errorMessage() }}</span>
+      <button (click)="errorMessage.set(null)" class="font-bold underline cursor-pointer">Cerrar</button>
+    </div>
+  }
+
+  <!-- Grid Principal: Cámara y Widget de Métricas -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <!-- Panel Izquierdo: Captura de Video -->
+    <div class="lg:col-span-7 space-y-6">
+      <div class="p-6 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 shadow-lg">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <app-icon name="video-camera" sizeClass="w-5 h-5 text-violet-500" />
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">
+              Cámara de Transmisión
+            </h2>
+          </div>
+
+          <span
+            class="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase border"
+            [class]="
+              isCameraActive()
+                ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/40'
+                : 'bg-slate-100 dark:bg-white/5 text-slate-400 border-slate-200 dark:border-white/10'
+            "
+          >
+            {{ isCameraActive() ? 'Transmisión Activa' : 'Cámara Apagada' }}
+          </span>
+        </div>
+
+        <!-- Contenedor de Video con Vista Previa -->
+        <div class="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 flex items-center justify-center border border-slate-800">
+          <video
+            #videoElement
+            autoplay
+            playsinline
+            muted
+            class="w-full h-full object-cover"
+            [class.hidden]="!isCameraActive()"
+          ></video>
+
+          <!-- Canvas Oculto para muestreo ligero -->
+          <canvas #canvasElement class="hidden"></canvas>
+
+          <!-- Placeholder cuando la cámara está apagada -->
+          @if (!isCameraActive()) {
+            <div class="flex flex-col items-center justify-center text-center p-6 space-y-3">
+              <div class="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-slate-500">
+                <app-icon name="video-camera" sizeClass="w-7 h-7" />
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-slate-300">Cámara desconectada</p>
+                <p class="text-xs text-slate-500 mt-1 max-w-xs">
+                  Enciende la cámara para iniciar el análisis anónimo de la audiencia en tiempo real.
+                </p>
+              </div>
+            </div>
+          }
+
+          <!-- Overlay activo de Muestreo -->
+          @if (isCameraActive()) {
+            <div class="absolute bottom-3 left-3 flex items-center gap-2 px-3 py-1 rounded-lg bg-black/70 text-[11px] font-medium text-white">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span>Transmisión activa</span>
+            </div>
+          }
+        </div>
+
+        <!-- Controles y Garantía de Privacidad -->
+        <div class="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <button
+            type="button"
+            (click)="toggleCamera()"
+            class="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold transition-all shadow-md cursor-pointer"
+            [class]="
+              isCameraActive()
+                ? 'bg-rose-600 hover:bg-rose-700 text-white'
+                : 'bg-violet-600 hover:bg-violet-700 text-white'
+            "
+          >
+            @if (isCameraActive()) {
+              <app-icon name="x-mark" sizeClass="w-4 h-4" />
+              <span>Detener Cámara</span>
+            } @else {
+              <app-icon name="bolt" sizeClass="w-4 h-4" />
+              <span>Encender Cámara y Transmitir</span>
+            }
+          </button>
+
+          <!-- Sello de Privacidad -->
+          <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
+            <app-icon name="shield-check" sizeClass="w-4 h-4 text-emerald-500" />
+            <span>Privacidad protegida: sin grabación de imágenes</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel Derecho: Widget de Conexión de Audiencia -->
+    <div class="lg:col-span-5 space-y-6">
+      <app-live-engagement-widget
+        [metrics]="currentMetrics()"
+        [isConnected]="isSocketConnected()"
+      />
+    </div>
+  </div>
 </div>
