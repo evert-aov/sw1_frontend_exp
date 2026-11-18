@@ -1,0 +1,158 @@
+:host {
+  display: block;
+}
+
+.traffic-light {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  transition: opacity 0.4s ease;
+}
+
+.traffic-light.is-dimmed {
+  opacity: 0.45;
+}
+
+.housing {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  border-radius: 1.5rem;
+  background: rgb(15 23 42);
+  box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.5);
+}
+
+.lamp {
+  display: block;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 9999px;
+  opacity: 0.18;
+  transition:
+    opacity 0.5s ease,
+    box-shadow 0.5s ease;
+}
+
+.is-compact .housing {
+  flex-direction: row;
+  padding: 0.5rem;
+  gap: 0.4rem;
+}
+
+.is-compact .lamp {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.lamp[data-color='RED'] {
+  background: rgb(244 63 94);
+}
+
+.lamp[data-color='YELLOW'] {
+  background: rgb(245 158 11);
+}
+
+.lamp[data-color='GREEN'] {
+  background: rgb(16 185 129);
+}
+
+.lamp.is-on {
+  opacity: 1;
+}
+
+.lamp.is-on[data-color='RED'] {
+  box-shadow: 0 0 24px 4px rgb(244 63 94 / 0.55);
+}
+
+.lamp.is-on[data-color='YELLOW'] {
+  box-shadow: 0 0 24px 4px rgb(245 158 11 / 0.55);
+}
+
+.lamp.is-on[data-color='GREEN'] {
+  box-shadow: 0 0 24px 4px rgb(16 185 129 / 0.55);
+}
+
+.readout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.state {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.is-compact .state {
+  font-size: 1.05rem;
+}
+
+.state[data-color='RED'] {
+  color: rgb(225 29 72);
+}
+
+.state[data-color='YELLOW'] {
+  color: rgb(217 119 6);
+}
+
+.state[data-color='GREEN'] {
+  color: rgb(5 150 105);
+}
+
+:host-context(.dark) .state[data-color='RED'] {
+  color: rgb(251 113 133);
+}
+
+:host-context(.dark) .state[data-color='YELLOW'] {
+  color: rgb(251 191 36);
+}
+
+:host-context(.dark) .state[data-color='GREEN'] {
+  color: rgb(52 211 153);
+}
+
+.energy {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.energy-value {
+  font-size: 2.25rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.is-compact .energy-value {
+  font-size: 1.5rem;
+}
+
+.trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.trend app-icon {
+  transition: transform 0.4s ease;
+}
+
+.hint {
+  font-size: 0.875rem;
+  max-width: 22rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .traffic-light,
+  .lamp,
+  .trend app-icon {
+    transition: none;
+  }
+}

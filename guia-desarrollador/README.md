@@ -12,6 +12,7 @@ Cliente web de EXPERIENCIA para catálogo, perfiles, publicación y paneles de n
 | [05 — Pruebas y operación](05-PRUEBAS-Y-OPERACION.md) | Comandos, cobertura real y diagnóstico |
 | [06 — Directorios y flujos](06-MAPA-DE-DIRECTORIOS-Y-FLUJOS.md) | Mapa y recorridos principales |
 | [07 — Roles y paneles](07-ROLES-Y-PANELES.md) | HOST propietario, ATTENDEE y administración de plataforma |
+| [10 — Consola en vivo (HU-17)](10-CONSOLA-EN-VIVO-HU17.md) | Semáforo, pulso, modo discreto y vinculación de dispositivos |
 
 Desde `experiencia_front/`:
 
