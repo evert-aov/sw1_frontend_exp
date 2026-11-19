@@ -69,6 +69,8 @@ export interface McDynamic {
   /** 1 suave, 2 media, 3 reactivación fuerte */
   intensity: number;
   duration_minutes: number;
+  /** Categorías de experiencia a las que aplica; vacía = dinámica general */
+  category_names?: string[];
   title_es: string;
   title_en: string;
   instructions_es: string;

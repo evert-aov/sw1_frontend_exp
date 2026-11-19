@@ -94,6 +94,13 @@ describe('McAlertCardComponent (HU-18 / HU-19)', () => {
     expect(finished).toBe(true);
   });
 
+  it('indica que la sugerencia fue descartada, no aplicada', () => {
+    const element = render(alertOf('AUDIENCE_QUESTION', { status: 'DISMISSED' }))
+      .nativeElement as HTMLElement;
+    expect(element.textContent).toContain('Sugerencia descartada');
+    expect(element.textContent).not.toContain('Dinámica aplicada');
+  });
+
   it('indica cuando la atención se recuperó sola', () => {
     const element = render(alertOf('AUDIENCE_QUESTION', { status: 'EXPIRED' }))
       .nativeElement as HTMLElement;

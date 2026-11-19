@@ -55,6 +55,14 @@ export class McAlertCardComponent {
   /** Verdadero si la alerta espera respuesta del moderador. */
   readonly isActive = computed(() => this.alert().status === 'ACTIVE');
 
+  /** Clave del texto del resultado según cómo terminó la alerta. */
+  readonly resolvedKey = computed(() => {
+    const status = this.alert().status;
+    if (status === 'DISMISSED') return 'mc.dismissed';
+    if (status === 'EXPIRED') return 'mc.expired';
+    return 'mc.applied';
+  });
+
   /** Milisegundos restantes de la pausa aplicada, o 0 si no hay pausa en curso. */
   readonly breakRemainingMs = computed(() => {
     const ends = this.alert().break_ends_at;

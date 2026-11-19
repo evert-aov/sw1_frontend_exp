@@ -80,11 +80,12 @@
       </div>
     </div>
   } @else {
-    <div class="mc-done">
-      <app-icon name="check-circle" sizeClass="w-5 h-5" />
-      <h2 id="mc-card-title" class="mc-title">
-        {{ (alert().status === 'EXPIRED' ? 'mc.expired' : 'mc.applied') | translate }}
-      </h2>
+    <div class="mc-done" [attr.data-status]="alert().status">
+      <app-icon
+        [name]="alert().status === 'DISMISSED' ? 'x-mark' : 'check-circle'"
+        sizeClass="w-5 h-5"
+      />
+      <h2 id="mc-card-title" class="mc-title">{{ resolvedKey() | translate }}</h2>
     </div>
   }
 </aside>
