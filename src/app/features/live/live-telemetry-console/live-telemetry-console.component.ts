@@ -12,6 +12,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import {
   LiveTelemetrySnapshot,
+  McAlert,
   MonitorCode,
   TelemetryConnectionState,
   TelemetryDenialReason,
@@ -24,7 +25,11 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { AlertComponent } from '../../../shared/ui/feedback';
 import { EnergyTrafficLightComponent } from './energy-traffic-light/energy-traffic-light.component';
+import { McAlertAction, McAlertCardComponent } from './mc-alert-card/mc-alert-card.component';
 import { PulseChartComponent } from './pulse-chart/pulse-chart.component';
+
+/** Tiempo que permanece visible el resultado de una alerta ya resuelta. */
+const MC_RESOLVED_VISIBLE_MS = 4000;
 
 /** Clave de almacenamiento local de la preferencia de modo discreto. */
 const FOCUS_MODE_STORAGE_KEY = 'experiencia_telemetry_focus';
@@ -36,6 +41,7 @@ const FOCUS_MODE_STORAGE_KEY = 'experiencia_telemetry_focus';
  * - Suscribirse al canal de telemetría de la sesión y reflejar cada instantánea (cada 2.5 s).
  * - Mostrar el semáforo de energía, el pulso de los últimos 60 s y, opcionalmente, el detalle.
  * - Ofrecer un modo discreto que deja solo el semáforo y el pulso para no distraer al moderador/DJ.
+ * - Mostrar la tarjeta del Asistente MC (HU-18/HU-19) cuando la atención cae de forma sostenida.
  * - Ruta: `/live/:sessionId/console`.
  */
 @Component({
@@ -48,6 +54,7 @@ const FOCUS_MODE_STORAGE_KEY = 'experiencia_telemetry_focus';
     TranslatePipe,
     AlertComponent,
     EnergyTrafficLightComponent,
+    McAlertCardComponent,
     PulseChartComponent,
   ],
   templateUrl: './live-telemetry-console.component.html',
@@ -81,6 +88,18 @@ export class LiveTelemetryConsoleComponent {
 
   /** Verdadero si falló la última solicitud de código. */
   readonly monitorCodeError = signal(false);
+
+  /** Alerta del Asistente MC visible en la consola (HU-18). */
+  readonly mcAlert = signal<McAlert | null>(null);
+
+  /** Verdadero mientras se envía una respuesta o un pedido al Asistente MC. */
+  readonly mcBusy = signal(false);
+
+  /** Verdadero si falló la última respuesta al Asistente MC. */
+  readonly mcError = signal(false);
+
+  /** Verdadero si hay una alerta esperando respuesta (oculta el botón de pedir dinámica). */
+  readonly hasActiveMcAlert = computed(() => this.mcAlert()?.status === 'ACTIVE');
 
   /** Modo discreto: solo semáforo y pulso. */
   readonly focusMode = signal<boolean>(this.readFocusPreference());
@@ -119,11 +138,13 @@ export class LiveTelemetryConsoleComponent {
       this.snapshot.set(null);
       this.denial.set(null);
       this.connection.set('connecting');
+      this.mcAlert.set(null);
 
       const subscription = this.telemetry.watch(sessionId).subscribe({
         next: (event) => {
           if (event.kind === 'connection') this.connection.set(event.state);
-          else this.snapshot.set(event.snapshot);
+          else if (event.kind === 'snapshot') this.snapshot.set(event.snapshot);
+          else this.showMcAlert(event.alert);
         },
         error: (err: unknown) => {
           this.connection.set('closed');
@@ -143,7 +164,10 @@ export class LiveTelemetryConsoleComponent {
     this.monitorCodeError.set(false);
     this.telemetry.requestMonitorCode(this.sessionId()).subscribe({
       next: (code) => {
-        this.monitorCode.set({ ...code, expiresAt: new Date(Date.now() + code.expires_in_seconds * 1000) });
+        this.monitorCode.set({
+          ...code,
+          expiresAt: new Date(Date.now() + code.expires_in_seconds * 1000),
+        });
         this.requestingCode.set(false);
       },
       error: () => {
@@ -151,6 +175,78 @@ export class LiveTelemetryConsoleComponent {
         this.requestingCode.set(false);
       },
     });
+  }
+
+  /**
+   * HU-18: Muestra una alerta del Asistente MC. Las alertas activas y las pausas en curso
+   * permanecen visibles; las resueltas muestran su resultado unos segundos y se ocultan.
+   *
+   * @param {McAlert} alert - Estado vigente de la alerta.
+   */
+  showMcAlert(alert: McAlert): void {
+    const current = this.mcAlert();
+    if (
+      current &&
+      current.id !== alert.id &&
+      current.status === 'ACTIVE' &&
+      alert.status !== 'ACTIVE'
+    ) {
+      return; // Una resolución antigua no reemplaza a una alerta nueva sin responder
+    }
+    this.mcAlert.set(alert);
+    this.mcError.set(false);
+    const breakRunning =
+      alert.break_ends_at !== null && Date.parse(alert.break_ends_at) > Date.now();
+    if (alert.status !== 'ACTIVE' && !breakRunning) {
+      setTimeout(() => {
+        if (this.mcAlert()?.id === alert.id && this.mcAlert()?.status === alert.status) {
+          this.mcAlert.set(null);
+        }
+      }, MC_RESOLVED_VISIBLE_MS);
+    }
+  }
+
+  /**
+   * HU-19: Envía la respuesta del moderador (aplicar, otra idea o descartar).
+   *
+   * @param {McAlertAction} action - Respuesta elegida en la tarjeta.
+   */
+  respondMcAlert(action: McAlertAction): void {
+    const alert = this.mcAlert();
+    if (!alert) return;
+    this.mcBusy.set(true);
+    this.mcError.set(false);
+    this.telemetry.respondMcAlert(alert.id, action).subscribe({
+      next: (updated) => {
+        this.mcBusy.set(false);
+        this.showMcAlert(updated);
+      },
+      error: () => {
+        this.mcBusy.set(false);
+        this.mcError.set(true);
+      },
+    });
+  }
+
+  /**
+   * HU-19: Pide una dinámica al Asistente MC sin esperar la alerta automática.
+   */
+  requestMcDynamic(): void {
+    this.mcBusy.set(true);
+    this.telemetry.requestMcDynamic(this.sessionId()).subscribe({
+      next: (alert) => {
+        this.mcBusy.set(false);
+        this.showMcAlert(alert);
+      },
+      error: () => this.mcBusy.set(false),
+    });
+  }
+
+  /**
+   * Oculta la tarjeta cuando termina la cuenta regresiva de la pausa.
+   */
+  onMcBreakFinished(): void {
+    this.mcAlert.set(null);
   }
 
   /**

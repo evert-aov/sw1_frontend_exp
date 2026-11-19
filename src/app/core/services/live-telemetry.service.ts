@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { API_CONFIG } from '../config/api.config';
 import {
   LiveTelemetrySnapshot,
+  McAlert,
   MonitorCode,
   TelemetryDenialReason,
   TelemetryStreamEvent,
@@ -82,6 +83,36 @@ export class LiveTelemetryService {
   }
 
   /**
+   * HU-19: Pide al Asistente MC una dinámica sin esperar la alerta automática.
+   * Si ya hay una alerta activa, el servidor la devuelve.
+   *
+   * @param {string} sessionId - Identificador de la sesión en vivo (UUID).
+   * @returns {Observable<McAlert>} Alerta activa con la dinámica sugerida.
+   */
+  requestMcDynamic(sessionId: string): Observable<McAlert> {
+    return this.http.post<McAlert>(
+      `${this.apiUrl}/live/mc/sessions/${encodeURIComponent(sessionId)}/request`,
+      {},
+    );
+  }
+
+  /**
+   * HU-18/HU-19: Responde una alerta del Asistente MC.
+   * `apply` marca la dinámica como aplicada (si es una pausa, inicia su temporizador),
+   * `dismiss` la descarta y `next` pide otra dinámica para la misma alerta.
+   *
+   * @param {string} alertId - Identificador de la alerta (UUID).
+   * @param {'apply' | 'dismiss' | 'next'} action - Respuesta del moderador.
+   * @returns {Observable<McAlert>} Alerta actualizada.
+   */
+  respondMcAlert(alertId: string, action: 'apply' | 'dismiss' | 'next'): Observable<McAlert> {
+    return this.http.post<McAlert>(
+      `${this.apiUrl}/live/mc/alerts/${encodeURIComponent(alertId)}/${action}`,
+      {},
+    );
+  }
+
+  /**
    * HU-17: Construye la URL del canal WebSocket con el token del anfitrión.
    * Los navegadores no permiten cabeceras en WebSocket, por eso el token viaja en la query.
    *
@@ -119,20 +150,24 @@ export class LiveTelemetryService {
       };
 
       const connect = () => {
-        subscriber.next({ kind: 'connection', state: attempt === 0 ? 'connecting' : 'reconnecting' });
+        subscriber.next({
+          kind: 'connection',
+          state: attempt === 0 ? 'connecting' : 'reconnecting',
+        });
         socket = this.createSocket(this.buildStreamUrl(sessionId));
 
         socket.onopen = () => {
           attempt = 0;
           subscriber.next({ kind: 'connection', state: 'open' });
           heartbeatTimer = setInterval(() => {
-            if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'ping' }));
+            if (socket?.readyState === WebSocket.OPEN)
+              socket.send(JSON.stringify({ type: 'ping' }));
           }, TELEMETRY_HEARTBEAT_MS);
         };
 
         socket.onmessage = (event: MessageEvent) => {
           const message = this.parseMessage(event.data);
-          if (message) subscriber.next({ kind: 'snapshot', snapshot: message });
+          if (message) subscriber.next(message);
         };
 
         socket.onclose = (event: CloseEvent) => {
@@ -171,16 +206,23 @@ export class LiveTelemetryService {
   }
 
   /**
-   * Interpreta un mensaje del canal y descarta los que no son instantáneas (por ejemplo `pong`).
+   * Interpreta un mensaje del canal: instantánea de telemetría (HU-17) o alerta MC (HU-18).
+   * Descarta los demás mensajes (por ejemplo `pong`).
    *
    * @param {unknown} data - Contenido recibido por el WebSocket.
-   * @returns {LiveTelemetrySnapshot | null} Instantánea válida o null.
+   * @returns {TelemetryStreamEvent | null} Evento listo para emitir o null.
    */
-  private parseMessage(data: unknown): LiveTelemetrySnapshot | null {
+  private parseMessage(data: unknown): TelemetryStreamEvent | null {
     if (typeof data !== 'string') return null;
     try {
-      const parsed = JSON.parse(data) as { type?: string };
-      return parsed?.type === 'telemetry' ? (parsed as LiveTelemetrySnapshot) : null;
+      const parsed = JSON.parse(data) as { type?: string; alert?: McAlert };
+      if (parsed?.type === 'telemetry') {
+        return { kind: 'snapshot', snapshot: parsed as LiveTelemetrySnapshot };
+      }
+      if (parsed?.type === 'mc_alert' && parsed.alert) {
+        return { kind: 'mcAlert', alert: parsed.alert };
+      }
+      return null;
     } catch {
       return null;
     }

@@ -2,7 +2,11 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { API_CONFIG } from '../config/api.config';
-import { LiveTelemetrySnapshot, TelemetryStreamEvent } from '../models/live-telemetry.model';
+import {
+  LiveTelemetrySnapshot,
+  McAlert,
+  TelemetryStreamEvent,
+} from '../models/live-telemetry.model';
 import { AuthService } from './auth.service';
 import {
   LiveTelemetryService,
@@ -157,6 +161,34 @@ describe('LiveTelemetryService (HU-17)', () => {
     expect(request.request.method).toBe('POST');
     request.flush({ code: 'K7P2QX', session_id: 'session-1', expires_in_seconds: 900 });
     expect(code).toBe('K7P2QX');
+  });
+
+  it('emite las alertas del Asistente MC recibidas por el canal (HU-18)', () => {
+    const alert = { id: 'alert-1', status: 'ACTIVE' } as McAlert;
+    const events: TelemetryStreamEvent[] = [];
+    const subscription = api.watch('session-1').subscribe((event) => events.push(event));
+    sockets[0].open();
+    sockets[0].emit({ type: 'mc_alert', alert });
+    sockets[0].emit({ type: 'mc_alert' });
+
+    expect(events.at(-1)).toEqual({ kind: 'mcAlert', alert });
+    expect(events.filter((event) => event.kind === 'mcAlert').length).toBe(1);
+    subscription.unsubscribe();
+  });
+
+  it('responde y pide dinámicas al Asistente MC (HU-19)', () => {
+    api.respondMcAlert('alert-1', 'apply').subscribe();
+    const apply = http.expectOne(`${API_CONFIG.baseUrl}/live/mc/alerts/alert-1/apply`);
+    expect(apply.request.method).toBe('POST');
+    apply.flush({});
+
+    api.respondMcAlert('alert-1', 'next').subscribe();
+    http.expectOne(`${API_CONFIG.baseUrl}/live/mc/alerts/alert-1/next`).flush({});
+
+    api.requestMcDynamic('session-1').subscribe();
+    const request = http.expectOne(`${API_CONFIG.baseUrl}/live/mc/sessions/session-1/request`);
+    expect(request.request.method).toBe('POST');
+    request.flush({});
   });
 
   it('consulta la instantánea vigente por REST', () => {

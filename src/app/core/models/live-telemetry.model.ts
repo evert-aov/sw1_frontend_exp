@@ -54,10 +54,50 @@ export interface LiveTelemetrySnapshot {
 /** Estado de la conexión WebSocket de la consola. */
 export type TelemetryConnectionState = 'connecting' | 'open' | 'reconnecting' | 'closed';
 
-/** Evento del flujo de telemetría: cambio de conexión o nueva instantánea. */
+/** Tipo de dinámica sugerida por el Asistente MC (HU-19). */
+export type McDynamicType = 'AUDIENCE_QUESTION' | 'ACTIVE_BREAK' | 'SHORT_BREAK';
+
+/** Estado de una alerta del Asistente MC (HU-18). */
+export type McAlertStatus = 'ACTIVE' | 'APPLIED' | 'DISMISSED' | 'EXPIRED';
+
+/** Dinámica del catálogo del Asistente MC con textos en español e inglés (HU-19). */
+export interface McDynamic {
+  id: string;
+  code: string;
+  dynamic_type: McDynamicType;
+  modality: 'ANY' | 'IN_PERSON' | 'VIRTUAL';
+  /** 1 suave, 2 media, 3 reactivación fuerte */
+  intensity: number;
+  duration_minutes: number;
+  title_es: string;
+  title_en: string;
+  instructions_es: string;
+  instructions_en: string;
+}
+
+/** Alerta de desatención sostenida con la dinámica propuesta (HU-18 / HU-19). */
+export interface McAlert {
+  id: string;
+  session_id: string;
+  trigger: 'SUSTAINED_INATTENTION' | 'MANUAL_REQUEST';
+  status: McAlertStatus;
+  /** Atención media de la caída, de 0 a 1 */
+  average_attention: number | null;
+  /** Segundos de atención baja sostenida */
+  low_attention_seconds: number;
+  created_at: string;
+  resolved_at: string | null;
+  /** Fin de la pausa si se aplicó un descanso */
+  break_ends_at: string | null;
+  suggestion_id: string | null;
+  dynamic: McDynamic | null;
+}
+
+/** Evento del flujo de telemetría: conexión, nueva instantánea o alerta del Asistente MC. */
 export type TelemetryStreamEvent =
   | { kind: 'connection'; state: TelemetryConnectionState }
-  | { kind: 'snapshot'; snapshot: LiveTelemetrySnapshot };
+  | { kind: 'snapshot'; snapshot: LiveTelemetrySnapshot }
+  | { kind: 'mcAlert'; alert: McAlert };
 
 /** Código de un solo uso para vincular una tablet o celular como monitor (HU-17). */
 export interface MonitorCode {

@@ -1,0 +1,90 @@
+<aside
+  class="mc-card"
+  [attr.data-status]="alert().status"
+  role="alertdialog"
+  aria-labelledby="mc-card-title"
+  aria-live="assertive"
+>
+  @if (isActive()) {
+    <header class="mc-header">
+      <span class="mc-icon" aria-hidden="true">
+        <app-icon name="light-bulb" sizeClass="w-5 h-5" />
+      </span>
+      <div class="min-w-0">
+        <p class="mc-eyebrow">{{ 'mc.title' | translate }}</p>
+        <h2 id="mc-card-title" class="mc-title">
+          {{
+            (alert().trigger === 'MANUAL_REQUEST' ? 'mc.manualTitle' : 'mc.alertTitle') | translate
+          }}
+        </h2>
+        @if (alert().trigger === 'SUSTAINED_INATTENTION') {
+          <p class="mc-meta">
+            {{ 'mc.lowFor' | translate }} {{ lowMinutes() }} {{ 'mc.minutes' | translate }}
+            @if (averagePercent() !== null) {
+              · {{ 'mc.averageAttention' | translate }} {{ averagePercent() }}%
+            }
+          </p>
+        }
+      </div>
+    </header>
+
+    @if (alert().dynamic; as dynamic) {
+      <section class="mc-dynamic">
+        <span class="mc-type" [attr.data-type]="dynamic.dynamic_type">
+          {{ 'mc.type.' + dynamic.dynamic_type | translate }} · {{ dynamic.duration_minutes }}
+          {{ 'mc.minutes' | translate }}
+        </span>
+        <h3 class="mc-dynamic-title">{{ dynamicTitle() }}</h3>
+        <p class="mc-instructions">{{ dynamicInstructions() }}</p>
+      </section>
+
+      @if (error()) {
+        <p class="mc-error" role="alert">{{ 'mc.error' | translate }}</p>
+      }
+
+      <div class="mc-actions">
+        <button
+          type="button"
+          class="mc-btn mc-btn-primary"
+          [disabled]="busy()"
+          (click)="choose('apply')"
+        >
+          <app-icon name="check" sizeClass="w-4 h-4" />
+          {{ 'mc.action.' + dynamic.dynamic_type | translate }}
+        </button>
+        <button type="button" class="mc-btn" [disabled]="busy()" (click)="choose('next')">
+          <app-icon name="sparkles" sizeClass="w-4 h-4" />
+          {{ 'mc.another' | translate }}
+        </button>
+        <button
+          type="button"
+          class="mc-btn mc-btn-ghost"
+          [disabled]="busy()"
+          [attr.aria-label]="'mc.dismiss' | translate"
+          (click)="choose('dismiss')"
+        >
+          <app-icon name="x-mark" sizeClass="w-4 h-4" />
+          {{ 'mc.dismiss' | translate }}
+        </button>
+      </div>
+    }
+  } @else if (breakRemainingMs() > 0) {
+    <div class="mc-break">
+      <app-icon name="clock" sizeClass="w-6 h-6" />
+      <div>
+        <h2 id="mc-card-title" class="mc-title">{{ 'mc.breakRunning' | translate }}</h2>
+        <p class="mc-meta">
+          {{ 'mc.breakEnds' | translate }}
+          <span class="mc-countdown">{{ breakCountdown() }}</span>
+        </p>
+      </div>
+    </div>
+  } @else {
+    <div class="mc-done">
+      <app-icon name="check-circle" sizeClass="w-5 h-5" />
+      <h2 id="mc-card-title" class="mc-title">
+        {{ (alert().status === 'EXPIRED' ? 'mc.expired' : 'mc.applied') | translate }}
+      </h2>
+    </div>
+  }
+</aside>
