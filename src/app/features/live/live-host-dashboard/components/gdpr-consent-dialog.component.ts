@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, output } from '@angular/core';
+import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 
 /**
@@ -12,39 +13,41 @@ import { IconComponent } from '../../../../shared/components/icon/icon.component
 @Component({
   selector: 'app-gdpr-consent-dialog',
   standalone: true,
-  imports: [IconComponent],
+  imports: [TranslatePipe, IconComponent],
   template: `
     <div
-      class="p-5 rounded-2xl bg-violet-50/70 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800/40"
+      class="p-6 rounded-2xl bg-[var(--ui-surface)] border border-[var(--ui-border)] shadow-xs transition-all"
     >
       <div class="flex items-start gap-4">
-        <div class="p-2.5 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 shrink-0">
+        <div class="p-2.5 rounded-xl bg-[var(--ui-accent-soft)] text-[var(--ui-accent)] shrink-0">
           <app-icon name="shield-check" sizeClass="w-6 h-6" />
         </div>
 
-        <div class="flex-1">
-          <h4 class="text-sm font-bold text-slate-900 dark:text-white">
-            Aviso de Privacidad y Monitoreo en Vivo
+        <div class="flex-1 space-y-2">
+          <h4 class="font-editorial text-base font-bold text-[var(--ui-text)]">
+            {{ 'live.gdpr.title' | translate }}
           </h4>
-          <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-            Esta experiencia analiza de forma anónima la receptividad de la audiencia para que el organizador pueda optimizar la dinámica del evento.
-            <strong>Garantía de Privacidad:</strong> El análisis se procesa en tiempo real sin almacenar fotos, videos ni registros biométricos en disco o base de datos.
+          <p class="text-xs text-[var(--ui-muted)] leading-relaxed">
+            {{ 'live.gdpr.description' | translate }}
+          </p>
+          <p class="text-xs text-[var(--ui-text)] font-medium leading-relaxed bg-[var(--ui-surface-soft)] p-2.5 rounded-lg border border-[var(--ui-border)]">
+            {{ 'live.gdpr.guarantee' | translate }}
           </p>
 
-          <div class="mt-4 flex flex-wrap gap-3">
+          <div class="pt-2 flex flex-wrap gap-3">
             <button
               type="button"
               (click)="onAccept()"
-              class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+              class="px-4 py-2 rounded-xl bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
             >
-              Aceptar y Continuar
+              {{ 'live.gdpr.accept' | translate }}
             </button>
             <button
               type="button"
               (click)="onDecline()"
-              class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/15 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all cursor-pointer"
+              class="px-4 py-2 rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-soft)] hover:bg-[var(--ui-surface)] text-[var(--ui-text)] text-xs font-semibold transition-all cursor-pointer"
             >
-              Solo Monitorear sin Cámara
+              {{ 'live.gdpr.decline' | translate }}
             </button>
           </div>
         </div>

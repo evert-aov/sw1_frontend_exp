@@ -1,0 +1,457 @@
+<div class="w-full bg-[var(--ui-surface)] text-[var(--ui-text)] selection:bg-[var(--ui-accent)] selection:text-white">
+  <!-- =========================================================================
+       1. HEADER PROPIO DEL HOME (FIXED CON CAMBIO SÓLIDO EN SCROLL)
+       ========================================================================= -->
+  <header
+    class="home-header fixed top-0 inset-x-0 z-50 backdrop-blur-md"
+    [class.is-scrolled]="isScrolled()"
+    [class.is-transparent]="!isScrolled()"
+  >
+    <div class="w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 h-20 sm:h-24 flex items-center justify-between gap-6">
+      <!-- Marca / Logo a la izquierda en tipografía Serif -->
+      <a
+        routerLink="/home"
+        class="header-brand font-editorial text-2xl sm:text-3xl tracking-normal font-normal hover:opacity-85 transition-opacity shrink-0 cursor-pointer"
+      >
+        Experiencias
+      </a>
+
+      <!-- Navegación central a secciones del Home + Catálogo -->
+      <nav class="hidden lg:flex items-center gap-8 text-xs uppercase tracking-[0.18em] font-medium">
+        <button
+          type="button"
+          (click)="scrollToSection('destacados')"
+          class="header-nav-link py-1 cursor-pointer transition-colors bg-transparent border-none text-xs uppercase tracking-[0.18em] font-medium"
+        >
+          Destacados
+        </button>
+        <button
+          type="button"
+          (click)="scrollToSection('agenda')"
+          class="header-nav-link py-1 cursor-pointer transition-colors bg-transparent border-none text-xs uppercase tracking-[0.18em] font-medium"
+        >
+          Agenda
+        </button>
+        <button
+          type="button"
+          (click)="scrollToSection('manifiesto')"
+          class="header-nav-link py-1 cursor-pointer transition-colors bg-transparent border-none text-xs uppercase tracking-[0.18em] font-medium"
+        >
+          Manifiesto
+        </button>
+        <a
+          routerLink="/catalog"
+          class="text-[var(--ui-accent)] font-semibold hover:underline underline-offset-4 tracking-[0.2em] transition-colors"
+        >
+          Explorar Catálogo
+        </a>
+      </nav>
+
+      <!-- Controles de la derecha: Idioma, Tema, Iniciar sesión / Mi cuenta -->
+      <div class="flex items-center gap-3 sm:gap-4 shrink-0">
+        <!-- Botón de Idioma -->
+        <button
+          type="button"
+          (click)="i18n.toggleLanguage()"
+          class="header-nav-link text-xs uppercase tracking-widest font-semibold px-2 py-1.5 transition-colors cursor-pointer bg-transparent border-none"
+          [attr.aria-label]="'Cambiar idioma. Actual: ' + i18n.currentLang()"
+        >
+          <span>{{ i18n.currentLang() === 'es' ? 'ES' : 'EN' }}</span>
+        </button>
+
+        <!-- Toggle Modo Claro / Oscuro -->
+        <button
+          type="button"
+          (click)="themeService.toggleTheme()"
+          class="header-nav-link p-2 transition-colors cursor-pointer bg-transparent border-none"
+          [attr.aria-label]="themeService.isDark() ? 'Activar modo claro' : 'Activar modo oscuro'"
+        >
+          <app-icon
+            [name]="themeService.isDark() ? 'sun' : 'moon'"
+            sizeClass="w-4 h-4"
+          />
+        </button>
+
+        <!-- Iniciar Sesión / Cuenta -->
+        @if (auth.isLoggedIn()) {
+          <a
+            routerLink="/profile"
+            class="header-btn text-xs uppercase tracking-widest font-semibold px-4 py-2 border transition-all duration-200 cursor-pointer"
+          >
+            {{ auth.currentUser()?.first_name || 'Mi Cuenta' }}
+          </a>
+        } @else {
+          <a
+            routerLink="/auth/login"
+            class="header-btn text-xs uppercase tracking-widest font-semibold px-4 py-2 border transition-all duration-200 cursor-pointer"
+          >
+            Iniciar sesión
+          </a>
+        }
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       2. HERO: CARRUSEL A PANTALLA COMPLETA (MIN 100dvh, ADAPTABLE AL ZOOM)
+       ========================================================================= -->
+  <section
+    class="relative w-full min-h-[100dvh] flex flex-col justify-between overflow-hidden m-0 p-0"
+    aria-label="Carrusel de experiencias destacadas"
+  >
+    <!-- Centinela superior para el IntersectionObserver del header -->
+    <div id="heroTopSentinel" class="absolute top-0 inset-x-0 h-16 pointer-events-none opacity-0 z-0"></div>
+
+    <!-- Gradiente sutil superior detrás del header para legibilidad óptima cuando es transparente -->
+    <div class="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-[#140e0b]/80 via-[#140e0b]/40 to-transparent pointer-events-none z-10"></div>
+
+    <!-- Slides a pantalla completa con crossfade -->
+    @for (slide of heroSlides; track slide.id; let idx = $index) {
+      <div
+        class="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+        [class.opacity-100]="activeSlideIndex() === idx"
+        [class.opacity-0]="activeSlideIndex() !== idx"
+        [class.pointer-events-none]="activeSlideIndex() !== idx"
+      >
+        <!-- Imagen de fondo a sangre (full-bleed, border-radius 0) -->
+        <img
+          [src]="slide.image"
+          [alt]="slide.title"
+          class="w-full h-full object-cover object-center rounded-none"
+        />
+
+        <!-- Overlay con gradiente suave de abajo hacia arriba -->
+        <div
+          class="absolute inset-0 bg-gradient-to-t from-[#140e0b]/95 via-[#140e0b]/50 via-45% to-black/25"
+        ></div>
+      </div>
+    }
+
+    <!-- Contenido editorial superpuesto al Hero (nunca se corta hacia arriba) -->
+    @let currentSlide = heroSlides[activeSlideIndex()];
+    <div
+      class="relative z-20 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 pt-28 sm:pt-36 pb-8 sm:pb-12 flex-1 flex flex-col justify-end text-white"
+    >
+      <div class="max-w-4xl space-y-4 sm:space-y-5">
+        <!-- Eyebrow con tracking generoso -->
+        <div class="flex items-center gap-3">
+          <span
+            class="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.25em] text-[var(--ui-accent)]"
+          >
+            {{ currentSlide.category }}
+          </span>
+          <span class="text-stone-400 text-xs" aria-hidden="true">|</span>
+          <span class="text-[11px] sm:text-xs uppercase tracking-[0.18em] text-stone-300">
+            {{ currentSlide.eyebrow }}
+          </span>
+        </div>
+
+        <!-- Título Serif adaptativo (escala fluida con protección de altura) -->
+        <h1
+          class="hero-title font-editorial font-normal tracking-tight text-white mb-2"
+        >
+          {{ currentSlide.title }}
+        </h1>
+
+        <!-- Subtítulo refinado -->
+        <p class="hero-desc text-stone-300 text-sm sm:text-base lg:text-lg max-w-2xl font-light leading-relaxed">
+          {{ currentSlide.subtitle }}
+        </p>
+
+        <!-- Acciones: CTA editorial sin border-radius y precio -->
+        <div class="flex flex-wrap items-center gap-6 pt-3">
+          <a
+            routerLink="/catalog"
+            class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] text-white text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] transition-colors rounded-none"
+          >
+            <span>Explorar experiencias</span>
+            <app-icon name="arrow-right" sizeClass="w-4 h-4" />
+          </a>
+
+          <div class="text-xs uppercase tracking-[0.15em] text-stone-300">
+            <span>{{ currentSlide.duration }}</span>
+            <span class="mx-2 text-stone-500">·</span>
+            <span class="text-white font-semibold text-sm">{{ currentSlide.price }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Indicadores del Carrusel: Hitbox táctil amplio + engrosamiento en hover + flechas de navegación -->
+      <div class="pt-6 sm:pt-8 flex items-center justify-between border-t border-white/15 mt-6 sm:mt-8">
+        <div class="flex items-center gap-1 sm:gap-2" role="tablist" aria-label="Navegación del carrusel">
+          @for (slide of heroSlides; track slide.id; let idx = $index) {
+            <button
+              type="button"
+              (click)="setSlide(idx)"
+              class="carousel-nav-btn"
+              [class.is-active]="activeSlideIndex() === idx"
+              [attr.aria-label]="'Ir a diapositiva ' + (idx + 1)"
+              [attr.aria-selected]="activeSlideIndex() === idx"
+            >
+              <span
+                class="carousel-nav-line"
+                [class.w-14]="activeSlideIndex() === idx"
+                [class.sm:w-20]="activeSlideIndex() === idx"
+                [class.w-7]="activeSlideIndex() !== idx"
+                [class.sm:w-10]="activeSlideIndex() !== idx"
+              ></span>
+            </button>
+          }
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-3 text-xs tracking-widest text-stone-400">
+          <button
+            type="button"
+            (click)="prevSlide()"
+            class="p-1 hover:text-white transition-colors cursor-pointer bg-transparent border-none text-stone-400"
+            aria-label="Diapositiva anterior"
+          >
+            <app-icon name="arrow-left" sizeClass="w-3.5 h-3.5" />
+          </button>
+          <span class="text-white font-semibold">0{{ activeSlideIndex() + 1 }}</span>
+          <span>/</span>
+          <span>0{{ heroSlides.length }}</span>
+          <button
+            type="button"
+            (click)="nextSlide()"
+            class="p-1 hover:text-white transition-colors cursor-pointer bg-transparent border-none text-stone-400"
+            aria-label="Siguiente diapositiva"
+          >
+            <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       3. CURSOS DESTACADOS (GRID ASIMÉTRICO REAL, IMÁGENES NO REDONDEADAS)
+       ========================================================================= -->
+  <section id="destacados" class="w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 py-24 sm:py-32 scroll-mt-24">
+    <!-- Cabecera de sección editorial desalineada y asimétrica -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 pb-12 sm:pb-16 border-b border-[var(--ui-border)] items-end">
+      <div class="md:col-span-8 space-y-3">
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ui-accent)]">
+          Curaduría del Catálogo
+        </p>
+        <h2 class="font-editorial text-3xl sm:text-5xl font-normal tracking-tight text-[var(--ui-text)]">
+          Cursos destacados
+        </h2>
+      </div>
+      <div class="md:col-span-4 flex md:justify-end">
+        <a
+          routerLink="/catalog"
+          class="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] font-semibold text-[var(--ui-accent)] hover:underline underline-offset-4 group"
+        >
+          <span>Ver catálogo completo</span>
+          <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
+        </a>
+      </div>
+    </div>
+
+    <!-- Grid Asimétrico: Fotos grandes, aspect-ratios variados, bordes redondeados en tarjetas -->
+    <div class="featured-grid pt-10 sm:pt-14">
+      @for (course of featuredCourses(); track course.id; let idx = $index) {
+        <article
+          class="relative overflow-hidden group block rounded-2xl border border-[var(--ui-border)] bg-[#140e0b] shadow-xs"
+        >
+          <!-- Imagen con zoom sutil 1.03 -->
+          <img
+            [src]="course.image"
+            [alt]="course.title"
+            class="img-zoom w-full h-full object-cover object-center rounded-2xl"
+          />
+
+          <!-- Overlay degradado oscuro para contraste del texto -->
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-[#140e0b]/95 via-[#140e0b]/40 to-transparent pointer-events-none rounded-2xl"
+          ></div>
+
+          <!-- Tag de categoría superior izquierda -->
+          <div class="absolute top-4 left-4 z-10">
+            <span
+              class="px-3 py-1 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.18em] bg-[var(--ui-surface)] text-[var(--ui-text)] border border-[var(--ui-border)] rounded-full shadow-xs"
+            >
+              {{ course.category }}
+            </span>
+          </div>
+
+          <!-- Contenido textual sobre la imagen con leve desplazamiento en hover -->
+          <div
+            class="absolute inset-x-0 bottom-0 z-10 p-6 sm:p-8 space-y-2 transition-transform duration-300 group-hover:-translate-y-1"
+          >
+            <p class="text-[11px] uppercase tracking-widest text-stone-300 font-medium">
+              {{ course.venue }} · {{ course.duration }}
+            </p>
+
+            <h3
+              class="font-editorial text-xl sm:text-2xl lg:text-3xl font-normal text-white leading-snug"
+            >
+              {{ course.title }}
+            </h3>
+
+            <div class="flex items-center justify-between pt-3 border-t border-white/20">
+              <span class="text-sm font-semibold text-amber-100">{{ course.price }}</span>
+              <span
+                class="text-xs uppercase tracking-wider text-[var(--ui-accent)] font-semibold inline-flex items-center gap-1.5"
+              >
+                <span>Explorar</span>
+                <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5" />
+              </span>
+            </div>
+          </div>
+
+          <!-- Enlace que cubre la card completa -->
+          <a
+            routerLink="/catalog"
+            class="absolute inset-0 z-20 rounded-2xl cursor-pointer"
+            [attr.aria-label]="course.title"
+          ></a>
+        </article>
+      }
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       4. PRÓXIMAS FECHAS (CARDS HORIZONTALES CON DATOS DEL CATÁLOGO)
+       ========================================================================= -->
+  <section id="agenda" class="w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 py-24 sm:py-32 border-t border-[var(--ui-border)] scroll-mt-24">
+    <!-- Encabezado de agenda -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 pb-12 sm:pb-16 border-b border-[var(--ui-border)] items-end">
+      <div class="md:col-span-8 space-y-3">
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ui-accent)]">
+          Calendario Editorial
+        </p>
+        <h2 class="font-editorial text-3xl sm:text-5xl font-normal tracking-tight text-[var(--ui-text)]">
+          Próximas fechas
+        </h2>
+      </div>
+      <div class="md:col-span-4 text-xs text-[var(--ui-muted)] md:text-right uppercase tracking-widest">
+        Cupos limitados por experiencia
+      </div>
+    </div>
+
+    <!-- Lista de cards horizontales con esquinas redondeadas -->
+    <div class="space-y-4 pt-10 sm:pt-14">
+      @for (session of upcomingDates(); track session.id) {
+        <article
+          class="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 sm:p-8 rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] hover:border-[var(--ui-accent)] transition-colors duration-200 shadow-xs"
+        >
+          <!-- Bloque de fecha minimalista -->
+          <div class="flex items-center gap-6 shrink-0">
+            <div
+              class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-[var(--ui-surface-soft)] border border-[var(--ui-border)] flex flex-col items-center justify-center text-center p-1 group-hover:border-[var(--ui-accent)] transition-colors"
+            >
+              <span class="text-[10px] font-bold uppercase tracking-widest text-[var(--ui-accent)]">
+                {{ session.month }}
+              </span>
+              <span class="font-editorial text-2xl sm:text-3xl font-normal text-[var(--ui-text)] leading-none my-0.5">
+                {{ session.day }}
+              </span>
+              <span class="text-[9px] uppercase tracking-wider text-[var(--ui-muted)] font-medium">
+                {{ session.weekday }}
+              </span>
+            </div>
+
+            <!-- Título y detalles -->
+            <div class="space-y-1.5 min-w-0">
+              <div class="flex items-center gap-3 text-xs">
+                <span class="font-semibold uppercase tracking-wider text-[var(--ui-accent)]">
+                  {{ session.category }}
+                </span>
+                <span class="text-[var(--ui-muted)]">·</span>
+                <span class="text-[var(--ui-muted)]">{{ session.time }}</span>
+              </div>
+
+              <h3
+                class="font-editorial text-lg sm:text-xl font-normal text-[var(--ui-text)] group-hover:text-[var(--ui-accent)] transition-colors leading-snug"
+              >
+                {{ session.title }}
+              </h3>
+
+              <p class="text-xs text-[var(--ui-muted)]">
+                {{ session.venue }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Cupo, precio y acción a la derecha -->
+          <div
+            class="flex items-center justify-between sm:justify-end gap-6 sm:gap-10 pt-4 sm:pt-0 border-t sm:border-t-0 border-[var(--ui-border)] shrink-0"
+          >
+            <div class="text-left sm:text-right space-y-1">
+              <span class="text-xs font-semibold text-[var(--ui-accent)] uppercase tracking-wider block">
+                Últimos {{ session.remainingSpots }} cupos
+              </span>
+              <span class="text-xs text-[var(--ui-muted)] block">
+                Capacidad: {{ session.totalSpots }} personas
+              </span>
+              <span class="text-base font-bold text-[var(--ui-text)] block">
+                {{ session.price }}
+              </span>
+            </div>
+
+            <a
+              routerLink="/catalog"
+              class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs uppercase tracking-widest font-semibold bg-[var(--ui-surface-soft)] text-[var(--ui-text)] border border-[var(--ui-border)] hover:bg-[var(--ui-accent)] hover:text-white hover:border-[var(--ui-accent)] transition-all shrink-0"
+            >
+              <span>Reservar</span>
+              <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5" />
+            </a>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       5. MANIFIESTO Y FOOTER EDITORIAL (MINIMALISTA)
+       ========================================================================= -->
+  <footer id="manifiesto" class="w-full border-t border-[var(--ui-border)] bg-[var(--ui-surface-soft)] scroll-mt-24">
+    <div class="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 py-24 sm:py-32 space-y-16">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+        <div class="lg:col-span-8 space-y-4">
+          <p class="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--ui-accent)]">
+            Manifiesto
+          </p>
+          <blockquote class="font-editorial text-2xl sm:text-4xl font-normal leading-snug text-[var(--ui-text)]">
+            "Rescatar el tiempo que se detiene cuando trabajamos con las manos, cuando olemos un grano tostado o cuando esperamos la imagen en la penumbra del cuarto oscuro."
+          </blockquote>
+        </div>
+
+        <div class="lg:col-span-4 space-y-4">
+          <p class="text-xs uppercase tracking-widest text-[var(--ui-muted)]">
+            Plataforma independiente de experiencias íntimas y talleres de oficio.
+          </p>
+          <a
+            routerLink="/catalog"
+            class="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] font-semibold text-[var(--ui-accent)] hover:underline underline-offset-4"
+          >
+            <span>Explorar catálogo completo</span>
+            <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5" />
+          </a>
+        </div>
+      </div>
+
+      <!-- Pie legal y créditos sin adornos innecesarios -->
+      <div
+        class="pt-8 border-t border-[var(--ui-border)] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[var(--ui-muted)] uppercase tracking-wider"
+      >
+        <p class="font-editorial text-sm normal-case tracking-normal text-[var(--ui-text)]">
+          Experiencias © 2026. Todos los derechos reservados.
+        </p>
+        <div class="flex items-center gap-6">
+          <a routerLink="/catalog" class="hover:text-[var(--ui-text)] transition-colors">Catálogo</a>
+          <a routerLink="/auth/login" class="hover:text-[var(--ui-text)] transition-colors">Acceso</a>
+          <button
+            type="button"
+            (click)="scrollToSection('heroTopSentinel')"
+            class="hover:text-[var(--ui-text)] transition-colors cursor-pointer bg-transparent border-none text-xs uppercase tracking-wider p-0 text-[var(--ui-muted)]"
+          >
+            Volver arriba
+          </button>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>

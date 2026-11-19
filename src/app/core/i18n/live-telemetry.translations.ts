@@ -43,6 +43,7 @@ export const liveTelemetryTranslations = {
       'En la app móvil toca "Monitor en vivo" e ingresa este código. Es de un solo uso.',
     'telemetry.monitor.expires': 'Vence a las',
     'telemetry.monitor.error': 'No se pudo generar el código. Intenta de nuevo.',
+<<<<<<< HEAD
     'mc.title': 'Asistente del maestro de ceremonias',
     'mc.alertTitle': 'La atención del público está bajando',
     'mc.manualTitle': 'Dinámica sugerida',
@@ -65,6 +66,50 @@ export const liveTelemetryTranslations = {
     'mc.type.AUDIENCE_QUESTION': 'Pregunta al público',
     'mc.type.ACTIVE_BREAK': 'Pausa activa',
     'mc.type.SHORT_BREAK': 'Descanso corto',
+=======
+
+    // Live monitoring & Host stream
+    'live.eyebrowHost': 'Panel del Anfitrión',
+    'live.eyebrowLive': 'Transmisión en Vivo',
+    'live.title': 'Monitoreo de Audiencia en Vivo',
+    'live.event': 'Evento',
+    'live.connected': 'Conexión Activa',
+    'live.disconnected': 'Desconectado',
+    'live.assistant': 'Asistente del Evento',
+    'live.cameraTitle': 'Cámara de Transmisión',
+    'live.cameraOn': 'Transmisión Activa',
+    'live.cameraOff': 'Cámara Apagada',
+    'live.cameraDisconnected': 'Cámara desconectada',
+    'live.cameraDisconnectedHint': 'Enciende la cámara para iniciar el análisis anónimo de la audiencia en tiempo real.',
+    'live.stopCamera': 'Detener Cámara',
+    'live.startCamera': 'Encender Cámara y Transmitir',
+    'live.privacyNotice': 'Privacidad protegida: sin grabación de imágenes',
+
+    // GDPR & Privacy Notice
+    'live.gdpr.title': 'Aviso de Privacidad y Monitoreo en Vivo',
+    'live.gdpr.description': 'Esta experiencia analiza de forma anónima la receptividad de la audiencia para que el organizador pueda optimizar la dinámica del evento.',
+    'live.gdpr.guarantee': 'Garantía de Privacidad: El análisis se procesa en tiempo real sin almacenar fotos, videos ni registros biométricos en disco o base de datos.',
+    'live.gdpr.accept': 'Aceptar y Continuar',
+    'live.gdpr.decline': 'Solo Monitorear sin Cámara',
+
+    // Engagement Widget
+    'live.widget.title': 'Conexión de la Audiencia',
+    'live.widget.subtitle': 'Métricas en tiempo real',
+    'live.widget.connectionLevel': 'Nivel de Conexión',
+    'live.widget.audienceStatus': 'Estado del Público',
+    'live.widget.expressions': 'Distribución de Expresiones',
+    'live.widget.joy': 'Alegría y Entusiasmo',
+    'live.widget.attention': 'Interés y Atención',
+    'live.widget.inattention': 'Desatención',
+    'live.widget.person': 'persona',
+    'live.widget.attendees': 'asistentes',
+    'live.widget.statusGreen': 'Público conectado y receptivo (Energía óptima)',
+    'live.widget.statusYellow': 'Atención moderada con fluctuaciones',
+    'live.widget.statusRed': 'Señal de desatención detectada en la sala',
+    'live.widget.energyHigh': 'Energía Alta',
+    'live.widget.energyMedium': 'Atención Media',
+    'live.widget.energyLow': 'Desatención Detectada',
+>>>>>>> ec8d704 (Fix(design): redesign home page)
   },
   en: {
     'telemetry.title': 'Live console',
@@ -109,6 +154,7 @@ export const liveTelemetryTranslations = {
       'In the mobile app tap "Live monitor" and enter this code. It can be used once.',
     'telemetry.monitor.expires': 'Expires at',
     'telemetry.monitor.error': 'The code could not be generated. Please try again.',
+<<<<<<< HEAD
     'mc.title': 'Master of ceremonies assistant',
     'mc.alertTitle': 'Audience attention is dropping',
     'mc.manualTitle': 'Suggested dynamic',
@@ -131,5 +177,49 @@ export const liveTelemetryTranslations = {
     'mc.type.AUDIENCE_QUESTION': 'Audience question',
     'mc.type.ACTIVE_BREAK': 'Active break',
     'mc.type.SHORT_BREAK': 'Short break',
+=======
+
+    // Live monitoring & Host stream
+    'live.eyebrowHost': 'Host Panel',
+    'live.eyebrowLive': 'Live Stream',
+    'live.title': 'Live Audience Monitoring',
+    'live.event': 'Event',
+    'live.connected': 'Active Connection',
+    'live.disconnected': 'Disconnected',
+    'live.assistant': 'Event Assistant',
+    'live.cameraTitle': 'Broadcast Camera',
+    'live.cameraOn': 'Streaming Active',
+    'live.cameraOff': 'Camera Off',
+    'live.cameraDisconnected': 'Camera disconnected',
+    'live.cameraDisconnectedHint': 'Turn on the camera to begin real-time anonymous audience analysis.',
+    'live.stopCamera': 'Stop Camera',
+    'live.startCamera': 'Start Camera & Stream',
+    'live.privacyNotice': 'Privacy protected: no image recording',
+
+    // GDPR & Privacy Notice
+    'live.gdpr.title': 'Privacy & Live Monitoring Notice',
+    'live.gdpr.description': 'This experience anonymously analyzes audience engagement so the host can optimize event dynamics.',
+    'live.gdpr.guarantee': 'Privacy Guarantee: Analysis is processed in real time without storing photos, videos, or biometric data on disk or database.',
+    'live.gdpr.accept': 'Accept & Continue',
+    'live.gdpr.decline': 'Monitor without camera',
+
+    // Engagement Widget
+    'live.widget.title': 'Audience Engagement',
+    'live.widget.subtitle': 'Real-time metrics',
+    'live.widget.connectionLevel': 'Engagement Level',
+    'live.widget.audienceStatus': 'Audience Status',
+    'live.widget.expressions': 'Expression Distribution',
+    'live.widget.joy': 'Joy & Enthusiasm',
+    'live.widget.attention': 'Interest & Attention',
+    'live.widget.inattention': 'Inattention',
+    'live.widget.person': 'person',
+    'live.widget.attendees': 'attendees',
+    'live.widget.statusGreen': 'Audience engaged and receptive (Optimal energy)',
+    'live.widget.statusYellow': 'Moderate attention with fluctuations',
+    'live.widget.statusRed': 'Inattention detected in the room',
+    'live.widget.energyHigh': 'High Energy',
+    'live.widget.energyMedium': 'Medium Attention',
+    'live.widget.energyLow': 'Inattention Detected',
+>>>>>>> ec8d704 (Fix(design): redesign home page)
   },
 };

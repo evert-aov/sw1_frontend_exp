@@ -35,7 +35,7 @@ const AGE_GROUP_ORDER: readonly AgeGroup[] = ['YOUTH', 'YOUNG_ADULT', 'ADULT', '
 /** Textos y colores de cada rango etario. */
 const AGE_GROUP_DISPLAY: Record<AgeGroup, { label: string; range: string; colorClass: string }> = {
   YOUTH: { label: 'Menores', range: 'Menos de 18 años', colorClass: 'bg-sky-500' },
-  YOUNG_ADULT: { label: 'Jóvenes adultos', range: '18 a 30 años', colorClass: 'bg-violet-500' },
+  YOUNG_ADULT: { label: 'Jóvenes adultos', range: '18 a 30 años', colorClass: 'bg-amber-600' },
   ADULT: { label: 'Adultos', range: '31 a 50 años', colorClass: 'bg-emerald-500' },
   SENIOR: { label: 'Mayores', range: 'Más de 50 años', colorClass: 'bg-amber-500' },
 };

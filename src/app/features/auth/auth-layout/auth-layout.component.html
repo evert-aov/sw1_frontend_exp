@@ -1,36 +1,43 @@
 <div
-  class="min-h-dvh w-full grid lg:grid-cols-2 bg-[#f3f1f8] dark:bg-[#0c0b12] text-slate-900 dark:text-white"
+  class="min-h-dvh w-full grid lg:grid-cols-2 bg-[var(--ui-surface)] text-[var(--ui-text)]"
 >
-  <!-- Left Column: Brand Presentation (Desktop) -->
+  <!-- Left Column: Brand Presentation (Desktop Editorial) -->
   <section
-    class="relative hidden lg:flex lg:sticky lg:top-0 lg:h-dvh flex-col justify-between p-8 xl:p-12 overflow-hidden border-r border-slate-200 dark:border-white/10"
+    class="relative hidden lg:flex lg:sticky lg:top-0 lg:h-dvh flex-col justify-between p-8 xl:p-12 overflow-hidden border-r border-[var(--ui-border)] bg-[var(--ui-surface-soft)]"
   >
     <div
-      class="pointer-events-none absolute -left-32 top-1/4 w-[480px] h-[480px] rounded-full bg-violet-500/20 dark:bg-violet-700/20 blur-3xl"
+      class="pointer-events-none absolute -left-32 top-1/4 w-[480px] h-[480px] rounded-full bg-[var(--ui-accent)]/10 blur-3xl"
     ></div>
 
     <div class="relative">
-      <a routerLink="/catalog" class="inline-flex items-center gap-3">
+      <a routerLink="/home" class="inline-flex items-center gap-3 group">
         <span
-          class="w-9 h-9 rounded-xl bg-violet-600 text-white font-bold text-sm flex items-center justify-center"
+          class="w-10 h-10 rounded-xl bg-[var(--ui-accent)] text-white font-editorial text-2xl font-normal leading-none flex items-center justify-center shadow-xs select-none"
+          style="font-family: 'Playfair Display', Georgia, serif;"
+          aria-hidden="true"
           >E</span
         >
-        <span class="text-sm font-extrabold tracking-[0.25em]">EXPERIENCIA</span>
+        <span
+          class="font-editorial text-2xl sm:text-3xl font-normal tracking-normal text-[var(--ui-text)]"
+          style="font-family: 'Playfair Display', Georgia, serif;"
+        >
+          Experiencias
+        </span>
       </a>
 
       <div class="mt-6">
-        <p class="text-[11px] font-bold tracking-[0.2em] text-violet-600 dark:text-violet-400">
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ui-accent)]">
           {{ 'auth.brand.pill' | translate }} · {{ 'auth.brand.tagline' | translate }}
         </p>
       </div>
     </div>
 
-    <div class="relative my-auto py-4">
-      <h1 class="text-3xl xl:text-5xl font-extrabold leading-[1.08] tracking-tight text-balance">
+    <div class="relative my-auto py-6">
+      <h1 class="font-editorial text-3xl xl:text-5xl font-normal leading-[1.12] tracking-tight text-[var(--ui-text)] text-balance">
         {{ 'auth.brand.title' | translate }}
       </h1>
       <p
-        class="mt-4 max-w-lg text-sm xl:text-base text-slate-600 dark:text-slate-400 leading-relaxed"
+        class="mt-4 max-w-lg text-sm xl:text-base text-[var(--ui-muted)] leading-relaxed"
       >
         {{ 'auth.brand.subtitle' | translate }}
       </p>
@@ -39,17 +46,17 @@
     <div class="relative grid grid-cols-3 gap-3">
       @for (feat of features; track feat.titleKey) {
         <div
-          class="p-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/60 dark:bg-white/[0.03]"
+          class="p-4 rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface)] shadow-xs"
         >
           <div
-            class="w-8 h-8 rounded-lg bg-violet-600/10 text-violet-600 dark:text-violet-400 flex items-center justify-center"
+            class="w-8 h-8 rounded-lg bg-[var(--ui-accent-soft)] text-[var(--ui-accent)] flex items-center justify-center"
           >
             <app-icon [name]="feat.icon" sizeClass="w-4 h-4" />
           </div>
-          <p class="mt-2.5 text-xs font-bold text-slate-900 dark:text-white">
+          <p class="mt-2.5 text-xs font-bold text-[var(--ui-text)]">
             {{ feat.titleKey | translate }}
           </p>
-          <p class="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+          <p class="mt-0.5 text-[11px] text-[var(--ui-muted)] leading-snug">
             {{ feat.descKey | translate }}
           </p>
         </div>
@@ -57,14 +64,16 @@
     </div>
   </section>
 
-  <!-- El formulario puede desplazarse en pantallas pequeñas o con zoom. -->
-  <section class="min-h-dvh flex flex-col items-center px-5 sm:px-10 py-8">
+  <!-- Right Column: Auth Form -->
+  <section class="min-h-dvh flex flex-col items-center px-5 sm:px-10 py-8 bg-[var(--ui-surface)]">
     <div class="w-full max-w-[460px] flex items-center justify-between gap-3 mb-4">
       <a
-        routerLink="/catalog"
-        class="text-sm font-semibold text-violet-700 dark:text-violet-300 inline-flex gap-2 items-center"
-        ><app-icon name="arrow-left" sizeClass="w-4 h-4" />{{ 'nav.catalog' | translate }}</a
+        routerLink="/home"
+        class="text-xs uppercase tracking-[0.18em] font-semibold text-[var(--ui-accent)] hover:text-[var(--ui-accent-hover)] inline-flex gap-2 items-center transition-colors"
       >
+        <app-icon name="arrow-left" sizeClass="w-4 h-4" />
+        <span>{{ 'nav.catalog' | translate }}</span>
+      </a>
       <div class="ui-actions">
         <button
           appButton

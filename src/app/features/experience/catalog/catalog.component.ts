@@ -47,6 +47,7 @@ import { eventTimeInBolivia } from '../../../core/utils/event-time.util';
     EventSkeletonComponent,
   ],
   templateUrl: './catalog.component.html',
+  styleUrl: './catalog.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CatalogComponent implements OnInit {

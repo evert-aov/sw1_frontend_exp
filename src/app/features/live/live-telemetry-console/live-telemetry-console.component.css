@@ -25,12 +25,12 @@
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 0.75rem;
-  background: rgb(139 92 246 / 0.1);
-  color: rgb(124 58 237);
+  background: var(--ui-accent-soft);
+  color: var(--ui-accent);
 }
 
 :host-context(.dark) .console-icon {
-  color: rgb(196 181 253);
+  color: var(--ui-accent);
 }
 
 .status-dot {

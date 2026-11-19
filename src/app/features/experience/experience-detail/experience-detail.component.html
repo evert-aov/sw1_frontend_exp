@@ -1,34 +1,41 @@
-<div class="max-w-5xl mx-auto space-y-6">
-  <a appButton variant="secondary" routerLink="/catalog">
-    <app-icon name="arrow-left" sizeClass="w-4 h-4" />
-    <span>{{ 'common.back' | translate }}</span>
-  </a>
+<div class="max-w-6xl mx-auto space-y-8 sm:space-y-12 pb-20">
+  <!-- Botón de regreso minimalista -->
+  <div class="flex items-center justify-between border-b border-[var(--ui-border)] pb-4">
+    <a
+      routerLink="/catalog"
+      class="text-xs uppercase tracking-[0.2em] font-semibold text-[var(--ui-accent)] hover:text-[var(--ui-accent-hover)] inline-flex items-center gap-2 transition-colors cursor-pointer"
+    >
+      <app-icon name="arrow-left" sizeClass="w-4 h-4" />
+      <span>{{ 'common.back' | translate }}</span>
+    </a>
+    <span class="text-[10px] uppercase tracking-widest text-[var(--ui-muted)]">Ficha Editorial</span>
+  </div>
 
+  <!-- Aviso amigable de autenticación requerida -->
   @if (showAuthNotice()) {
     <div
-      class="p-5 rounded-2xl bg-violet-50/80 dark:bg-[#19152b] border border-violet-200 dark:border-violet-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+      class="p-6 rounded-2xl bg-[var(--ui-surface-soft)] border border-[var(--ui-accent)]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-5 shadow-xs"
     >
-      <div class="flex items-start gap-3.5">
+      <div class="flex items-start gap-4">
         <div
-          class="w-10 h-10 rounded-xl bg-violet-600/15 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0"
+          class="w-10 h-10 rounded-xl bg-[var(--ui-accent-soft)] text-[var(--ui-accent)] flex items-center justify-center shrink-0"
         >
           <app-icon name="user" sizeClass="w-5 h-5" />
         </div>
         <div>
-          <h3 class="text-sm font-bold text-slate-900 dark:text-white">
+          <h3 class="font-editorial text-lg font-normal text-[var(--ui-text)]">
             {{ 'auth.friendlyRequiredTitle' | translate }}
           </h3>
-          <p class="mt-0.5 text-xs text-slate-600 dark:text-slate-300">
+          <p class="mt-1 text-xs text-[var(--ui-muted)] leading-relaxed">
             {{ 'auth.friendlyRequiredDesc' | translate }}
           </p>
         </div>
       </div>
 
       <a
-        appButton
-        variant="primary"
         routerLink="/auth/login"
         [queryParams]="{ returnUrl: '/experiences/' + experience()?.id }"
+        class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] text-white text-xs uppercase tracking-widest font-semibold transition-colors shrink-0 shadow-xs"
       >
         <span>{{ 'auth.friendlyLoginBtn' | translate }}</span>
         <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5" />
@@ -36,112 +43,235 @@
     </div>
   }
 
+  <!-- Estado de carga (Esqueleto editorial) -->
   @if (loading()) {
-    <div
-      class="rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 overflow-hidden animate-pulse"
-    >
-      <div class="h-72 sm:h-96 w-full bg-slate-200 dark:bg-white/[0.06]"></div>
-      <div class="p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="space-y-8 animate-pulse">
+      <div class="h-80 sm:h-96 w-full rounded-2xl bg-[var(--ui-surface-soft)]"></div>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-8 space-y-4">
-          <div class="h-4 w-48 rounded bg-slate-200 dark:bg-white/10"></div>
-          <div class="h-9 w-3/4 rounded-lg bg-slate-200 dark:bg-white/10"></div>
-          <div class="h-4 w-full rounded bg-slate-200/70 dark:bg-white/[0.06]"></div>
-          <div class="h-4 w-5/6 rounded bg-slate-200/70 dark:bg-white/[0.06]"></div>
+          <div class="h-4 w-40 bg-[var(--ui-surface-soft)] rounded"></div>
+          <div class="h-10 w-3/4 bg-[var(--ui-surface-soft)] rounded-lg"></div>
+          <div class="h-4 w-full bg-[var(--ui-surface-soft)] rounded"></div>
+          <div class="h-4 w-5/6 bg-[var(--ui-surface-soft)] rounded"></div>
         </div>
-        <div class="lg:col-span-4 h-56 rounded-2xl bg-slate-100 dark:bg-[#0b0a10]"></div>
+        <div class="lg:col-span-4 h-64 bg-[var(--ui-surface-soft)] rounded-2xl"></div>
       </div>
     </div>
   } @else if (error() || !experience()) {
     <div
-      class="p-12 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 text-center space-y-3"
+      class="p-12 sm:p-16 rounded-2xl bg-[var(--ui-surface)] border border-[var(--ui-border)] text-center space-y-4"
     >
-      <app-icon name="exclamation-triangle" sizeClass="w-8 h-8 text-red-500 mx-auto" />
-      <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">
+      <app-icon name="exclamation-triangle" sizeClass="w-10 h-10 text-[var(--ui-accent)] mx-auto" />
+      <p class="font-editorial text-2xl text-[var(--ui-text)]">
         {{ 'catalog.emptyTitle' | translate }}
       </p>
+      <a
+        routerLink="/catalog"
+        class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[var(--ui-accent)] text-white text-xs uppercase tracking-widest font-semibold"
+      >
+        <span>Volver al catálogo</span>
+      </a>
     </div>
   } @else if (experience(); as exp) {
-    <div
-      class="rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10 overflow-hidden"
-    >
-      @if (exp.cover_image_url) {
-        <div class="h-72 sm:h-96 w-full overflow-hidden bg-slate-900">
-          <img
-            [src]="exp.cover_image_url"
-            [alt]="exp.title"
-            referrerpolicy="no-referrer"
-            class="w-full h-full object-cover"
-          />
-        </div>
-      }
+    <!-- =========================================================================
+         1. FOTOGRAFÍA HERO EDITORIAL CON TÍTULOS Y DETALLES
+         ========================================================================= -->
+    <div class="experience-detail-hero group rounded-2xl border border-[var(--ui-border)] bg-[#140e0b] shadow-sm">
+      <div class="relative h-[340px] sm:h-[440px] lg:h-[500px] w-full overflow-hidden">
+        <img
+          [src]="displayImage()"
+          [alt]="exp.title"
+          referrerpolicy="no-referrer"
+          class="experience-detail-img w-full h-full object-cover object-center rounded-2xl"
+        />
 
-      <div class="p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        <div class="lg:col-span-8 space-y-5">
-          <div
-            class="flex flex-wrap items-center gap-2 text-xs font-semibold text-violet-600 dark:text-violet-400"
-          >
-            <span>{{ exp.category_name || exp.modality }}</span>
-            <span aria-hidden="true">·</span>
-            <span>{{ exp.event_date | date: 'dd MMM yyyy, HH:mm' }}</span>
-            <span aria-hidden="true">·</span>
-            <span>{{ exp.duration_minutes }} min</span>
+        <!-- Overlay degradado cálido para asegurar legibilidad -->
+        <div class="absolute inset-0 bg-gradient-to-t from-[#140e0b]/95 via-[#140e0b]/40 to-transparent pointer-events-none rounded-2xl"></div>
+
+        <!-- Tag de Categoría flotante -->
+        <div class="absolute top-5 left-5 z-10 flex items-center gap-2">
+          <span class="px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-[var(--ui-surface)]/95 text-[var(--ui-text)] border border-[var(--ui-border)] shadow-xs backdrop-blur-xs">
+            {{ exp.category_name || exp.modality }}
+          </span>
+          <span class="px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-[#140e0b]/80 text-white border border-white/10 backdrop-blur-xs">
+            {{ exp.duration_minutes }} min
+          </span>
+        </div>
+
+        <!-- Titular superpuesto al Hero de la experiencia -->
+        <div class="absolute inset-x-0 bottom-0 z-10 p-6 sm:p-10 lg:p-12 space-y-3">
+          <div class="flex items-center gap-3 text-xs uppercase tracking-widest text-stone-300 font-medium">
+            <span class="text-[var(--ui-accent)]">{{ exp.event_date | date: 'dd MMMM yyyy' : undefined : i18n.currentLang() }}</span>
+            <span>·</span>
+            <span>{{ exp.event_date | date: 'HH:mm' }} hrs</span>
           </div>
 
-          <h1
-            class="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white"
-          >
+          <h1 class="font-editorial text-3xl sm:text-5xl lg:text-6xl font-normal text-white leading-[1.08] tracking-tight max-w-4xl">
             {{ exp.title }}
           </h1>
 
-          <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+          <div class="flex items-center gap-3 text-xs sm:text-sm text-stone-300 pt-1">
+            <app-icon name="user" sizeClass="w-4 h-4 text-[var(--ui-accent)]" />
+            <span>Organizado por {{ exp.host_name || 'Anfitrión Verificado' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         2. CUERPO EDITORIAL: INFORMACIÓN, MAPA Y PANEL DE RESERVAS
+         ========================================================================= -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+      <!-- Columna Principal: Manifiesto, Descripción y Mapa Gratuito -->
+      <div class="lg:col-span-8 space-y-8">
+        <!-- Descripción y detalles de la experiencia -->
+        <div class="p-6 sm:p-10 rounded-2xl bg-[var(--ui-surface)] border border-[var(--ui-border)] shadow-xs space-y-6">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ui-accent)] mb-2">
+              Sobre esta experiencia
+            </p>
+            <h2 class="font-editorial text-2xl sm:text-3xl font-normal text-[var(--ui-text)]">
+              La propuesta del taller
+            </h2>
+          </div>
+
+          <p class="text-sm sm:text-base text-[var(--ui-text)]/90 leading-relaxed font-light whitespace-pre-line">
             {{ exp.description }}
           </p>
 
-          @if (exp.venue_name || exp.venue_address || exp.venue_zone) {
-            <div
-              class="pt-4 border-t border-slate-200 dark:border-white/10 flex items-start gap-3 text-xs text-slate-500 dark:text-slate-400"
-            >
-              <app-icon name="map-pin" sizeClass="w-4 h-4 text-violet-500 mt-0.5" />
+          <!-- Metadatos de la sesión en badges -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-6 border-t border-[var(--ui-border)]">
+            <div class="p-4 rounded-xl bg-[var(--ui-surface-soft)] border border-[var(--ui-border)] space-y-1">
+              <span class="text-[10px] uppercase tracking-wider text-[var(--ui-muted)] block">Modalidad</span>
+              <span class="text-sm font-semibold text-[var(--ui-text)] flex items-center gap-1.5">
+                <app-icon [name]="exp.modality === 'VIRTUAL' ? 'video-camera' : 'map-pin'" sizeClass="w-4 h-4 text-[var(--ui-accent)]" />
+                {{ exp.modality }}
+              </span>
+            </div>
+
+            <div class="p-4 rounded-xl bg-[var(--ui-surface-soft)] border border-[var(--ui-border)] space-y-1">
+              <span class="text-[10px] uppercase tracking-wider text-[var(--ui-muted)] block">Duración</span>
+              <span class="text-sm font-semibold text-[var(--ui-text)] flex items-center gap-1.5">
+                <app-icon name="clock" sizeClass="w-4 h-4 text-[var(--ui-accent)]" />
+                {{ exp.duration_minutes }} minutos
+              </span>
+            </div>
+
+            <div class="p-4 rounded-xl bg-[var(--ui-surface-soft)] border border-[var(--ui-border)] space-y-1 col-span-2 sm:col-span-1">
+              <span class="text-[10px] uppercase tracking-wider text-[var(--ui-muted)] block">Capacidad</span>
+              <span class="text-sm font-semibold text-[var(--ui-text)] flex items-center gap-1.5">
+                <app-icon name="users" sizeClass="w-4 h-4 text-[var(--ui-accent)]" />
+                {{ exp.min_capacity }} - {{ exp.max_capacity }} cupos
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección de Ubicación y Mapa Interactivo Gratuito (OpenStreetMap) -->
+        <div class="p-6 sm:p-10 rounded-2xl bg-[var(--ui-surface)] border border-[var(--ui-border)] shadow-xs space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--ui-border)] pb-4">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ui-accent)]">
+                Lugar de Encuentro
+              </p>
+              <h3 class="font-editorial text-2xl font-normal text-[var(--ui-text)]">
+                {{ exp.venue_name || exp.venue_zone || 'Sede del Taller' }}
+              </h3>
+            </div>
+            @if (exp.venue_address) {
+              <span class="text-xs text-[var(--ui-muted)] font-medium">
+                {{ exp.venue_address }}
+              </span>
+            }
+          </div>
+
+          <!-- Incrustación gratuita de OpenStreetMap -->
+          @if (exp.modality !== 'VIRTUAL') {
+            <div class="map-container border border-[var(--ui-border)] shadow-inner overflow-hidden relative">
+              <iframe
+                title="Mapa de ubicación del taller"
+                [src]="mapUrl()"
+                class="w-full h-72 sm:h-80 border-0"
+                loading="lazy"
+              ></iframe>
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-[var(--ui-muted)] pt-1">
+              <span class="flex items-center gap-1.5">
+                <app-icon name="map-pin" sizeClass="w-3.5 h-3.5 text-[var(--ui-accent)]" />
+                Zona: {{ exp.venue_zone || 'La Paz' }}
+              </span>
+              <a
+                [href]="externalMapUrl()"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-[var(--ui-accent)] hover:underline inline-flex items-center gap-1 font-semibold"
+              >
+                <span>Ver en mapa completo</span>
+                <app-icon name="arrow-right" sizeClass="w-3 h-3" />
+              </a>
+            </div>
+          } @else {
+            <!-- Información para modalidad virtual -->
+            <div class="p-6 rounded-xl bg-[var(--ui-surface-soft)] border border-[var(--ui-border)] flex items-center gap-4">
+              <app-icon name="video-camera" sizeClass="w-8 h-8 text-[var(--ui-accent)]" />
               <div>
-                <p class="font-bold text-slate-800 dark:text-slate-200">
-                  {{ exp.venue_name || exp.venue_zone }}
-                </p>
-                @if (exp.venue_address) {
-                  <p>{{ exp.venue_address }}</p>
-                }
+                <p class="text-sm font-semibold text-[var(--ui-text)]">Evento 100% Virtual</p>
+                <p class="text-xs text-[var(--ui-muted)]">El enlace seguro para la sala se enviará por correo tras confirmar tu reserva.</p>
               </div>
             </div>
           }
         </div>
+      </div>
 
-        <div
-          class="lg:col-span-4 p-6 rounded-2xl bg-slate-50 dark:bg-[#0b0a10] border border-slate-200 dark:border-white/10 space-y-5"
-        >
-          <div class="flex items-baseline justify-between">
-            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">{{
-              'common.price' | translate
-            }}</span>
-            <span class="text-3xl font-extrabold text-slate-900 dark:text-white tabular-nums">
-              Bs {{ exp.price | number: '1.0-2' }}
-            </span>
-          </div>
-
-          <div class="space-y-2 text-xs">
-            <div class="flex justify-between">
-              <span class="text-slate-500">{{ 'exp.form.minCapLabel' | translate }}</span>
-              <span class="font-bold tabular-nums">{{ exp.min_capacity }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-slate-500">{{ 'exp.form.maxCapLabel' | translate }}</span>
-              <span class="font-bold tabular-nums"
-                >{{ exp.reserved_slots }} / {{ exp.max_capacity }}</span
-              >
+      <!-- Columna Lateral: Tarjeta Flotante de Reserva y Quórum -->
+      <aside class="lg:col-span-4 lg:sticky lg:top-28 space-y-6">
+        <div class="p-6 sm:p-8 rounded-2xl bg-[var(--ui-surface)] border border-[var(--ui-border)] shadow-md space-y-6">
+          <!-- Precio grande editorial -->
+          <div class="border-b border-[var(--ui-border)] pb-4 flex items-baseline justify-between">
+            <span class="text-xs uppercase tracking-widest text-[var(--ui-muted)] font-medium">Por persona</span>
+            <div class="text-right">
+              <span class="font-editorial text-3xl sm:text-4xl font-normal text-[var(--ui-text)] tabular-nums">
+                Bs {{ exp.price | number: '1.0-2' }}
+              </span>
             </div>
           </div>
 
-          <div class="space-y-2.5 pt-2">
-            <app-field controlId="reservation-quantity" [label]="'detail.quantity' | translate"
-              ><input
+          <!-- Medidor de Quórum y Cupos Restantes -->
+          <div class="space-y-3 p-4 rounded-xl bg-[var(--ui-surface-soft)] border border-[var(--ui-border)]">
+            <div class="flex items-center justify-between text-xs font-semibold">
+              <span class="text-[var(--ui-muted)] uppercase tracking-wider">Aforo de Quórum</span>
+              <span class="text-[var(--ui-text)] tabular-nums">
+                {{ exp.reserved_slots }} de {{ exp.min_capacity }} mín.
+              </span>
+            </div>
+
+            <!-- Barra de progreso terracota -->
+            <div class="w-full bg-[var(--ui-border)] h-2 rounded-full overflow-hidden">
+              <div
+                class="bg-[var(--ui-accent)] h-full transition-all duration-500 rounded-full"
+                [style.width.%]="quorumPercent()"
+              ></div>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="text-[var(--ui-muted)]">Máximo: {{ exp.max_capacity }} cupos</span>
+              @if (exp.is_quorum_reached) {
+                <span class="text-emerald-600 dark:text-emerald-400 font-bold inline-flex items-center gap-1">
+                  <app-icon name="check-circle" sizeClass="w-3.5 h-3.5" /> Quórum alcanzado
+                </span>
+              } @else {
+                <span class="text-[var(--ui-accent)] font-semibold">
+                  Faltan {{ exp.min_capacity - exp.reserved_slots }} para confirmar
+                </span>
+              }
+            </div>
+          </div>
+
+          <!-- Selector de cantidad e interactividad -->
+          <div class="space-y-4">
+            <app-field controlId="reservation-quantity" [label]="'detail.quantity' | translate">
+              <input
                 appInput
                 type="number"
                 min="1"
@@ -149,42 +279,41 @@
                 step="1"
                 [(ngModel)]="quantity"
                 [disabled]="reserving()"
-            /></app-field>
+                class="rounded-xl bg-[var(--ui-surface-soft)] border-[var(--ui-border)] text-center font-bold text-lg"
+              />
+            </app-field>
+
+            <!-- Botón principal de Reserva -->
             <button
-              appButton
-              variant="primary"
-              class="w-full items-center justify-center gap-2"
               type="button"
-              [busy]="reserving()"
               (click)="onReserveClick()"
               [disabled]="reserving()"
+              class="w-full py-3.5 px-6 rounded-xl bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] text-white text-xs uppercase tracking-widest font-semibold inline-flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
             >
               <app-icon name="ticket" sizeClass="w-4 h-4" />
-              <span>{{
-                (reserving() ? 'detail.reserving' : 'catalog.reserveBtn') | translate
-              }}</span>
+              <span>{{ (reserving() ? 'detail.reserving' : 'catalog.reserveBtn') | translate }}</span>
             </button>
 
+            <!-- Botón de Matching Grupal -->
             <button
-              appButton
-              variant="secondary"
-              class="w-full items-center justify-center gap-2"
               type="button"
               (click)="onJoinMatchingClick()"
+              class="w-full py-3 px-6 rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-soft)] hover:border-[var(--ui-accent)] text-[var(--ui-text)] text-xs uppercase tracking-widest font-semibold inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
-              <app-icon name="users" sizeClass="w-4 h-4" />
+              <app-icon name="users" sizeClass="w-4 h-4 text-[var(--ui-accent)]" />
               <span>{{ 'nav.matching' | translate }}</span>
             </button>
           </div>
 
+          <!-- Panel del Anfitrión (si aplica) -->
           @if (auth.isHost()) {
-            <div class="pt-4 border-t border-slate-200 dark:border-white/10 space-y-2">
-              <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Panel del Anfitrión</span>
+            <div class="pt-4 border-t border-[var(--ui-border)] space-y-2">
+              <span class="text-[10px] uppercase tracking-widest text-[var(--ui-muted)] font-semibold block">
+                Gestión del Anfitrión
+              </span>
               <a
-                appButton
-                variant="secondary"
                 [routerLink]="['/live', exp.id]"
-                class="w-full items-center justify-center gap-2 font-bold text-violet-600 dark:text-violet-400"
+                class="w-full py-2.5 px-4 rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-soft)] hover:border-[var(--ui-accent)] text-[var(--ui-accent)] text-xs uppercase tracking-wider font-semibold inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
                 <app-icon name="video-camera" sizeClass="w-4 h-4 text-emerald-500" />
                 <span>Monitoreo de Audiencia</span>
@@ -192,9 +321,11 @@
             </div>
           }
         </div>
-      </div>
+      </aside>
     </div>
   }
+
+  <!-- Alerta de error al reservar -->
   @if (reserveError()) {
     <app-alert tone="error">{{ reserveError() }}</app-alert>
   }

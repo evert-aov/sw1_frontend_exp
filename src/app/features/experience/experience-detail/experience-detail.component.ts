@@ -2,10 +2,18 @@ import { I18nService } from '../../../core/services/i18n.service';
 import { ButtonComponent, ButtonLinkDirective } from '../../../shared/ui/button';
 import { FormFieldComponent, InputDirective } from '../../../shared/ui/form-field';
 import { AlertComponent } from '../../../shared/ui/feedback';
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ExperienceService } from '../../../core/services/experience.service';
 import { BookingService } from '../../../core/services/booking.service';
 import { MatchingService } from '../../../core/services/matching.service';
@@ -14,14 +22,16 @@ import { Experience } from '../../../core/models/experience.model';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 
+const FALLBACK_DETAIL_IMAGES = [
+  'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=1800&q=85',
+  'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1800&q=85',
+  'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1800&q=85',
+  'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=1800&q=85',
+];
+
 /**
  * Componente de Ficha Detallada de Experiencia (CU-04 / HU-06).
- *
- * Muestra el perfil integral del evento:
- * - Portada, anfitrión, categoría, fecha, duración y ubicación / link virtual.
- * - Monitoreo de cupos reservados vs. aforo mínimo viable (quórum).
- * - Acciones de compra directa de entrada o postulación a grupo de matching para alcanzar quórum.
- * - Mensajes amigables cuando se requiere inicio de sesión.
+ * Rediseñado con Estilo Editorial / Revista (Magazine).
  */
 @Component({
   selector: 'app-experience-detail',
@@ -39,6 +49,7 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
     FormsModule,
   ],
   templateUrl: './experience-detail.component.html',
+  styleUrl: './experience-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExperienceDetailComponent implements OnInit {
@@ -47,6 +58,7 @@ export class ExperienceDetailComponent implements OnInit {
   private readonly experienceService = inject(ExperienceService);
   private readonly bookingService = inject(BookingService);
   private readonly matchingService = inject(MatchingService);
+  private readonly sanitizer = inject(DomSanitizer);
   readonly auth = inject(AuthService);
   readonly i18n = inject(I18nService);
 
@@ -66,11 +78,48 @@ export class ExperienceDetailComponent implements OnInit {
   quantity = 1;
   private bookingKey = crypto.randomUUID();
 
-  /**
-   * Ciclo de vida inicial: extrae el ID de la URL y consulta el detalle al backend.
-   *
-   * @returns {void}
-   */
+  /** Imagen curada o portada oficial */
+  readonly displayImage = computed<string>(() => {
+    const exp = this.experience();
+    if (exp?.cover_image_url?.trim()) {
+      return exp.cover_image_url.trim();
+    }
+    return FALLBACK_DETAIL_IMAGES[0];
+  });
+
+  /** URL segura para previsualización de mapa con OpenStreetMap */
+  readonly mapUrl = computed<SafeResourceUrl | null>(() => {
+    const exp = this.experience();
+    if (!exp) return null;
+    const query = [exp.venue_address, exp.venue_name, exp.venue_zone, 'La Paz, Bolivia']
+      .filter(Boolean)
+      .join(', ');
+    const url = `https://www.openstreetmap.org/export/embed.html?bbox=-68.18,-16.55,-68.08,-16.48&layer=mapnik&marker=-16.535,-68.085`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  });
+
+  /** Enlace directo externo a OpenStreetMap */
+  readonly externalMapUrl = computed<string>(() => {
+    const exp = this.experience();
+    if (!exp) return 'https://www.openstreetmap.org';
+    const query = encodeURIComponent(
+      [exp.venue_address, exp.venue_name, exp.venue_zone, 'La Paz, Bolivia']
+        .filter(Boolean)
+        .join(', '),
+    );
+    return `https://www.openstreetmap.org/search?query=${query}`;
+  });
+
+  /** Quórum alcanzado o en progreso */
+  readonly quorumPercent = computed<number>(() => {
+    const exp = this.experience();
+    if (!exp) return 0;
+    return Math.min(
+      100,
+      Math.round((100 * exp.reserved_slots) / Math.max(1, exp.min_capacity)),
+    );
+  });
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
@@ -91,12 +140,6 @@ export class ExperienceDetailComponent implements OnInit {
     });
   }
 
-  /**
-   * Inicia el proceso de compra de entrada para la experiencia.
-   * Si no hay sesión activa, muestra una notificación amigable para ingresar.
-   *
-   * @returns {void}
-   */
   onReserveClick(): void {
     const exp = this.experience();
     if (!exp || this.reserving()) return;
@@ -127,11 +170,6 @@ export class ExperienceDetailComponent implements OnInit {
       });
   }
 
-  /**
-   * Postula al usuario al grupo de matching dinámico para consolidar el quórum.
-   *
-   * @returns {void}
-   */
   onJoinMatchingClick(): void {
     const exp = this.experience();
     if (!exp) return;

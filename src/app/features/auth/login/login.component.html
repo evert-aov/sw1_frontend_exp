@@ -1,13 +1,22 @@
-<div class="space-y-6">
+<div class="p-7 sm:p-9 rounded-2xl bg-[var(--ui-surface)] border border-[var(--ui-border)] shadow-sm space-y-6">
   <div>
-    <p class="ui-eyebrow">{{ 'auth.eyebrow' | translate }}</p>
-    <h1 class="ui-title">{{ 'auth.login.title' | translate }}</h1>
-    <p class="ui-description">{{ 'auth.login.subtitle' | translate }}</p>
+    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ui-accent)] mb-1.5">
+      {{ 'auth.eyebrow' | translate }}
+    </p>
+    <h1 class="font-editorial text-3xl sm:text-4xl font-normal tracking-tight text-[var(--ui-text)]">
+      {{ 'auth.login.title' | translate }}
+    </h1>
+    <p class="text-sm text-[var(--ui-muted)] mt-1.5 leading-relaxed">
+      {{ 'auth.login.subtitle' | translate }}
+    </p>
   </div>
+
   <app-auth-tabs />
+
   @if (errorKey()) {
     <app-alert tone="error">{{ errorKey()! | translate }}</app-alert>
   }
+
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5" novalidate>
     <app-field
       controlId="email"
@@ -25,9 +34,11 @@
         formControlName="email"
         autocomplete="email"
         required
+        class="rounded-xl"
         [placeholder]="'auth.emailPlaceholder' | translate"
       />
     </app-field>
+
     <app-field
       controlId="password"
       [label]="'auth.password' | translate"
@@ -44,7 +55,7 @@
           formControlName="password"
           autocomplete="current-password"
           required
-          class="pr-24"
+          class="pr-24 rounded-xl"
           style="padding-right: 6rem"
           [placeholder]="'auth.passwordPlaceholder' | translate"
         />
@@ -63,15 +74,28 @@
         </button>
       </div>
     </app-field>
-    <label class="flex items-center gap-2 text-sm ui-muted cursor-pointer min-h-11"
-      ><input type="checkbox" formControlName="remember" class="w-4 h-4 accent-violet-600" />{{
-        'auth.login.remember' | translate
-      }}</label
+
+    <label class="flex items-center gap-2 text-sm text-[var(--ui-muted)] cursor-pointer min-h-11">
+      <input
+        type="checkbox"
+        formControlName="remember"
+        class="w-4 h-4 rounded accent-[var(--ui-accent)] cursor-pointer"
+      />
+      <span>{{ 'auth.login.remember' | translate }}</span>
+    </label>
+
+    <button
+      appButton
+      type="submit"
+      [busy]="loading()"
+      class="w-full !bg-[var(--ui-accent)] !border-[var(--ui-accent)] hover:!bg-[var(--ui-accent-hover)] text-white rounded-xl py-3 text-sm font-semibold tracking-wide transition-colors shadow-xs"
     >
-    <button appButton type="submit" [busy]="loading()" class="w-full">
-      {{ (loading() ? 'auth.login.loading' : 'auth.login.submit') | translate
-      }}<app-icon name="arrow-right" sizeClass="w-4 h-4" />
+      {{ (loading() ? 'auth.login.loading' : 'auth.login.submit') | translate }}
+      <app-icon name="arrow-right" sizeClass="w-4 h-4" />
     </button>
-    <p class="ui-muted text-xs text-center leading-relaxed">{{ 'auth.terms' | translate }}</p>
+
+    <p class="text-xs text-center text-[var(--ui-muted)] leading-relaxed">
+      {{ 'auth.terms' | translate }}
+    </p>
   </form>
 </div>

@@ -17,109 +17,131 @@
 
   <!-- Tarjetas de Métricas Ejecutivas de la Cuenta (KPIs) -->
   <dl class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="ui-stat">
+    <div class="ui-stat rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] shadow-xs transition-transform hover:-translate-y-0.5">
       <dt class="flex items-center justify-between">
-        <span>{{ 'host.total' | translate }}</span>
-        <app-icon name="calendar" sizeClass="w-4 h-4 text-violet-500" />
+        <span class="text-xs uppercase tracking-wider font-semibold text-[var(--ui-muted)]">{{ 'host.total' | translate }}</span>
+        <div class="w-8 h-8 rounded-xl bg-[var(--ui-accent-soft)] flex items-center justify-center text-[var(--ui-accent)]">
+          <app-icon name="calendar" sizeClass="w-4 h-4" />
+        </div>
       </dt>
-      <dd class="text-3xl text-slate-900 dark:text-slate-100">{{ items().length }}</dd>
-      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Eventos organizados</p>
+      <dd class="text-3xl font-editorial font-bold text-[var(--ui-text)] mt-2">{{ items().length }}</dd>
+      <p class="text-xs text-[var(--ui-muted)] mt-1">Eventos organizados</p>
     </div>
 
-    <div class="ui-stat">
+    <div class="ui-stat rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] shadow-xs transition-transform hover:-translate-y-0.5">
       <dt class="flex items-center justify-between">
-        <span>{{ 'host.active' | translate }}</span>
-        <app-icon name="bolt" sizeClass="w-4 h-4 text-violet-500" />
+        <span class="text-xs uppercase tracking-wider font-semibold text-[var(--ui-muted)]">{{ 'host.active' | translate }}</span>
+        <div class="w-8 h-8 rounded-xl bg-[var(--ui-accent-soft)] flex items-center justify-center text-[var(--ui-accent)]">
+          <app-icon name="bolt" sizeClass="w-4 h-4" />
+        </div>
       </dt>
-      <dd class="text-3xl text-violet-600 dark:text-violet-400">{{ activeCount() }}</dd>
-      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Abiertas o confirmadas</p>
+      <dd class="text-3xl font-editorial font-bold text-[var(--ui-accent)] mt-2">{{ activeCount() }}</dd>
+      <p class="text-xs text-[var(--ui-muted)] mt-1">Abiertas o confirmadas</p>
     </div>
 
-    <div class="ui-stat">
+    <div class="ui-stat rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] shadow-xs transition-transform hover:-translate-y-0.5">
       <dt class="flex items-center justify-between">
-        <span>{{ 'host.seats' | translate }}</span>
-        <app-icon name="ticket" sizeClass="w-4 h-4 text-violet-500" />
+        <span class="text-xs uppercase tracking-wider font-semibold text-[var(--ui-muted)]">{{ 'host.seats' | translate }}</span>
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+          <app-icon name="ticket" sizeClass="w-4 h-4" />
+        </div>
       </dt>
-      <dd class="text-3xl text-emerald-600 dark:text-emerald-400">{{ seats() }}</dd>
-      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ 'host.seats' | translate }}</p>
+      <dd class="text-3xl font-editorial font-bold text-emerald-600 dark:text-emerald-400 mt-2">{{ seats() }}</dd>
+      <p class="text-xs text-[var(--ui-muted)] mt-1">{{ 'host.seats' | translate }}</p>
     </div>
 
-    <div class="ui-stat">
+    <div class="ui-stat rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] shadow-xs transition-transform hover:-translate-y-0.5">
       <dt class="flex items-center justify-between">
-        <span>{{ 'host.revenue' | translate }}</span>
-        <app-icon name="currency-dollar" sizeClass="w-4 h-4 text-violet-500" />
+        <span class="text-xs uppercase tracking-wider font-semibold text-[var(--ui-muted)]">{{ 'host.revenue' | translate }}</span>
+        <div class="w-8 h-8 rounded-xl bg-[var(--ui-accent-soft)] flex items-center justify-center text-[var(--ui-accent)]">
+          <app-icon name="currency-dollar" sizeClass="w-4 h-4" />
+        </div>
       </dt>
-      <dd class="text-xl sm:text-2xl font-extrabold text-violet-700 dark:text-violet-300 truncate">
+      <dd class="text-xl sm:text-2xl font-editorial font-bold text-[var(--ui-accent)] truncate mt-2">
         BOB {{ totalRevenue() | number: '1.2-2' }}
       </dd>
-      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ 'host.revenueHint' | translate }}</p>
+      <p class="text-xs text-[var(--ui-muted)] mt-1">{{ 'host.revenueHint' | translate }}</p>
     </div>
   </dl>
 
   <!-- Barra de Filtros, Pestañas y Búsqueda en Vivo -->
-  <section class="ui-surface ui-panel space-y-4">
+  <section class="ui-surface rounded-2xl p-4 md:p-5 border border-[var(--ui-border)] bg-[var(--ui-surface)] space-y-4">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <!-- Pestañas de Estado -->
-      <div class="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/10 text-xs">
+      <div class="flex flex-wrap items-center gap-1.5 p-1 bg-[var(--ui-surface-soft)] rounded-xl border border-[var(--ui-border)] text-xs">
         <button
           type="button"
           (click)="setFilterTab('ALL')"
-          class="px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer"
-          [class.bg-white]="filterTab() === 'ALL'"
-          [class.dark:bg-violet-600]="filterTab() === 'ALL'"
-          [class.text-slate-900]="filterTab() === 'ALL'"
-          [class.dark:text-white]="filterTab() === 'ALL'"
-          [class.shadow-sm]="filterTab() === 'ALL'"
-          [class.text-slate-600]="filterTab() !== 'ALL'"
-          [class.dark:text-slate-300]="filterTab() !== 'ALL'"
+          class="px-3.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5"
+          [class.bg-[var(--ui-surface)]]="filterTab() === 'ALL'"
+          [class.text-[var(--ui-accent)]]="filterTab() === 'ALL'"
+          [class.shadow-xs]="filterTab() === 'ALL'"
+          [class.border]="filterTab() === 'ALL'"
+          [class.border-[var(--ui-border)]]="filterTab() === 'ALL'"
+          [class.text-[var(--ui-muted)]]="filterTab() !== 'ALL'"
+          [class.hover:text-[var(--ui-text)]]="filterTab() !== 'ALL'"
         >
-          {{ 'host.filterAll' | translate }}
-          <span class="ml-1 text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200/80 dark:bg-white/20">{{ items().length }}</span>
+          <span>{{ 'host.filterAll' | translate }}</span>
+          <span
+            class="text-[10px] px-1.5 py-0.2 rounded-full font-bold"
+            [class.bg-[var(--ui-accent-soft)]]="filterTab() === 'ALL'"
+            [class.text-[var(--ui-accent)]]="filterTab() === 'ALL'"
+            [class.bg-black/5]="filterTab() !== 'ALL'"
+            [class.dark:bg-white/10]="filterTab() !== 'ALL'"
+          >{{ items().length }}</span>
         </button>
 
         <button
           type="button"
           (click)="setFilterTab('ACTIVE')"
-          class="px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer"
-          [class.bg-white]="filterTab() === 'ACTIVE'"
-          [class.dark:bg-violet-600]="filterTab() === 'ACTIVE'"
-          [class.text-slate-900]="filterTab() === 'ACTIVE'"
-          [class.dark:text-white]="filterTab() === 'ACTIVE'"
-          [class.shadow-sm]="filterTab() === 'ACTIVE'"
-          [class.text-slate-600]="filterTab() !== 'ACTIVE'"
-          [class.dark:text-slate-300]="filterTab() !== 'ACTIVE'"
+          class="px-3.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5"
+          [class.bg-[var(--ui-surface)]]="filterTab() === 'ACTIVE'"
+          [class.text-[var(--ui-accent)]]="filterTab() === 'ACTIVE'"
+          [class.shadow-xs]="filterTab() === 'ACTIVE'"
+          [class.border]="filterTab() === 'ACTIVE'"
+          [class.border-[var(--ui-border)]]="filterTab() === 'ACTIVE'"
+          [class.text-[var(--ui-muted)]]="filterTab() !== 'ACTIVE'"
+          [class.hover:text-[var(--ui-text)]]="filterTab() !== 'ACTIVE'"
         >
-          {{ 'host.filterActive' | translate }}
-          <span class="ml-1 text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200/80 dark:bg-white/20">{{ activeCount() }}</span>
+          <span>{{ 'host.filterActive' | translate }}</span>
+          <span
+            class="text-[10px] px-1.5 py-0.2 rounded-full font-bold"
+            [class.bg-[var(--ui-accent-soft)]]="filterTab() === 'ACTIVE'"
+            [class.text-[var(--ui-accent)]]="filterTab() === 'ACTIVE'"
+            [class.bg-black/5]="filterTab() !== 'ACTIVE'"
+            [class.dark:bg-white/10]="filterTab() !== 'ACTIVE'"
+          >{{ activeCount() }}</span>
         </button>
 
         <button
           type="button"
           (click)="setFilterTab('QUORUM')"
-          class="px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer"
-          [class.bg-white]="filterTab() === 'QUORUM'"
-          [class.dark:bg-violet-600]="filterTab() === 'QUORUM'"
-          [class.text-slate-900]="filterTab() === 'QUORUM'"
-          [class.dark:text-white]="filterTab() === 'QUORUM'"
-          [class.shadow-sm]="filterTab() === 'QUORUM'"
-          [class.text-slate-600]="filterTab() !== 'QUORUM'"
-          [class.dark:text-slate-300]="filterTab() !== 'QUORUM'"
+          class="px-3.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5"
+          [class.bg-[var(--ui-surface)]]="filterTab() === 'QUORUM'"
+          [class.text-[var(--ui-accent)]]="filterTab() === 'QUORUM'"
+          [class.shadow-xs]="filterTab() === 'QUORUM'"
+          [class.border]="filterTab() === 'QUORUM'"
+          [class.border-[var(--ui-border)]]="filterTab() === 'QUORUM'"
+          [class.text-[var(--ui-muted)]]="filterTab() !== 'QUORUM'"
+          [class.hover:text-[var(--ui-text)]]="filterTab() !== 'QUORUM'"
         >
-          {{ 'host.filterQuorum' | translate }}
-          <span class="ml-1 text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">{{ quorumReachedCount() }}</span>
+          <span>{{ 'host.filterQuorum' | translate }}</span>
+          <span class="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+            {{ quorumReachedCount() }}
+          </span>
         </button>
 
         <button
           type="button"
           (click)="setFilterTab('PENDING')"
-          class="px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer"
-          [class.bg-white]="filterTab() === 'PENDING'"
-          [class.dark:bg-violet-600]="filterTab() === 'PENDING'"
-          [class.text-slate-900]="filterTab() === 'PENDING'"
-          [class.dark:text-white]="filterTab() === 'PENDING'"
-          [class.shadow-sm]="filterTab() === 'PENDING'"
-          [class.text-slate-600]="filterTab() !== 'PENDING'"
-          [class.dark:text-slate-300]="filterTab() !== 'PENDING'"
+          class="px-3.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer"
+          [class.bg-[var(--ui-surface)]]="filterTab() === 'PENDING'"
+          [class.text-[var(--ui-accent)]]="filterTab() === 'PENDING'"
+          [class.shadow-xs]="filterTab() === 'PENDING'"
+          [class.border]="filterTab() === 'PENDING'"
+          [class.border-[var(--ui-border)]]="filterTab() === 'PENDING'"
+          [class.text-[var(--ui-muted)]]="filterTab() !== 'PENDING'"
+          [class.hover:text-[var(--ui-text)]]="filterTab() !== 'PENDING'"
         >
           {{ 'host.filterPending' | translate }}
         </button>
@@ -148,27 +170,27 @@
     <app-alert>{{ 'ui.loading' | translate }}</app-alert>
   } @else {
     <!-- Cuadrícula de Tarjetas de Experiencias Organizadas -->
-    <div class="grid lg:grid-cols-2 gap-5">
+    <div class="grid lg:grid-cols-2 gap-6">
       @for (item of filteredItems(); track item.id) {
-        <article class="ui-surface ui-panel flex flex-col justify-between space-y-4 hover:border-violet-500/40 transition-all shadow-sm">
+        <article class="ui-surface rounded-2xl p-5 sm:p-6 border border-[var(--ui-border)] bg-[var(--ui-surface)] flex flex-col justify-between space-y-4 hover:border-[var(--ui-accent)]/50 transition-all shadow-xs hover:shadow-md">
           <!-- Encabezado de la Tarjeta con Badges -->
-          <div class="space-y-2">
+          <div class="space-y-2.5">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="flex flex-wrap items-center gap-1.5">
                 <app-status-badge [value]="item.status" />
                 @if (item.modality === 'IN_PERSON') {
                   <span class="ui-badge text-[11px]">
-                    <app-icon name="map-pin" sizeClass="w-3 h-3 mr-1" />
+                    <app-icon name="map-pin" sizeClass="w-3 h-3 mr-1 text-[var(--ui-accent)]" />
                     {{ 'catalog.modInPerson' | translate }}
                   </span>
                 } @else if (item.modality === 'VIRTUAL') {
                   <span class="ui-badge text-[11px]">
-                    <app-icon name="globe-alt" sizeClass="w-3 h-3 mr-1" />
+                    <app-icon name="globe-alt" sizeClass="w-3 h-3 mr-1 text-[var(--ui-accent)]" />
                     {{ 'catalog.modVirtual' | translate }}
                   </span>
                 } @else {
                   <span class="ui-badge text-[11px]">
-                    <app-icon name="building-office" sizeClass="w-3 h-3 mr-1" />
+                    <app-icon name="building-office" sizeClass="w-3 h-3 mr-1 text-[var(--ui-accent)]" />
                     {{ 'catalog.modHybrid' | translate }}
                   </span>
                 }
@@ -176,12 +198,12 @@
 
               <!-- Indicador de Quórum -->
               @if (item.is_quorum_reached) {
-                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1">
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1">
                   <app-icon name="check-circle" sizeClass="w-3 h-3" />
                   {{ 'host.quorumReached' | translate }}
                 </span>
               } @else {
-                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 inline-flex items-center gap-1">
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 inline-flex items-center gap-1">
                   <app-icon name="clock" sizeClass="w-3 h-3" />
                   {{ 'host.quorumPending' | translate }}
                 </span>
@@ -191,59 +213,59 @@
             <!-- Título del Evento con Enlace -->
             <a
               [routerLink]="['/experiences', item.id]"
-              class="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 hover:text-violet-600 dark:hover:text-violet-400 transition-colors block"
+              class="font-editorial text-xl font-bold tracking-tight text-[var(--ui-text)] hover:text-[var(--ui-accent)] transition-colors block leading-snug"
             >
               {{ item.title }}
             </a>
 
             <!-- Metadatos de Fecha y Ubicación -->
-            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-300">
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--ui-muted)]">
               <span class="inline-flex items-center gap-1.5">
-                <app-icon name="calendar" sizeClass="w-3.5 h-3.5 text-violet-500 shrink-0" />
+                <app-icon name="calendar" sizeClass="w-3.5 h-3.5 text-[var(--ui-accent)] shrink-0" />
                 {{ item.event_date | date: 'dd/MM/yyyy · HH:mm' : undefined : i18n.currentLang() }}
               </span>
               <span class="inline-flex items-center gap-1.5 truncate max-w-[240px]">
-                <app-icon name="building-office" sizeClass="w-3.5 h-3.5 text-violet-500 shrink-0" />
+                <app-icon name="building-office" sizeClass="w-3.5 h-3.5 text-[var(--ui-accent)] shrink-0" />
                 {{ item.venue_name || ('catalog.modVirtual' | translate) }}
               </span>
             </div>
           </div>
 
           <!-- Barra de Progreso de Ocupación y Quórum -->
-          <div class="bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200/60 dark:border-white/5 space-y-2">
+          <div class="bg-[var(--ui-surface-soft)] p-3.5 rounded-xl border border-[var(--ui-border)] space-y-2">
             <div class="flex items-center justify-between text-xs">
-              <span class="ui-muted font-medium">
+              <span class="text-[var(--ui-muted)] font-medium">
                 {{ 'host.occupancy' | translate }}:
-                <strong class="text-slate-900 dark:text-slate-100">{{ item.reserved_slots }} / {{ item.max_capacity }}</strong>
+                <strong class="text-[var(--ui-text)] font-semibold">{{ item.reserved_slots }} / {{ item.max_capacity }}</strong>
                 ({{ getOccupancyPercent(item) }}%)
               </span>
-              <span class="text-[11px] text-slate-500 dark:text-slate-400">
-                {{ 'host.quorum' | translate }}: <strong>{{ item.min_capacity }}</strong>
+              <span class="text-[11px] text-[var(--ui-muted)]">
+                {{ 'host.quorum' | translate }}: <strong class="text-[var(--ui-text)]">{{ item.min_capacity }}</strong>
               </span>
             </div>
 
             <!-- Barra de Progreso Visual -->
-            <div class="w-full h-2.5 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden relative">
+            <div class="w-full h-2 rounded-full bg-black/5 dark:bg-white/10 overflow-hidden relative">
               <div
                 class="h-full rounded-full transition-all duration-500"
                 [style.width.%]="getOccupancyPercent(item)"
-                [class.bg-emerald-500]="item.is_quorum_reached"
-                [class.bg-violet-600]="!item.is_quorum_reached"
+                [class.bg-emerald-600]="item.is_quorum_reached"
+                [class.bg-[var(--ui-accent)]]="!item.is_quorum_reached"
               ></div>
             </div>
 
             <!-- Precios y Retenciones -->
-            <div class="flex items-center justify-between text-xs pt-0.5">
-              <span class="font-bold text-slate-900 dark:text-slate-100">
-                BOB {{ item.price | number: '1.2-2' }} <span class="text-[10px] font-normal text-slate-500">/ cupo</span>
+            <div class="flex items-center justify-between text-xs pt-1">
+              <span class="font-bold text-[var(--ui-text)]">
+                BOB {{ item.price | number: '1.2-2' }} <span class="text-[10px] font-normal text-[var(--ui-muted)]">/ cupo</span>
               </span>
-              <span class="text-violet-600 dark:text-violet-400 font-semibold">
-                BOB {{ (item.reserved_slots * item.price) | number: '1.2-2' }} <span class="text-[10px] font-normal text-slate-500">acumulado</span>
+              <span class="text-[var(--ui-accent)] font-semibold">
+                BOB {{ (item.reserved_slots * item.price) | number: '1.2-2' }} <span class="text-[10px] font-normal text-[var(--ui-muted)]">acumulado</span>
               </span>
             </div>
 
             @if (item.held_slots) {
-              <p class="text-[11px] text-amber-600 dark:text-amber-400 font-medium inline-flex items-center gap-1 pt-1 border-t border-slate-200/50 dark:border-white/5">
+              <p class="text-[11px] text-amber-700 dark:text-amber-400 font-medium inline-flex items-center gap-1 pt-1 border-t border-[var(--ui-border)]">
                 <app-icon name="clock" sizeClass="w-3 h-3" />
                 {{ item.held_slots }} {{ 'host.holds' | translate }}
               </p>
@@ -251,7 +273,7 @@
           </div>
 
           <!-- Acciones Rápidas -->
-          <div class="pt-2 border-t border-slate-200/60 dark:border-white/10 flex flex-wrap items-center justify-between gap-2 mt-auto">
+          <div class="pt-3 border-t border-[var(--ui-border)] flex flex-wrap items-center justify-between gap-2 mt-auto">
             <div class="flex items-center gap-1.5">
               <a appButton variant="ghost" [routerLink]="['/experiences', item.id]" class="!py-1.5 !px-2.5 !text-xs">
                 <app-icon name="eye" sizeClass="w-3.5 h-3.5" />
@@ -268,10 +290,10 @@
                 appButton
                 variant="secondary"
                 [routerLink]="['/live', item.id]"
-                class="!py-1.5 !px-2.5 !text-xs font-semibold text-violet-600 dark:text-violet-400"
+                class="!py-1.5 !px-2.5 !text-xs font-semibold text-[var(--ui-accent)]"
               >
-                <app-icon name="video-camera" sizeClass="w-3.5 h-3.5 text-emerald-500" />
-                Monitoreo en Vivo
+                <app-icon name="video-camera" sizeClass="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                {{ 'host.liveMonitoring' | translate }}
               </a>
               @if (item.can_edit) {
                 <a appButton variant="secondary" [routerLink]="['/host/experiences', item.id, 'edit']" class="!py-1.5 !px-2.5 !text-xs">
@@ -295,14 +317,14 @@
           </div>
 
           @if (item.management_lock_reason) {
-            <p class="text-[11px] ui-muted bg-slate-100 dark:bg-white/5 p-2 rounded-lg">
+            <p class="text-[11px] text-[var(--ui-muted)] bg-[var(--ui-surface-soft)] p-2 rounded-lg border border-[var(--ui-border)]">
               {{ 'host.lock.' + item.management_lock_reason | translate }}
             </p>
           }
         </article>
       } @empty {
         @if (!error()) {
-          <div class="lg:col-span-2 ui-surface ui-panel p-8 text-center space-y-4">
+          <div class="lg:col-span-2 ui-surface rounded-2xl p-10 text-center space-y-4 border border-[var(--ui-border)] bg-[var(--ui-surface)]">
             <app-empty-state
               icon="calendar"
               [title]="searchQuery() || filterTab() !== 'ALL' ? ('host.noFilteredResults' | translate) : ('host.empty' | translate)"
@@ -333,8 +355,8 @@
       [returnFocus]="deleteTrigger"
       (closed)="!busy() && deleting.set(null)"
     >
-      <p class="font-semibold text-slate-900 dark:text-slate-100">{{ item.title }}</p>
-      <p class="ui-muted text-sm">{{ 'host.deleteHint' | translate }}</p>
+      <p class="font-editorial text-lg font-bold text-[var(--ui-text)]">{{ item.title }}</p>
+      <p class="text-[var(--ui-muted)] text-sm">{{ 'host.deleteHint' | translate }}</p>
       <div class="ui-actions pt-2">
         <button appButton variant="danger" [busy]="busy()" (click)="confirmDelete()">
           {{ 'host.delete' | translate }}

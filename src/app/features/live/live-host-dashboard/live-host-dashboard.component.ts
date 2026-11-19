@@ -18,6 +18,7 @@ import { LiveMetrics } from '../../../core/models/live.model';
 import { LiveEngagementWidgetComponent } from './components/live-engagement-widget.component';
 import { GdprConsentDialogComponent } from './components/gdpr-consent-dialog.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 
 /**
  * Consola de Control en Vivo del Anfitrión / Moderador (CU-08, CU-09).
@@ -30,7 +31,7 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 @Component({
   selector: 'app-live-host-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, LiveEngagementWidgetComponent, GdprConsentDialogComponent, IconComponent],
+  imports: [CommonModule, RouterLink, TranslatePipe, LiveEngagementWidgetComponent, GdprConsentDialogComponent, IconComponent],
   templateUrl: './live-host-dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

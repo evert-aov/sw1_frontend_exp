@@ -1,5 +1,5 @@
 <header
-  class="border-b border-slate-200 dark:border-white/10 bg-white/95 dark:bg-[#14111e]/95 backdrop-blur-xl"
+  class="border-b border-[var(--ui-border)] bg-[var(--ui-surface)]/95 backdrop-blur-xl text-[var(--ui-text)] transition-colors"
 >
   <div
     class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-20 flex items-center justify-between gap-3"
@@ -7,15 +7,21 @@
     <a
       [routerLink]="auth.homeRoute()"
       (click)="closeMenus()"
-      class="flex items-center gap-3 shrink-0"
+      class="flex items-center gap-3 shrink-0 group"
       [attr.aria-label]="'nav.brand' | translate"
     >
       <span
-        class="w-10 h-10 rounded-xl bg-violet-600 text-white font-bold text-lg grid place-items-center"
+        class="w-10 h-10 rounded-xl bg-[var(--ui-accent)] text-white font-editorial text-2xl font-normal leading-none flex items-center justify-center shadow-xs select-none"
+        style="font-family: 'Playfair Display', Georgia, serif;"
+        aria-hidden="true"
         >E</span
-      ><span class="hidden sm:inline text-xs font-extrabold tracking-[.2em]">{{
-        'nav.brand' | translate
-      }}</span>
+      >
+      <span
+        class="font-editorial text-2xl sm:text-3xl font-normal tracking-normal text-[var(--ui-text)]"
+        style="font-family: 'Playfair Display', Georgia, serif;"
+      >
+        Experiencias
+      </span>
     </a>
     <nav
       class="hidden xl:flex min-w-0 flex-1 items-center gap-1 overflow-x-auto"
@@ -70,7 +76,7 @@
             [attr.aria-label]="'ui.accountMenu' | translate"
           >
             <span
-              class="w-7 h-7 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-200 text-xs font-bold grid place-items-center"
+              class="w-7 h-7 rounded-full bg-[var(--ui-accent-soft)] text-[var(--ui-accent)] text-xs font-bold grid place-items-center"
               >{{ userInitials() }}</span
             ><span class="hidden 2xl:inline max-w-24 truncate">{{ user.first_name }}</span>
           </button>
@@ -119,7 +125,7 @@
           size="sm"
           variant="primary"
           routerLink="/auth/login"
-          class="hidden sm:inline-flex"
+          class="hidden sm:inline-flex !bg-[var(--ui-accent)] !border-[var(--ui-accent)] hover:!bg-[var(--ui-accent-hover)] text-white"
           >{{ 'nav.login' | translate }}</a
         >
       }
@@ -166,9 +172,13 @@
           >{{ 'nav.profile' | translate }}</a
         >
       } @else {
-        <a appButton variant="primary" routerLink="/auth/login" (click)="closeMenus()">{{
-          'nav.login' | translate
-        }}</a
+        <a
+          appButton
+          variant="primary"
+          class="!bg-[var(--ui-accent)] !border-[var(--ui-accent)] hover:!bg-[var(--ui-accent-hover)] text-white"
+          routerLink="/auth/login"
+          (click)="closeMenus()"
+          >{{ 'nav.login' | translate }}</a
         ><a appButton routerLink="/auth/register" (click)="closeMenus()">{{
           'nav.register' | translate
         }}</a>
