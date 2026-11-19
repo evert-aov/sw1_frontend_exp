@@ -1,4 +1,4 @@
-/** Textos de la consola en vivo (CU-09 / HU-17) y del Asistente MC (CU-11 / HU-18, HU-19). */
+/** Textos de la consola de telemetría en vivo (CU-09 / HU-17). */
 export const liveTelemetryTranslations = {
   es: {
     'telemetry.title': 'Consola en vivo',
@@ -43,7 +43,8 @@ export const liveTelemetryTranslations = {
       'En la app móvil toca "Monitor en vivo" e ingresa este código. Es de un solo uso.',
     'telemetry.monitor.expires': 'Vence a las',
     'telemetry.monitor.error': 'No se pudo generar el código. Intenta de nuevo.',
-<<<<<<< HEAD
+
+    // Asistente MC
     'mc.title': 'Asistente del maestro de ceremonias',
     'mc.alertTitle': 'La atención del público está bajando',
     'mc.manualTitle': 'Dinámica sugerida',
@@ -66,7 +67,6 @@ export const liveTelemetryTranslations = {
     'mc.type.AUDIENCE_QUESTION': 'Pregunta al público',
     'mc.type.ACTIVE_BREAK': 'Pausa activa',
     'mc.type.SHORT_BREAK': 'Descanso corto',
-=======
 
     // Live monitoring & Host stream
     'live.eyebrowHost': 'Panel del Anfitrión',
@@ -109,7 +109,6 @@ export const liveTelemetryTranslations = {
     'live.widget.energyHigh': 'Energía Alta',
     'live.widget.energyMedium': 'Atención Media',
     'live.widget.energyLow': 'Desatención Detectada',
->>>>>>> ec8d704 (Fix(design): redesign home page)
   },
   en: {
     'telemetry.title': 'Live console',
@@ -154,7 +153,8 @@ export const liveTelemetryTranslations = {
       'In the mobile app tap "Live monitor" and enter this code. It can be used once.',
     'telemetry.monitor.expires': 'Expires at',
     'telemetry.monitor.error': 'The code could not be generated. Please try again.',
-<<<<<<< HEAD
+
+    // Asistente MC
     'mc.title': 'Master of ceremonies assistant',
     'mc.alertTitle': 'Audience attention is dropping',
     'mc.manualTitle': 'Suggested dynamic',
@@ -177,7 +177,6 @@ export const liveTelemetryTranslations = {
     'mc.type.AUDIENCE_QUESTION': 'Audience question',
     'mc.type.ACTIVE_BREAK': 'Active break',
     'mc.type.SHORT_BREAK': 'Short break',
-=======
 
     // Live monitoring & Host stream
     'live.eyebrowHost': 'Host Panel',
@@ -220,6 +219,5 @@ export const liveTelemetryTranslations = {
     'live.widget.energyHigh': 'High Energy',
     'live.widget.energyMedium': 'Medium Attention',
     'live.widget.energyLow': 'Inattention Detected',
->>>>>>> ec8d704 (Fix(design): redesign home page)
   },
 };

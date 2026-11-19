@@ -36,8 +36,6 @@ const FALLBACK_DETAIL_IMAGES = [
 @Component({
   selector: 'app-experience-detail',
   imports: [
-    ButtonComponent,
-    ButtonLinkDirective,
     FormFieldComponent,
     InputDirective,
     AlertComponent,

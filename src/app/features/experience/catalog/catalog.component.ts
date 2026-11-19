@@ -31,13 +31,10 @@ import { eventTimeInBolivia } from '../../../core/utils/event-time.util';
 @Component({
   selector: 'app-catalog',
   imports: [
-    ButtonComponent,
-    ButtonLinkDirective,
     FormFieldComponent,
     InputDirective,
     AlertComponent,
     EmptyStateComponent,
-    PageHeaderComponent,
     DatePipe,
     DecimalPipe,
     ReactiveFormsModule,
