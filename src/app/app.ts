@@ -4,6 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
+import { UserGuideChatbotComponent } from './shared/components/user-guide/user-guide-chatbot.component';
 import { ThemeService } from './core/services/theme.service';
 import { BrowserNotificationService } from './core/services/browser-notification.service';
 import { TranslatePipe } from './shared/pipes/translate.pipe';
@@ -11,7 +12,7 @@ import { TranslatePipe } from './shared/pipes/translate.pipe';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent, FooterComponent, TranslatePipe],
+  imports: [RouterOutlet, NavbarComponent, FooterComponent, UserGuideChatbotComponent, TranslatePipe],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

@@ -1,0 +1,339 @@
+<!-- ==================== BOTÓN FLOTANTE ARRASTRABLE ==================== -->
+@if (!guideService.isLauncherHidden()) {
+  <div
+    class="fixed z-[90] select-none group"
+    [style.left.px]="launcherPosX()"
+    [style.top.px]="launcherPosY()"
+    [class.cursor-grabbing]="isDragging()"
+    [class.cursor-grab]="!isDragging()"
+  >
+    <!-- Botón discreto para ocultar el lanzador -->
+    <button
+      type="button"
+      (click)="hideLauncher($event)"
+      [title]="'guide.hideLauncher' | translate"
+      [attr.aria-label]="'guide.hideLauncher' | translate"
+      class="absolute -top-1.5 -right-1.5 z-10 w-5 h-5 rounded-full bg-[var(--ui-surface)] border border-[var(--ui-border)] text-[var(--ui-muted)] hover:text-[var(--ui-text)] hover:border-[var(--ui-accent)] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm cursor-pointer"
+    >
+      <app-icon name="x-mark" sizeClass="w-3 h-3" />
+    </button>
+
+    <!-- Lanzador circular principal -->
+    <button
+      type="button"
+      (mousedown)="onLauncherMouseDown($event)"
+      (touchstart)="onLauncherTouchStart($event)"
+      (click)="onLauncherClick()"
+      [title]="'guide.openTooltip' | translate"
+      [attr.aria-label]="'guide.openTooltip' | translate"
+      class="guide-launcher w-14 h-14 rounded-full bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] text-white shadow-lg border border-white/15 flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95 cursor-pointer relative"
+    >
+      @if (guideService.isOpen()) {
+        <app-icon name="x-mark" sizeClass="w-6 h-6" />
+      } @else {
+        <app-icon name="sparkles" sizeClass="w-6 h-6" />
+        <span
+          class="guide-pulse-dot absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[var(--ui-surface)] border-2 border-[var(--ui-accent)]"
+        ></span>
+      }
+    </button>
+  </div>
+} @else {
+  <!-- Píldora discreta para restaurar la guía si fue ocultada -->
+  <button
+    type="button"
+    (click)="showLauncher()"
+    [title]="'guide.showLauncherTooltip' | translate"
+    class="fixed bottom-4 right-4 z-[90] px-3 py-1.5 rounded-full bg-[var(--ui-surface)] border border-[var(--ui-border)] text-[var(--ui-muted)] hover:text-[var(--ui-text)] hover:border-[var(--ui-accent)] shadow-sm text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+  >
+    <app-icon name="sparkles" sizeClass="w-3.5 h-3.5 text-[var(--ui-accent)]" />
+    <span>{{ 'guide.showLauncher' | translate }}</span>
+  </button>
+}
+
+<!-- ==================== VENTANA DEL MANUAL AGÉNTICO ==================== -->
+@if (guideService.isOpen()) {
+  <section
+    role="dialog"
+    aria-modal="false"
+    [attr.aria-label]="'guide.title' | translate"
+    class="guide-window fixed z-[95] flex flex-col bg-[var(--ui-surface)] text-[var(--ui-text)] border border-[var(--ui-border)] rounded-2xl shadow-2xl overflow-hidden transition-all duration-200"
+    [class]="
+      isExpanded()
+        ? 'bottom-5 right-5 w-[92vw] max-w-4xl h-[84vh]'
+        : 'bottom-24 right-5 w-[calc(100vw-2.5rem)] sm:w-[420px] h-[min(620px,78vh)]'
+    "
+  >
+    <!-- Header Editorial -->
+    <header
+      class="shrink-0 px-4 py-3 bg-[var(--ui-surface-soft)] border-b border-[var(--ui-border)] flex items-center justify-between gap-2"
+    >
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div
+          class="w-9 h-9 rounded-xl bg-[var(--ui-accent)] text-white flex items-center justify-center shrink-0 shadow-sm"
+        >
+          <app-icon name="sparkles" sizeClass="w-5 h-5" />
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <h3 class="font-editorial text-base font-bold tracking-tight truncate">
+              {{ 'guide.title' | translate }}
+            </h3>
+            <span
+              class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-[var(--ui-accent-soft)] text-[var(--ui-accent)] shrink-0"
+            >
+              {{ roleBadgeKey() | translate }}
+            </span>
+          </div>
+          <p class="text-[11px] text-[var(--ui-muted)] truncate">
+            {{ 'guide.subtitle' | translate }}
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1 shrink-0">
+        <!-- Expandir / Restaurar -->
+        <button
+          type="button"
+          (click)="toggleExpand()"
+          [title]="(isExpanded() ? 'guide.restore' : 'guide.expand') | translate"
+          class="w-8 h-8 rounded-lg hover:bg-[var(--ui-surface)] text-[var(--ui-muted)] hover:text-[var(--ui-text)] flex items-center justify-center transition-colors cursor-pointer"
+        >
+          <app-icon name="adjustments-horizontal" sizeClass="w-4 h-4" />
+        </button>
+
+        <!-- Reiniciar conversación -->
+        <button
+          type="button"
+          (click)="resetConversation()"
+          [title]="'guide.reset' | translate"
+          class="w-8 h-8 rounded-lg hover:bg-[var(--ui-surface)] text-[var(--ui-muted)] hover:text-[var(--ui-text)] flex items-center justify-center transition-colors cursor-pointer"
+        >
+          <app-icon name="light-bulb" sizeClass="w-4 h-4" />
+        </button>
+
+        <!-- Cerrar -->
+        <button
+          type="button"
+          (click)="closeGuide()"
+          [title]="'guide.close' | translate"
+          class="w-8 h-8 rounded-lg hover:bg-[var(--ui-surface)] text-[var(--ui-muted)] hover:text-[var(--ui-text)] flex items-center justify-center transition-colors cursor-pointer"
+        >
+          <app-icon name="x-mark" sizeClass="w-4 h-4" />
+        </button>
+      </div>
+    </header>
+
+    <!-- Barra de progreso del Tour Guiado -->
+    @if (isTourActive()) {
+      <div
+        class="shrink-0 px-4 py-2.5 bg-[var(--ui-accent-soft)] border-b border-[var(--ui-border)] flex items-center justify-between gap-2"
+      >
+        <div class="flex items-center gap-2 min-w-0">
+          <span
+            class="w-2 h-2 rounded-full bg-[var(--ui-accent)] shrink-0"
+          ></span>
+          <span class="text-xs font-semibold text-[var(--ui-accent)] truncate">
+            {{ 'guide.tourActive' | translate }} · {{ currentTourStepIndex() + 1 }}
+            {{ 'guide.tourStepOf' | translate }} {{ currentTourSteps().length }}
+          </span>
+        </div>
+
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            (click)="prevTourStep()"
+            [disabled]="currentTourStepIndex() === 0"
+            class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[var(--ui-surface)] border border-[var(--ui-border)] text-[var(--ui-text)] hover:border-[var(--ui-accent)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            {{ 'guide.tourPrev' | translate }}
+          </button>
+
+          @if (currentTourStepIndex() < currentTourSteps().length - 1) {
+            <button
+              type="button"
+              (click)="nextTourStep()"
+              class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] text-white transition-colors cursor-pointer"
+            >
+              {{ 'guide.tourNext' | translate }}
+            </button>
+          } @else {
+            <button
+              type="button"
+              (click)="finishTour()"
+              class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] text-white transition-colors cursor-pointer"
+            >
+              {{ 'guide.tourFinish' | translate }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Área de Mensajes -->
+    <div
+      #chatScrollContainer
+      class="guide-scroll flex-1 overflow-y-auto px-4 py-4 space-y-3.5 bg-[var(--ui-surface)]"
+    >
+      @for (msg of conversationMessages(); track msg.id) {
+        <div
+          class="flex flex-col"
+          [class.items-end]="msg.sender === 'user'"
+          [class.items-start]="msg.sender === 'bot'"
+        >
+          <div
+            class="max-w-[90%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed"
+            [class]="
+              msg.sender === 'user'
+                ? 'bg-[var(--ui-accent)] text-white rounded-br-sm'
+                : 'bg-[var(--ui-surface-soft)] text-[var(--ui-text)] border border-[var(--ui-border)] rounded-bl-sm'
+            "
+          >
+            @if (msg.sender === 'bot') {
+              <div class="guide-md" [innerHTML]="formatMarkdown(msg.text)"></div>
+            } @else {
+              <p class="whitespace-pre-wrap">{{ msg.text }}</p>
+            }
+
+            <!-- Bloque de código opcional -->
+            @if (msg.codeSnippet) {
+              <div
+                class="mt-2.5 rounded-xl bg-[var(--ui-surface)] border border-[var(--ui-border)] overflow-hidden"
+              >
+                <div
+                  class="px-2.5 py-1 border-b border-[var(--ui-border)] flex items-center justify-between text-[10px] uppercase tracking-wider text-[var(--ui-muted)]"
+                >
+                  <span>{{ msg.codeLanguage || 'text' }}</span>
+                  <button
+                    type="button"
+                    (click)="copySnippet(msg.codeSnippet!, msg.id)"
+                    class="text-[var(--ui-accent)] hover:underline font-semibold cursor-pointer"
+                  >
+                    {{
+                      (copiedSnippetId() === msg.id ? 'guide.copied' : 'guide.copy') | translate
+                    }}
+                  </button>
+                </div>
+                <pre class="p-2.5 text-[11px] font-mono overflow-x-auto text-[var(--ui-text)]">{{
+                  msg.codeSnippet
+                }}</pre>
+              </div>
+            }
+
+            <!-- Acciones rápidas agénticas -->
+            @if (msg.quickActions && msg.quickActions.length > 0) {
+              <div class="mt-3 pt-2.5 border-t border-[var(--ui-border)] flex flex-wrap gap-1.5">
+                @for (action of msg.quickActions; track action.label) {
+                  <button
+                    type="button"
+                    (click)="executeQuickAction(action)"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[var(--ui-surface)] border border-[var(--ui-border)] text-[var(--ui-text)] hover:border-[var(--ui-accent)] hover:text-[var(--ui-accent)] transition-colors cursor-pointer"
+                  >
+                    @if (action.icon) {
+                      <app-icon
+                        [name]="action.icon"
+                        sizeClass="w-3.5 h-3.5 text-[var(--ui-accent)]"
+                      />
+                    }
+                    <span>{{ action.label }}</span>
+                    @if (action.route) {
+                      <app-icon name="arrow-right" sizeClass="w-3 h-3 opacity-70" />
+                    }
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Indicador de escritura -->
+      @if (isTyping()) {
+        <div class="flex items-start">
+          <div
+            class="px-3.5 py-2.5 rounded-2xl rounded-bl-sm bg-[var(--ui-surface-soft)] border border-[var(--ui-border)] text-xs text-[var(--ui-muted)] flex items-center gap-2"
+          >
+            <span class="guide-typing-dots flex gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-[var(--ui-accent)]"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-[var(--ui-accent)]"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-[var(--ui-accent)]"></span>
+            </span>
+            <span>{{ 'guide.typing' | translate }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Carrusel horizontal de Temas Rápidos -->
+    <div
+      class="shrink-0 px-2 py-2 bg-[var(--ui-surface-soft)] border-t border-[var(--ui-border)] flex items-center gap-1"
+    >
+      <button
+        type="button"
+        (click)="scrollTopics('left')"
+        [title]="'guide.scrollLeft' | translate"
+        [attr.aria-label]="'guide.scrollLeft' | translate"
+        class="w-6 h-6 rounded-full hover:bg-[var(--ui-surface)] text-[var(--ui-muted)] hover:text-[var(--ui-text)] flex items-center justify-center shrink-0 cursor-pointer"
+      >
+        <app-icon name="arrow-left" sizeClass="w-3.5 h-3.5" />
+      </button>
+
+      <div
+        #topicsContainer
+        (wheel)="onTopicsWheel($event)"
+        class="guide-topics-strip flex-1 flex items-center gap-1.5 overflow-x-auto py-0.5"
+      >
+        @for (topic of quickTopics(); track topic.label) {
+          <button
+            type="button"
+            (click)="sendMessage(topic.query)"
+            class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-[var(--ui-surface)] border border-[var(--ui-border)] text-[var(--ui-text)] hover:border-[var(--ui-accent)] hover:text-[var(--ui-accent)] transition-colors cursor-pointer"
+          >
+            <app-icon [name]="topic.icon" sizeClass="w-3.5 h-3.5 text-[var(--ui-accent)]" />
+            <span>{{ topic.label }}</span>
+          </button>
+        }
+      </div>
+
+      <button
+        type="button"
+        (click)="scrollTopics('right')"
+        [title]="'guide.scrollRight' | translate"
+        [attr.aria-label]="'guide.scrollRight' | translate"
+        class="w-6 h-6 rounded-full hover:bg-[var(--ui-surface)] text-[var(--ui-muted)] hover:text-[var(--ui-text)] flex items-center justify-center shrink-0 cursor-pointer"
+      >
+        <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5" />
+      </button>
+    </div>
+
+    <!-- Input de Consulta -->
+    <footer class="shrink-0 p-3 bg-[var(--ui-surface)] border-t border-[var(--ui-border)]">
+      <form
+        (ngSubmit)="sendMessage()"
+        class="flex items-center gap-2 bg-[var(--ui-surface-soft)] border border-[var(--ui-border)] focus-within:border-[var(--ui-accent)] rounded-xl px-3 py-1.5 transition-colors"
+      >
+        <input
+          type="text"
+          name="guideQuery"
+          [ngModel]="userInput()"
+          (ngModelChange)="userInput.set($event)"
+          [placeholder]="'guide.inputPlaceholder' | translate"
+          autocomplete="off"
+          class="flex-1 bg-transparent text-[13px] text-[var(--ui-text)] placeholder:text-[var(--ui-muted)] focus:outline-none py-1"
+        />
+        <button
+          type="submit"
+          [disabled]="!userInput().trim()"
+          [title]="'guide.send' | translate"
+          class="px-3 py-1.5 rounded-lg bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer shrink-0"
+        >
+          <span>{{ 'guide.send' | translate }}</span>
+          <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5" />
+        </button>
+      </form>
+      <p class="mt-1.5 text-[10px] text-[var(--ui-muted)] text-center">
+        {{ 'guide.contextHint' | translate }}
+      </p>
+    </footer>
+  </section>
+}
