@@ -48,10 +48,12 @@
 
   @if (denial(); as reason) {
     <app-alert tone="error">{{ 'telemetry.error.' + reason | translate }}</app-alert>
-    <a class="back-link" [routerLink]="['/live', sessionId()]">
-      <app-icon name="arrow-left" sizeClass="w-4 h-4" />
-      {{ 'telemetry.back' | translate }}
-    </a>
+    @if (!embedded()) {
+      <a class="back-link" [routerLink]="['/live', sessionId()]">
+        <app-icon name="arrow-left" sizeClass="w-4 h-4" />
+        {{ 'telemetry.back' | translate }}
+      </a>
+    }
   } @else {
     @if (showNoSignal()) {
       <app-alert tone="info">{{ 'telemetry.noSignalHint' | translate }}</app-alert>
@@ -150,10 +152,12 @@
           <app-icon name="shield-check" sizeClass="w-4 h-4" />
           {{ 'telemetry.privacy' | translate }}
         </p>
-        <a class="back-link" [routerLink]="['/live', sessionId()]">
-          <app-icon name="arrow-left" sizeClass="w-4 h-4" />
-          {{ 'telemetry.back' | translate }}
-        </a>
+        @if (!embedded()) {
+          <a class="back-link" [routerLink]="['/live', sessionId()]">
+            <app-icon name="arrow-left" sizeClass="w-4 h-4" />
+            {{ 'telemetry.back' | translate }}
+          </a>
+        }
       </footer>
     }
 

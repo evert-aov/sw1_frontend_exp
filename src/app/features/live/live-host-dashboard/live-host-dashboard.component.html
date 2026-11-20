@@ -30,13 +30,14 @@
         <span>{{ (isSocketConnected() ? 'live.connected' : 'live.disconnected') | translate }}</span>
       </div>
 
-      <a
-        [routerLink]="['/live', sessionId(), 'assistant']"
+      <button
+        type="button"
+        (click)="scrollToConsole($event)"
         class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface)] hover:bg-[var(--ui-surface-soft)] text-[var(--ui-text)] text-xs font-semibold transition-all cursor-pointer shadow-2xs"
       >
         <span>{{ 'live.assistant' | translate }}</span>
-        <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5 text-[var(--ui-accent)]" />
-      </a>
+        <app-icon name="arrow-down" sizeClass="w-3.5 h-3.5 text-[var(--ui-accent)]" />
+      </button>
     </div>
   </div>
 
@@ -160,4 +161,9 @@
       />
     </div>
   </div>
+
+  <!-- Consola de Telemetría en Vivo & Asistente MC (HU-17, HU-18, HU-19) -->
+  <section id="telemetry-console" class="pt-8 border-t border-[var(--ui-border)] space-y-6">
+    <app-live-telemetry-console [sessionId]="sessionId()" />
+  </section>
 </div>

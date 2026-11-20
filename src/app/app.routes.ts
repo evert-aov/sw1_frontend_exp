@@ -183,8 +183,8 @@ export const routes: Routes = [
     path: 'live/:sessionId/assistant',
     canActivate: [hostGuard],
     loadComponent: () =>
-      import('./features/live/dj-mc-assistant/dj-mc-assistant.component').then(
-        (m) => m.DjMcAssistantComponent,
+      import('./features/live/live-telemetry-console/live-telemetry-console.component').then(
+        (m) => m.LiveTelemetryConsoleComponent,
       ),
   },
   {

@@ -5,6 +5,7 @@ import {
   computed,
   effect,
   inject,
+  input,
   signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -65,11 +66,14 @@ export class LiveTelemetryConsoleComponent {
   private readonly telemetry = inject(LiveTelemetryService);
   private readonly route = inject(ActivatedRoute);
 
-  /** Identificador de la sesión en vivo tomado de la ruta (UUID). */
-  readonly sessionId = toSignal(
+  /** Identificador de la sesión recibido como Input o tomado de la ruta (UUID). */
+  readonly sessionIdInput = input<string>('', { alias: 'sessionId' });
+  private readonly routeSessionId = toSignal(
     this.route.paramMap.pipe(map((params) => params.get('sessionId') ?? '')),
     { initialValue: this.route.snapshot.paramMap.get('sessionId') ?? '' },
   );
+  readonly sessionId = computed(() => this.sessionIdInput() || this.routeSessionId());
+  readonly embedded = computed(() => !!this.sessionIdInput());
 
   /** Última instantánea recibida del backend. */
   readonly snapshot = signal<LiveTelemetrySnapshot | null>(null);
