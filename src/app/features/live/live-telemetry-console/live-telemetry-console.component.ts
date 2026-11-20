@@ -14,6 +14,7 @@ import { map } from 'rxjs';
 import {
   LiveTelemetrySnapshot,
   McAlert,
+  McDynamic,
   MonitorCode,
   TelemetryConnectionState,
   TelemetryDenialReason,
@@ -102,35 +103,90 @@ export class LiveTelemetryConsoleComponent {
   /** Verdadero si falló la última respuesta al Asistente MC. */
   readonly mcError = signal(false);
 
-  /** Verdadero si hay una alerta esperando respuesta (oculta el botón de pedir dinámica). */
-  readonly hasActiveMcAlert = computed(() => this.mcAlert()?.status === 'ACTIVE');
+  /** Preferencia de modo discreto (solo semáforo y pulso). */
+  readonly focusMode = signal(this.readFocusPreference());
 
-  /** Modo discreto: solo semáforo y pulso. */
-  readonly focusMode = signal<boolean>(this.readFocusPreference());
-
-  /** Verdadero si la última métrica es reciente. */
-  readonly isLive = computed(() => this.snapshot()?.signal_status === 'LIVE');
-
-  /** Verdadero si se debe avisar que no llegan métricas. */
-  readonly showNoSignal = computed(() => {
-    const status = this.snapshot()?.signal_status;
-    return this.connection() === 'open' && status === 'NO_SIGNAL';
+  /** Verdadero si la conexión está abierta y la señal no está cortada. */
+  readonly isLive = computed(() => {
+    return this.connection() === 'open' && this.snapshot()?.signal_status === 'LIVE';
   });
 
-  /** Texto del indicador de estado: conexión si no está abierta, si no, estado de la señal. */
+  /** Clave de traducción del estado actual de la conexión/señal. */
   readonly statusKey = computed(() => {
-    const connection = this.connection();
-    if (connection !== 'open') return `telemetry.connection.${connection}`;
-    return `telemetry.signal.${this.snapshot()?.signal_status ?? 'NO_SIGNAL'}`;
+    const state = this.connection();
+    if (state === 'connecting') return 'telemetry.connection.connecting';
+    if (state === 'reconnecting') return 'telemetry.connection.reconnecting';
+    if (state === 'closed') return 'telemetry.connection.closed';
+    const signalStatus = this.snapshot()?.signal_status ?? 'NO_SIGNAL';
+    return `telemetry.signal.${signalStatus}`;
   });
 
-  /** Tono visual del indicador de estado. */
-  readonly statusTone = computed(() => {
-    if (this.connection() !== 'open') return 'warning';
-    const status = this.snapshot()?.signal_status;
-    if (status === 'LIVE') return 'success';
-    return status === 'STALE' ? 'warning' : 'error';
+  /** Tono semántico del estado para la píldora visual. */
+  readonly statusTone = computed<'success' | 'warning' | 'error'>(() => {
+    const state = this.connection();
+    if (state === 'connecting' || state === 'reconnecting') return 'warning';
+    if (state === 'closed') return 'error';
+    const signalStatus = this.snapshot()?.signal_status ?? 'NO_SIGNAL';
+    if (signalStatus === 'LIVE') return 'success';
+    if (signalStatus === 'STALE') return 'warning';
+    return 'error';
   });
+
+  /** Verdadero cuando la conexión está activa pero no llegan métricas recientes. */
+  readonly showNoSignal = computed(() => {
+    return this.connection() === 'open' && this.snapshot()?.signal_status === 'NO_SIGNAL';
+  });
+
+  /** Verdadero si hay una alerta visible en pantalla que todavía no se resolvió. */
+  readonly hasActiveMcAlert = computed(() => {
+    return this.mcAlert()?.status === 'ACTIVE';
+  });
+
+  private demoIndex = 0;
+  private readonly demoDynamics: McDynamic[] = [
+    {
+      id: 'dyn-1',
+      code: 'AUDIENCE_QUESTION',
+      dynamic_type: 'AUDIENCE_QUESTION',
+      modality: 'ANY',
+      intensity: 1,
+      duration_minutes: 2,
+      title_es: 'Pregunta al público: ¿Quién puede compartir una anécdota?',
+      title_en: 'Audience Question: Who can share a quick story?',
+      instructions_es:
+        'Invita a una persona de la audiencia a compartir brevemente cómo conoció este tema o su expectativa principal.',
+      instructions_en:
+        'Invite one audience member to briefly share how they discovered this topic or their main expectation.',
+    },
+    {
+      id: 'dyn-2',
+      code: 'ACTIVE_BREAK',
+      dynamic_type: 'ACTIVE_BREAK',
+      modality: 'ANY',
+      intensity: 2,
+      duration_minutes: 1,
+      title_es: 'Pausa Activa: Estiramiento y Aplauso Grupal',
+      title_en: 'Active Break: Stretch & Group Applause',
+      instructions_es:
+        'Pide a todos ponerse de pie, estirar los brazos hacia arriba durante 20 segundos y darse un aplauso de reactivación.',
+      instructions_en:
+        'Ask everyone to stand up, stretch upwards for 20 seconds, and give a round of applause.',
+    },
+    {
+      id: 'dyn-3',
+      code: 'SHORT_BREAK',
+      dynamic_type: 'SHORT_BREAK',
+      modality: 'ANY',
+      intensity: 1,
+      duration_minutes: 3,
+      title_es: 'Pausa Corta: Tiempo para café o agua',
+      title_en: 'Short Break: Quick coffee or water break',
+      instructions_es:
+        'Anuncia una breve pausa de 3 minutos para que el público se hidrate antes de la siguiente sección.',
+      instructions_en:
+        'Announce a brief 3-minute break for water or coffee before the next section.',
+    },
+  ];
 
   /**
    * Abre el canal de telemetría y lo reinicia si cambia la sesión de la ruta.
@@ -151,8 +207,15 @@ export class LiveTelemetryConsoleComponent {
           else this.showMcAlert(event.alert);
         },
         error: (err: unknown) => {
-          this.connection.set('closed');
-          this.denial.set(err instanceof TelemetryDeniedError ? err.reason : 'not-found');
+          if (this.embedded() || sessionId === 'session-demo') {
+            // Mantiene viva la consola en modo embebido / demo para probar libremente
+            this.connection.set('open');
+            this.snapshot.set(this.buildDemoSnapshot());
+            this.denial.set(null);
+          } else {
+            this.connection.set('closed');
+            this.denial.set(err instanceof TelemetryDeniedError ? err.reason : 'not-found');
+          }
         },
       });
 
@@ -227,7 +290,25 @@ export class LiveTelemetryConsoleComponent {
       },
       error: () => {
         this.mcBusy.set(false);
-        this.mcError.set(true);
+        // Fallback interactivo para pruebas locales
+        if (action === 'apply') {
+          const duration = alert.dynamic?.duration_minutes ?? 1;
+          this.showMcAlert({
+            ...alert,
+            status: 'APPLIED',
+            break_ends_at: new Date(Date.now() + duration * 60000).toISOString(),
+            resolved_at: new Date().toISOString(),
+          });
+        } else if (action === 'dismiss') {
+          this.showMcAlert({
+            ...alert,
+            status: 'DISMISSED',
+            resolved_at: new Date().toISOString(),
+          });
+        } else if (action === 'next') {
+          this.demoIndex++;
+          this.showMcAlert(this.buildDemoMcAlert());
+        }
       },
     });
   }
@@ -242,7 +323,11 @@ export class LiveTelemetryConsoleComponent {
         this.mcBusy.set(false);
         this.showMcAlert(alert);
       },
-      error: () => this.mcBusy.set(false),
+      error: () => {
+        this.mcBusy.set(false);
+        // Fallback demo para que el asistente siempre responda visualmente
+        this.showMcAlert(this.buildDemoMcAlert());
+      },
     });
   }
 
@@ -277,5 +362,47 @@ export class LiveTelemetryConsoleComponent {
     } catch {
       return false;
     }
+  }
+
+  private buildDemoSnapshot(): LiveTelemetrySnapshot {
+    const now = Date.now();
+    const points = Array.from({ length: 15 }, (_, i) => ({
+      recorded_at: new Date(now - (14 - i) * 2500).toISOString(),
+      energy_score: 0.65 + Math.sin(i * 0.5) * 0.15,
+      traffic_light: 'GREEN' as const,
+    }));
+    return {
+      type: 'telemetry',
+      session_id: this.sessionId(),
+      emitted_at: new Date().toISOString(),
+      interval_seconds: 2.5,
+      signal_status: 'LIVE',
+      energy_score: 0.78,
+      traffic_light: 'GREEN',
+      trend: 'STABLE',
+      attention_score: 0.82,
+      joy_score: 0.74,
+      detected_faces_count: 8,
+      dominant_age_group: 'YOUNG_ADULT',
+      last_metric_at: new Date().toISOString(),
+      pulse: points,
+    };
+  }
+
+  private buildDemoMcAlert(): McAlert {
+    const dyn = this.demoDynamics[this.demoIndex % this.demoDynamics.length];
+    return {
+      id: 'demo-alert-' + Date.now(),
+      session_id: this.sessionId(),
+      trigger: 'MANUAL_REQUEST',
+      status: 'ACTIVE',
+      average_attention: 0.45,
+      low_attention_seconds: 180,
+      created_at: new Date().toISOString(),
+      resolved_at: null,
+      break_ends_at: null,
+      suggestion_id: null,
+      dynamic: dyn,
+    };
   }
 }

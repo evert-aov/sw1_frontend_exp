@@ -47,14 +47,16 @@
   </header>
 
   @if (denial(); as reason) {
-    <app-alert tone="error">{{ 'telemetry.error.' + reason | translate }}</app-alert>
     @if (!embedded()) {
+      <app-alert tone="error">{{ 'telemetry.error.' + reason | translate }}</app-alert>
       <a class="back-link" [routerLink]="['/live', sessionId()]">
         <app-icon name="arrow-left" sizeClass="w-4 h-4" />
         {{ 'telemetry.back' | translate }}
       </a>
     }
-  } @else {
+  }
+
+  @if (!denial() || embedded()) {
     @if (showNoSignal()) {
       <app-alert tone="info">{{ 'telemetry.noSignalHint' | translate }}</app-alert>
     }
