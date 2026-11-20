@@ -1,0 +1,18 @@
+/* Detalle de experiencia con estilo editorial / revista */
+.experience-detail-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.experience-detail-img {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.group:hover .experience-detail-img {
+  transform: scale(1.03);
+}
+
+.map-container {
+  overflow: hidden;
+  border-radius: 1rem;
+  background-color: var(--ui-surface-soft);
+}

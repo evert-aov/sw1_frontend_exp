@@ -19,12 +19,36 @@ export class App {
   private themeService = inject(ThemeService);
   private router = inject(Router);
 
-  // true cuando estamos en /auth/... (login o registro se muestran a pantalla completa, sin navbar)
-  isAuthPage = toSignal(
+  // true cuando estamos en /auth/... o /home (pantalla completa con su propio layout)
+  isStandalonePage = toSignal(
     this.router.events.pipe(
       filter((e): e is NavigationEnd => e instanceof NavigationEnd),
-      map((e) => e.urlAfterRedirects.startsWith('/auth')),
+      map((e) => {
+        const cleanPath = e.urlAfterRedirects.split('?')[0].split('#')[0];
+        return (
+          cleanPath.startsWith('/auth') ||
+          cleanPath.startsWith('/home') ||
+          cleanPath === '/' ||
+          cleanPath === ''
+        );
+      }),
     ),
-    { initialValue: false },
+    {
+      initialValue:
+        typeof window !== 'undefined'
+          ? (() => {
+              const p = window.location.pathname.split('?')[0].split('#')[0];
+              return (
+                p.startsWith('/auth') ||
+                p.startsWith('/home') ||
+                p === '/' ||
+                p === ''
+              );
+            })()
+          : false,
+    },
   );
+
+  // Alias para mantener compatibilidad
+  isAuthPage = this.isStandalonePage;
 }

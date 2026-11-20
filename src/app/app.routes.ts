@@ -7,7 +7,6 @@ import {
   attendeeGuard,
   adminGuard,
   publicCatalogGuard,
-  homeRedirect,
 } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -54,7 +53,11 @@ export const routes: Routes = [
       import('./features/admin/admin-users.component').then((m) => m.AdminUsersComponent),
   },
 
-  { path: '', redirectTo: homeRedirect, pathMatch: 'full' },
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  {
+    path: 'home',
+    loadComponent: () => import('./features/home/home.component').then((m) => m.HomeComponent),
+  },
   // Paquete 1: Auth (pantalla dividida con pestañas login / registro)
   {
     path: 'auth',
@@ -180,8 +183,8 @@ export const routes: Routes = [
     path: 'live/:sessionId/assistant',
     canActivate: [hostGuard],
     loadComponent: () =>
-      import('./features/live/dj-mc-assistant/dj-mc-assistant.component').then(
-        (m) => m.DjMcAssistantComponent,
+      import('./features/live/live-telemetry-console/live-telemetry-console.component').then(
+        (m) => m.LiveTelemetryConsoleComponent,
       ),
   },
   {

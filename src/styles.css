@@ -7,27 +7,32 @@
 /* Estilos base y transiciones suaves para cambio de tema */
 :root {
   color-scheme: light;
-  --ui-surface: #fff;
-  --ui-surface-soft: #f7f7fc;
-  --ui-text: #1e2340;
-  --ui-muted: #626b82;
-  --ui-border: #dce0ec;
-  --ui-accent: #6d28d9;
-  --ui-accent-hover: #5b21b6;
-  --ui-accent-soft: #f0eaff;
-  --ui-ring: #8b5cf6;
+  --ui-surface: #fbf8f3;
+  --ui-surface-soft: #f2ebe0;
+  --ui-text: #281e19;
+  --ui-muted: #78695d;
+  --ui-border: #e3d8cc;
+  --ui-accent: #be5338;
+  --ui-accent-hover: #9e3f27;
+  --ui-accent-soft: #f6ece4;
+  --ui-ring: #be5338;
 }
 
 :root.dark {
   color-scheme: dark;
-  --ui-surface: #171522;
-  --ui-surface-soft: #201d30;
-  --ui-text: #f1effb;
-  --ui-muted: #b0adc3;
-  --ui-border: #3c3651;
-  --ui-accent: #a78bfa;
-  --ui-accent-hover: #c4b5fd;
-  --ui-accent-soft: #302345;
+  --ui-surface: #191411;
+  --ui-surface-soft: #251e18;
+  --ui-text: #f3ebe2;
+  --ui-muted: #a39487;
+  --ui-border: #3a3028;
+  --ui-accent: #e27a5d;
+  --ui-accent-hover: #ec8d72;
+  --ui-accent-soft: #35231a;
+}
+
+/* Tipografía editorial global (Playfair Display) para títulos y monograma de marca */
+.font-editorial {
+  font-family: 'Playfair Display', Georgia, Cambria, 'Times New Roman', serif;
 }
 
 /* Primitivas compartidas. Las vistas conservan únicamente sus reglas de composición. */
@@ -53,14 +58,14 @@
       box-shadow 0.15s;
   }
   .ui-button[data-variant='primary'] {
-    background: #6d28d9;
+    background: var(--ui-accent);
     color: #fff;
-    border-color: #6d28d9;
-    box-shadow: 0 3px 8px #6d28d91c;
+    border-color: var(--ui-accent);
+    box-shadow: 0 3px 8px color-mix(in srgb, var(--ui-accent) 25%, transparent);
   }
   .ui-button[data-variant='primary']:hover:not(:disabled) {
-    background: #5b21b6;
-    border-color: #5b21b6;
+    background: var(--ui-accent-hover);
+    border-color: var(--ui-accent-hover);
   }
   .ui-button[data-variant='secondary'] {
     background: var(--ui-surface);
@@ -168,11 +173,11 @@
     opacity: 0.85;
   }
   .ui-input:hover:not(:disabled):not(:read-only) {
-    border-color: #a69abc;
+    border-color: var(--ui-accent);
   }
   .ui-input:focus {
     border-color: var(--ui-accent);
-    box-shadow: 0 0 0 3px #8b5cf61c;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-accent) 20%, transparent);
     outline: 2px solid transparent;
     outline-offset: 2px;
   }
@@ -211,7 +216,7 @@
     background: var(--ui-surface);
     border: 1px solid var(--ui-border);
     border-radius: 1.25rem;
-    box-shadow: 0 4px 20px #24203f04;
+    box-shadow: 0 4px 20px #281e190a;
   }
   .ui-panel {
     padding: clamp(1.25rem, 3vw, 2rem);
@@ -233,9 +238,10 @@
     color: var(--ui-accent);
   }
   .ui-title {
-    font-size: clamp(1.6rem, 3vw, 2.1rem);
-    font-weight: 750;
-    letter-spacing: -0.035em;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
     line-height: 1.2;
     color: var(--ui-text);
   }
@@ -253,10 +259,11 @@
     flex-wrap: wrap;
   }
   .ui-section-title {
+    font-family: 'Playfair Display', Georgia, serif;
     color: var(--ui-text);
-    font-size: 1.05rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
   }
   .ui-muted {
     color: var(--ui-muted);
@@ -269,7 +276,7 @@
     align-items: flex-start;
     gap: 0.75rem;
     padding: 1rem;
-    border: 1px solid #8b5cf640;
+    border: 1px solid var(--ui-border);
     border-radius: 0.875rem;
     background: var(--ui-accent-soft);
     color: var(--ui-text);
@@ -398,7 +405,7 @@
     place-items: center;
     padding: 1rem;
     overflow-y: auto;
-    background: #0b0824b3;
+    background: rgba(25, 20, 17, 0.72);
     backdrop-filter: blur(5px);
   }
   .ui-modal {
@@ -423,7 +430,7 @@
     overflow: visible;
   }
   .ui-dialog::backdrop {
-    background: #0b0824b3;
+    background: rgba(25, 20, 17, 0.72);
     backdrop-filter: blur(5px);
   }
   .ui-skip-link {

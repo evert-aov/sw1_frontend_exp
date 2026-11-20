@@ -55,6 +55,7 @@ export const roleTranslations = {
     'host.editLocked': 'No se puede editar esta experiencia. Actualiza su estado desde tu panel.',
     'host.editSaved': 'Cambios guardados',
     'host.back': 'Volver a mis experiencias',
+    'host.liveMonitoring': 'Monitoreo en vivo',
     'host.setupVenue':
       'Primero configura un lugar propio para publicar experiencias presenciales o híbridas.',
     'venue.title': 'Los lugares de tus experiencias',
@@ -154,6 +155,7 @@ export const roleTranslations = {
     'host.editLocked': 'This experience cannot be edited. Refresh its status in your workspace.',
     'host.editSaved': 'Changes saved',
     'host.back': 'Back to my experiences',
+    'host.liveMonitoring': 'Live monitoring',
     'host.setupVenue': 'Set up your own venue before publishing in-person or hybrid experiences.',
     'venue.title': 'Your experience venues',
     'venue.description': 'Set up the spaces you own, their location and capacity.',

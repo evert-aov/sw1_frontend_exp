@@ -1,13 +1,22 @@
-<div class="space-y-5">
+<div class="p-7 sm:p-9 rounded-2xl bg-[var(--ui-surface)] border border-[var(--ui-border)] shadow-sm space-y-6">
   <div>
-    <p class="ui-eyebrow">{{ 'auth.eyebrow' | translate }}</p>
-    <h1 class="ui-title">{{ 'auth.register.title' | translate }}</h1>
-    <p class="ui-description">{{ 'auth.register.subtitle' | translate }}</p>
+    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ui-accent)] mb-1.5">
+      {{ 'auth.eyebrow' | translate }}
+    </p>
+    <h1 class="font-editorial text-3xl sm:text-4xl font-normal tracking-tight text-[var(--ui-text)]">
+      {{ 'auth.register.title' | translate }}
+    </h1>
+    <p class="text-sm text-[var(--ui-muted)] mt-1.5 leading-relaxed">
+      {{ 'auth.register.subtitle' | translate }}
+    </p>
   </div>
+
   <app-auth-tabs />
+
   @if (errorMessage()) {
     <app-alert tone="error">{{ errorMessage() }}</app-alert>
   }
+
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4" novalidate>
     <app-field
       controlId="fullName"
@@ -23,9 +32,11 @@
         formControlName="fullName"
         autocomplete="name"
         required
+        class="rounded-xl"
         [placeholder]="'auth.register.fullNamePlaceholder' | translate"
       />
     </app-field>
+
     <app-field
       controlId="email"
       [label]="'auth.email' | translate"
@@ -42,9 +53,11 @@
         formControlName="email"
         autocomplete="email"
         required
+        class="rounded-xl"
         [placeholder]="'auth.emailPlaceholder' | translate"
       />
     </app-field>
+
     <app-field
       controlId="password"
       [label]="'auth.password' | translate"
@@ -62,7 +75,7 @@
           autocomplete="new-password"
           required
           minlength="8"
-          class="pr-24"
+          class="pr-24 rounded-xl"
           style="padding-right: 6rem"
           [placeholder]="'auth.passwordPlaceholder' | translate"
         />
@@ -81,34 +94,46 @@
         </button>
       </div>
     </app-field>
+
     <fieldset>
-      <legend class="ui-label mb-3">{{ 'auth.register.roleQuestion' | translate }}</legend>
+      <legend class="ui-label mb-3 text-xs uppercase tracking-wider text-[var(--ui-muted)] font-semibold">
+        {{ 'auth.register.roleQuestion' | translate }}
+      </legend>
       <div class="grid sm:grid-cols-2 gap-3">
         @for (option of roleOptions; track option.value) {
           <button
             appButton
             variant="secondary"
-            class="ui-choice"
+            class="ui-choice rounded-xl"
             (click)="role.set(option.value)"
             [attr.aria-pressed]="role() === option.value"
           >
             <span class="flex items-center justify-between gap-2"
               ><span class="text-sm font-semibold">{{ option.labelKey | translate }}</span>
               @if (role() === option.value) {
-                <app-icon name="check-circle" sizeClass="w-5 h-5" />
+                <app-icon name="check-circle" sizeClass="w-5 h-5 text-[var(--ui-accent)]" />
               }
             </span>
-            <span class="text-xs ui-muted font-normal leading-relaxed">{{
+            <span class="text-xs text-[var(--ui-muted)] font-normal leading-relaxed">{{
               option.descKey | translate
             }}</span>
           </button>
         }
       </div>
     </fieldset>
-    <button appButton type="submit" [busy]="loading()" class="w-full">
-      {{ (loading() ? 'auth.register.loading' : 'auth.register.submit') | translate
-      }}<app-icon name="arrow-right" sizeClass="w-4 h-4" />
+
+    <button
+      appButton
+      type="submit"
+      [busy]="loading()"
+      class="w-full !bg-[var(--ui-accent)] !border-[var(--ui-accent)] hover:!bg-[var(--ui-accent-hover)] text-white rounded-xl py-3 text-sm font-semibold tracking-wide transition-colors shadow-xs"
+    >
+      {{ (loading() ? 'auth.register.loading' : 'auth.register.submit') | translate }}
+      <app-icon name="arrow-right" sizeClass="w-4 h-4" />
     </button>
-    <p class="ui-muted text-xs text-center leading-relaxed">{{ 'auth.terms' | translate }}</p>
+
+    <p class="text-xs text-center text-[var(--ui-muted)] leading-relaxed">
+      {{ 'auth.terms' | translate }}
+    </p>
   </form>
 </div>

@@ -1,0 +1,27 @@
+/* Filtros horizontales con scroll táctil suave */
+.catalog-filter-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.catalog-filter-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Imagen con zoom editorial 1.03 */
+.catalog-card-img {
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.group:hover .catalog-card-img {
+  transform: scale(1.03);
+}
+
+/* Transición suave de elevación en tarjetas */
+.catalog-card {
+  transition:
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.25s ease,
+    box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.catalog-card:hover {
+  transform: translateY(-3px);
+}

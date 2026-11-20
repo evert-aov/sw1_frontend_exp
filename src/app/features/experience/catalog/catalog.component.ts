@@ -31,13 +31,10 @@ import { eventTimeInBolivia } from '../../../core/utils/event-time.util';
 @Component({
   selector: 'app-catalog',
   imports: [
-    ButtonComponent,
-    ButtonLinkDirective,
     FormFieldComponent,
     InputDirective,
     AlertComponent,
     EmptyStateComponent,
-    PageHeaderComponent,
     DatePipe,
     DecimalPipe,
     ReactiveFormsModule,
@@ -47,6 +44,7 @@ import { eventTimeInBolivia } from '../../../core/utils/event-time.util';
     EventSkeletonComponent,
   ],
   templateUrl: './catalog.component.html',
+  styleUrl: './catalog.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CatalogComponent implements OnInit {
