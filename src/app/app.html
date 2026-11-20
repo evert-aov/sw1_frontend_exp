@@ -26,6 +26,45 @@
     </div>
   }
 
+  <!-- Notificaciones en primer plano (estilo editorial) -->
+  @if (notificationToasts().length > 0) {
+    <div
+      class="fixed top-4 right-4 z-[120] flex flex-col gap-3 w-[min(calc(100vw-2rem),24rem)] pointer-events-none"
+      aria-live="polite"
+    >
+      @for (toast of notificationToasts(); track toast.id) {
+        <div
+          class="pointer-events-auto rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] text-[var(--ui-text)] shadow-xl p-4 flex items-start gap-3"
+        >
+          <span
+            class="w-2.5 h-2.5 mt-1.5 rounded-full bg-[var(--ui-accent)] shrink-0"
+            aria-hidden="true"
+          ></span>
+          <button
+            type="button"
+            class="flex-1 min-w-0 text-left cursor-pointer"
+            (click)="openNotificationToast(toast.id, toast.url)"
+          >
+            <p class="font-editorial text-sm font-semibold text-[var(--ui-text)] leading-snug">
+              {{ toast.title }}
+            </p>
+            <p class="mt-1 text-xs text-[var(--ui-muted)] leading-relaxed">
+              {{ toast.body }}
+            </p>
+          </button>
+          <button
+            type="button"
+            class="text-xs text-[var(--ui-muted)] hover:text-[var(--ui-text)] px-1.5 py-0.5 cursor-pointer"
+            (click)="dismissNotificationToast(toast.id)"
+            aria-label="Cerrar notificación"
+          >
+            ✕
+          </button>
+        </div>
+      }
+    </div>
+  }
+
   <!-- Manual Agéntico Interactivo (disponible en toda la plataforma) -->
   <app-user-guide-chatbot />
 </div>

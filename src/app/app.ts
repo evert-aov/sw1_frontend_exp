@@ -22,8 +22,19 @@ export class App {
   private browserNotifications = inject(BrowserNotificationService);
   private router = inject(Router);
 
+  readonly notificationToasts = this.browserNotifications.toasts;
+
   constructor() {
     this.browserNotifications.startPolling();
+  }
+
+  dismissNotificationToast(id: string): void {
+    this.browserNotifications.dismissToast(id);
+  }
+
+  openNotificationToast(id: string, url: string): void {
+    this.browserNotifications.dismissToast(id);
+    void this.router.navigateByUrl(url);
   }
 
   // true cuando estamos en /auth/... o /home (pantalla completa con su propio layout)
