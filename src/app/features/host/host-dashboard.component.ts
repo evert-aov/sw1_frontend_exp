@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ExperienceService, HostedExperience } from '../../core/services/experience.service';
 import { I18nService } from '../../core/services/i18n.service';
@@ -55,11 +55,13 @@ export type HostFilterTab = 'ALL' | 'ACTIVE' | 'QUORUM' | 'PENDING' | 'CLOSED';
 })
 export class HostDashboardComponent implements OnInit {
   private readonly api = inject(ExperienceService);
+  private readonly router = inject(Router);
   readonly i18n = inject(I18nService);
 
   readonly items = signal<HostedExperience[]>([]);
   readonly loading = signal(true);
   readonly busy = signal(false);
+  readonly actionBusyId = signal<string | null>(null);
   readonly error = signal('');
   readonly deleting = signal<HostedExperience | null>(null);
 
@@ -153,6 +155,45 @@ export class HostDashboardComponent implements OnInit {
   requestDelete(item: HostedExperience, event: Event): void {
     this.deleteTrigger = event.currentTarget as HTMLElement;
     this.deleting.set(item);
+  }
+
+  startEvent(item: HostedExperience): void {
+    if (this.actionBusyId()) return;
+    this.actionBusyId.set(item.id);
+    this.error.set('');
+    this.api
+      .startExperience(item.id)
+      .pipe(finalize(() => this.actionBusyId.set(null)))
+      .subscribe({
+        next: (updated) => {
+          this.items.update((list) =>
+            list.map((row) => (row.id === item.id ? { ...row, status: updated.status } : row)),
+          );
+          void this.router.navigate(['/live', item.id]);
+        },
+        error: (err) => {
+          this.error.set(err.error?.detail ?? this.i18n.translate('host.startError'));
+        },
+      });
+  }
+
+  finishEvent(item: HostedExperience): void {
+    if (this.actionBusyId()) return;
+    this.actionBusyId.set(item.id);
+    this.error.set('');
+    this.api
+      .finishExperience(item.id)
+      .pipe(finalize(() => this.actionBusyId.set(null)))
+      .subscribe({
+        next: (updated) => {
+          this.items.update((list) =>
+            list.map((row) => (row.id === item.id ? { ...row, status: updated.status } : row)),
+          );
+        },
+        error: (err) => {
+          this.error.set(err.error?.detail ?? this.i18n.translate('host.finishError'));
+        },
+      });
   }
 
   confirmDelete(): void {

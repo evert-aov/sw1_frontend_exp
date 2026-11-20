@@ -3,8 +3,18 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_CONFIG } from '../config/api.config';
 import {
+  DjTransitionSuggestion,
+  DjYoutubeTrack,
   LiveTelemetrySnapshot,
+  McAiCatalog,
+  McAiChatHistory,
+  McAiChatRequest,
+  McAiChatResponse,
+  McAiProvider,
+  McAiTelemetryContext,
   McAlert,
+  McAutonomousSuggestion,
+  McWelcomeSpeechesResponse,
   MonitorCode,
   TelemetryDenialReason,
   TelemetryStreamEvent,
@@ -109,6 +119,116 @@ export class LiveTelemetryService {
     return this.http.post<McAlert>(
       `${this.apiUrl}/live/mc/alerts/${encodeURIComponent(alertId)}/${action}`,
       {},
+    );
+  }
+
+  /**
+   * Consulta los modelos de IA disponibles (Gemini 3.8 Flash en Vertex y Qwen 3.8 en Ollama).
+   */
+  getAiModels(): Observable<McAiCatalog> {
+    return this.http.get<McAiCatalog>(`${this.apiUrl}/live/mc/ai/models`);
+  }
+
+  /**
+   * Envía un mensaje al chat en vivo del Asistente MC impulsado por IA.
+   */
+  sendMcChatMessage(sessionId: string, payload: McAiChatRequest): Observable<McAiChatResponse> {
+    return this.http.post<McAiChatResponse>(
+      `${this.apiUrl}/live/mc/sessions/${encodeURIComponent(sessionId)}/chat`,
+      payload,
+    );
+  }
+
+  /**
+   * Recupera la memoria conversacional persistida del Asistente MC para este evento.
+   */
+  getMcChatHistory(sessionId: string): Observable<McAiChatHistory> {
+    return this.http.get<McAiChatHistory>(
+      `${this.apiUrl}/live/mc/sessions/${encodeURIComponent(sessionId)}/chat`,
+    );
+  }
+
+  /**
+   * Elimina la memoria conversacional persistida del Asistente MC para este evento.
+   */
+  clearMcChatHistory(sessionId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiUrl}/live/mc/sessions/${encodeURIComponent(sessionId)}/chat`,
+    );
+  }
+
+  /**
+   * Genera 2 propuestas de discurso de bienvenida personalizadas al evento.
+   */
+  generateWelcomeSpeeches(
+    sessionId: string,
+    provider: McAiProvider,
+    language: 'es' | 'en',
+  ): Observable<McWelcomeSpeechesResponse> {
+    return this.http.post<McWelcomeSpeechesResponse>(
+      `${this.apiUrl}/live/mc/sessions/${encodeURIComponent(sessionId)}/welcome-speeches`,
+      { provider, language },
+    );
+  }
+
+  /**
+   * Pide al Maestro de Ceremonias una sugerencia autónoma basada en las métricas actuales.
+   */
+  generateAutonomousSuggestion(
+    sessionId: string,
+    provider: McAiProvider,
+    language: 'es' | 'en',
+    telemetry: McAiTelemetryContext | null,
+  ): Observable<McAutonomousSuggestion> {
+    return this.http.post<McAutonomousSuggestion>(
+      `${this.apiUrl}/live/mc/sessions/${encodeURIComponent(sessionId)}/autonomous-suggestion`,
+      { provider, language, telemetry },
+    );
+  }
+
+  /**
+   * Sintetiza texto en audio MPEG usando Edge TTS (es-BO-MarceloNeural / en-US-AndrewNeural).
+   */
+  synthesizeMcSpeech(payload: {
+    text: string;
+    voice?: 'marcelo' | 'sofia' | 'andrew';
+    language: 'es' | 'en';
+    record_in_session_id?: string | null;
+    provider?: McAiProvider;
+    model?: string;
+  }): Observable<Blob> {
+    return this.http.post(`${this.apiUrl}/live/mc/speech`, payload, {
+      responseType: 'blob',
+    });
+  }
+
+  /**
+   * Pide al DJ Autónomo una transición de playlist/BPM y frase de micrófono según métricas.
+   */
+  generateDjTransition(
+    sessionId: string,
+    payload: {
+      provider?: McAiProvider;
+      language: 'es' | 'en';
+      current_playlist_id?: string | null;
+      telemetry?: McAiTelemetryContext | null;
+    },
+  ): Observable<DjTransitionSuggestion> {
+    return this.http.post<DjTransitionSuggestion>(
+      `${this.apiUrl}/live/mc/sessions/${encodeURIComponent(sessionId)}/dj-transition`,
+      payload,
+    );
+  }
+
+  /**
+   * Busca canciones o sets musicales embebibles en YouTube Data API v3.
+   */
+  searchDjYoutube(
+    query: string,
+    maxResults = 5,
+  ): Observable<{ query: string; tracks: DjYoutubeTrack[] }> {
+    return this.http.get<{ query: string; tracks: DjYoutubeTrack[] }>(
+      `${this.apiUrl}/live/mc/dj/youtube/search?q=${encodeURIComponent(query)}&max_results=${maxResults}`,
     );
   }
 

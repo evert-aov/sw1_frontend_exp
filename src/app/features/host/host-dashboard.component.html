@@ -285,16 +285,41 @@
               </a>
             </div>
 
-            <div class="flex items-center gap-1.5">
-              <a
-                appButton
-                variant="secondary"
-                [routerLink]="['/live', item.id]"
-                class="!py-1.5 !px-2.5 !text-xs font-semibold text-[var(--ui-accent)]"
-              >
-                <app-icon name="video-camera" sizeClass="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                {{ 'host.liveMonitoring' | translate }}
-              </a>
+            <div class="flex flex-wrap items-center gap-1.5">
+              @if (item.status === 'OPEN' || item.status === 'CONFIRMED') {
+                <button
+                  type="button"
+                  appButton
+                  variant="primary"
+                  [busy]="actionBusyId() === item.id"
+                  (click)="startEvent(item)"
+                  class="!py-1.5 !px-3 !text-xs font-semibold"
+                >
+                  <app-icon name="bolt" sizeClass="w-3.5 h-3.5" />
+                  {{ 'host.startEvent' | translate }}
+                </button>
+              } @else if (item.status === 'LIVE') {
+                <a
+                  appButton
+                  variant="secondary"
+                  [routerLink]="['/live', item.id]"
+                  class="!py-1.5 !px-2.5 !text-xs font-semibold text-emerald-600 dark:text-emerald-400"
+                >
+                  <app-icon name="video-camera" sizeClass="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  {{ 'host.liveMonitoring' | translate }}
+                </a>
+                <button
+                  type="button"
+                  appButton
+                  variant="secondary"
+                  [busy]="actionBusyId() === item.id"
+                  (click)="finishEvent(item)"
+                  class="!py-1.5 !px-2.5 !text-xs"
+                >
+                  <app-icon name="check-circle" sizeClass="w-3.5 h-3.5" />
+                  {{ 'host.finishEvent' | translate }}
+                </button>
+              }
               @if (item.can_edit) {
                 <a appButton variant="secondary" [routerLink]="['/host/experiences', item.id, 'edit']" class="!py-1.5 !px-2.5 !text-xs">
                   {{ 'host.edit' | translate }}

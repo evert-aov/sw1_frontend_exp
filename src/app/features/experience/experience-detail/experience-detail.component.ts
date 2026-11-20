@@ -73,6 +73,7 @@ export class ExperienceDetailComponent implements OnInit {
   readonly showAuthNotice = signal<boolean>(false);
   readonly reserveError = signal('');
   readonly reserving = signal(false);
+  readonly startingEvent = signal(false);
   quantity = 1;
   private bookingKey = crypto.randomUUID();
 
@@ -117,6 +118,24 @@ export class ExperienceDetailComponent implements OnInit {
       Math.round((100 * exp.reserved_slots) / Math.max(1, exp.min_capacity)),
     );
   });
+
+  onStartEvent(): void {
+    const exp = this.experience();
+    if (!exp || this.startingEvent()) return;
+    this.startingEvent.set(true);
+    this.reserveError.set('');
+    this.experienceService.startExperience(exp.id).subscribe({
+      next: (updated) => {
+        this.experience.set(updated);
+        this.startingEvent.set(false);
+        void this.router.navigate(['/live', exp.id]);
+      },
+      error: (err) => {
+        this.startingEvent.set(false);
+        this.reserveError.set(err.error?.detail ?? this.i18n.translate('host.startError'));
+      },
+    });
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');

@@ -1,3 +1,194 @@
-<div class="p-6 rounded-3xl bg-white dark:bg-[#13121d] border border-slate-200 dark:border-white/10">
-  <h2 class="text-xl font-bold text-slate-900 dark:text-white">Smart Host (MC & DJ) Assistant Component (CU-11, CU-12)</h2>
-</div>
+<section class="dj-panel" aria-labelledby="dj-panel-title">
+  <!-- Cabecera DJ Virtual Autónomo -->
+  <header class="dj-header">
+    <div class="flex items-center gap-3 min-w-0">
+      <span class="dj-icon" [class.is-playing]="isPlaying()" aria-hidden="true">
+        <app-icon name="sparkles" sizeClass="w-5 h-5" />
+      </span>
+      <div class="min-w-0">
+        <h2 id="dj-panel-title" class="font-editorial text-lg font-bold text-[var(--ui-text)]">
+          {{ 'dj.title' | translate }}
+        </h2>
+        <p class="text-xs text-[var(--ui-muted)]">{{ 'dj.subtitle' | translate }}</p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <!-- Selector de fuente: YouTube (sin API) o Groove BPM -->
+      <div class="dj-source-switch" role="group">
+        <button
+          type="button"
+          class="dj-source-btn"
+          [class.is-active]="audioSource() === 'youtube'"
+          (click)="setAudioSource('youtube')"
+        >
+          {{ 'dj.sourceYoutube' | translate }}
+        </button>
+        <button
+          type="button"
+          class="dj-source-btn"
+          [class.is-active]="audioSource() === 'synth'"
+          (click)="setAudioSource('synth')"
+        >
+          {{ 'dj.sourceSynth' | translate }}
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="dj-pill"
+        [class.is-active]="autoDjEnabled()"
+        (click)="toggleAutoDj()"
+      >
+        <span class="dj-dot" [class.is-on]="autoDjEnabled()"></span>
+        <span>{{ (autoDjEnabled() ? 'dj.autoOn' : 'dj.autoOff') | translate }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="dj-pill is-accent"
+        [disabled]="loadingMix()"
+        (click)="requestAiMix()"
+      >
+        <app-icon name="bolt" sizeClass="w-3.5 h-3.5" />
+        <span>{{ (loadingMix() ? 'mc.chat.thinking' : 'dj.mixNow') | translate }}</span>
+      </button>
+    </div>
+  </header>
+
+  @if (djSpeaking()) {
+    <div class="dj-speaking-strip" role="status">
+      <div class="flex items-center gap-2">
+        <span class="dj-dot is-on"></span>
+        <span class="text-xs font-semibold">{{ 'dj.speaking' | translate }}</span>
+      </div>
+      <button type="button" class="dj-stop-btn" (click)="stopDjVoice()">
+        <app-icon name="x-mark" sizeClass="w-3.5 h-3.5" />
+        <span>{{ 'mc.voice.stop' | translate }}</span>
+      </button>
+    </div>
+  }
+
+  <!-- Selector de Playlists (4 estados de energía/BPM) -->
+  <div class="dj-playlists">
+    @for (pl of playlists; track pl.id) {
+      <button
+        type="button"
+        class="dj-playlist-card"
+        [class.is-selected]="activePlaylistId() === pl.id && localTracks().length === 0"
+        (click)="selectPlaylist(pl.id)"
+      >
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-bold text-[var(--ui-text)]">{{ pl.name }}</span>
+          <span class="dj-bpm-tag">{{ pl.bpm }} BPM</span>
+        </div>
+        <span class="text-[11px] text-[var(--ui-muted)] truncate">{{ pl.genre }}</span>
+      </button>
+    }
+  </div>
+
+  <!-- Barra para pegar enlace o playlist de YouTube + Reproductor IFrame -->
+  @if (audioSource() === 'youtube' && localTracks().length === 0) {
+    <form class="dj-yt-form" (ngSubmit)="loadYoutubeFromUrl()">
+      <input
+        type="text"
+        name="ytUrl"
+        class="dj-yt-input"
+        [ngModel]="youtubeUrlInput()"
+        (ngModelChange)="youtubeUrlInput.set($event)"
+        [placeholder]="'dj.youtubePlaceholder' | translate"
+      />
+      <button type="submit" class="dj-pill is-accent" [disabled]="searchingYoutube()">
+        <app-icon name="magnifying-glass" sizeClass="w-3.5 h-3.5" />
+        <span>{{ 'dj.youtubeLoad' | translate }}</span>
+      </button>
+    </form>
+
+    @if (youtubeResults().length > 0) {
+      <div class="dj-yt-results">
+        @for (track of youtubeResults(); track track.video_id) {
+          <button type="button" class="dj-yt-item" (click)="playYoutubeTrack(track)">
+            @if (track.thumbnail) {
+              <img [src]="track.thumbnail" [alt]="track.title" class="dj-yt-thumb" />
+            }
+            <div class="min-w-0 text-left">
+              <p class="text-xs font-semibold text-[var(--ui-text)] truncate">{{ track.title }}</p>
+              <p class="text-[11px] text-[var(--ui-muted)] truncate">{{ track.channel }}</p>
+            </div>
+          </button>
+        }
+      </div>
+    }
+  }
+
+  <div class="dj-yt-wrapper" [class.hidden]="audioSource() !== 'youtube' || localTracks().length > 0">
+    <div #youtubeHost></div>
+  </div>
+
+  <!-- Controles de reproducción + carga de MP3/WAV locales -->
+  <div class="dj-deck">
+    <div class="flex items-center gap-3 min-w-0">
+      <button
+        type="button"
+        class="dj-play-btn"
+        (click)="togglePlay()"
+        [attr.aria-label]="(isPlaying() ? 'dj.pause' : 'dj.play') | translate"
+      >
+        <app-icon [name]="isPlaying() ? 'x-mark' : 'bolt'" sizeClass="w-4 h-4" />
+        <span>{{ (isPlaying() ? 'dj.pause' : 'dj.play') | translate }}</span>
+      </button>
+
+      <button type="button" class="dj-pill" (click)="nextTrack()">
+        <app-icon name="arrow-right" sizeClass="w-3.5 h-3.5" />
+        <span>{{ 'dj.next' | translate }}</span>
+      </button>
+
+      <div class="min-w-0">
+        <div class="flex items-center gap-1.5">
+          <span class="text-[10px] uppercase tracking-wider font-semibold text-[var(--ui-muted)]">
+            {{ (isPlaying() ? 'dj.nowPlaying' : 'dj.paused') | translate }}
+          </span>
+          @if (localTracks().length > 0) {
+            <span class="dj-bpm-tag">{{ 'dj.customTracks' | translate }} ({{ localTracks().length }})</span>
+          }
+        </div>
+        <p class="text-xs font-semibold text-[var(--ui-text)] truncate">{{ currentTrackTitle() }}</p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3">
+      <label class="dj-volume">
+        <span class="text-[11px] text-[var(--ui-muted)]">{{ 'dj.volume' | translate }}</span>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          [ngModel]="volume()"
+          (ngModelChange)="onVolumeChange($event)"
+        />
+      </label>
+
+      <label class="dj-pill cursor-pointer">
+        <app-icon name="plus" sizeClass="w-3.5 h-3.5" />
+        <span>{{ 'dj.uploadTracks' | translate }}</span>
+        <input
+          type="file"
+          accept="audio/*"
+          multiple
+          class="hidden"
+          (change)="onFilesSelected($event)"
+        />
+      </label>
+
+      @if (localTracks().length > 0) {
+        <button type="button" class="dj-pill" (click)="clearLocalTracks()">
+          <app-icon name="x-mark" sizeClass="w-3.5 h-3.5" />
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (errorMessage(); as err) {
+    <p class="text-xs text-rose-500">{{ err }}</p>
+  }
+</section>

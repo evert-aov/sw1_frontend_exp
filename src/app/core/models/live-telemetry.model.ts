@@ -112,3 +112,131 @@ export interface MonitorCode {
 
 /** Motivo por el que el servidor rechazó definitivamente la conexión. */
 export type TelemetryDenialReason = 'unauthorized' | 'forbidden' | 'not-found';
+
+/** Proveedor de IA seleccionable en el chat del Asistente MC. */
+export type McAiProvider = 'vertex' | 'ollama';
+
+/** Modelo de IA configurado en el backend (Gemini 3.8 Flash o Qwen 3.8). */
+export interface McAiModelInfo {
+  provider: McAiProvider;
+  id: string;
+  label: string;
+  available: boolean;
+}
+
+/** Catálogo de modelos de IA disponibles para el Asistente MC. */
+export interface McAiCatalog {
+  default_provider: McAiProvider;
+  models: McAiModelInfo[];
+}
+
+/** Turno del historial enviado/mostrado en el chat del Asistente MC. */
+export interface McAiChatTurn {
+  id: string;
+  role: 'user' | 'assistant' | 'alert';
+  content: string;
+  speechText?: string | null;
+  createdAt: string;
+  provider?: McAiProvider;
+  model?: string;
+  alert?: McAlert;
+}
+
+/** Contexto de telemetría en vivo enviado junto a la consulta del chat. */
+export interface McAiTelemetryContext {
+  signal_status?: string | null;
+  traffic_light?: string | null;
+  energy_score?: number | null;
+  attention_score?: number | null;
+  joy_score?: number | null;
+  inattention_score?: number | null;
+  detected_faces_count?: number | null;
+  trend?: string | null;
+  dominant_age_group?: string | null;
+}
+
+/** Solicitud POST al endpoint de chat IA del Asistente MC. */
+export interface McAiChatRequest {
+  message: string;
+  provider?: McAiProvider;
+  language: 'es' | 'en';
+  history: Array<{ role: 'user' | 'assistant'; content: string }>;
+  telemetry?: McAiTelemetryContext | null;
+}
+
+/** Respuesta del chat IA del Asistente MC. */
+export interface McAiChatResponse {
+  reply: string;
+  speech_text?: string | null;
+  provider: McAiProvider;
+  model: string;
+  input_tokens?: number | null;
+  output_tokens?: number | null;
+}
+
+/** Mensaje guardado en la memoria persistente del chat por evento. */
+export interface McAiStoredMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  provider?: McAiProvider | null;
+  model?: string | null;
+  created_at: string;
+}
+
+/** Historial persistido de un evento y su título. */
+export interface McAiChatHistory {
+  event_key: string;
+  event_title: string | null;
+  event_status?: string | null;
+  live_session_id?: string | null;
+  messages: McAiStoredMessage[];
+}
+
+/** Una propuesta de discurso de bienvenida del Maestro de Ceremonias. */
+export interface McWelcomeSpeechOption {
+  id: string;
+  style: string;
+  title: string;
+  speech_text: string;
+}
+
+/** Respuesta con 2 propuestas de discurso de bienvenida. */
+export interface McWelcomeSpeechesResponse {
+  options: McWelcomeSpeechOption[];
+  provider: McAiProvider;
+  model: string;
+}
+
+/** Intervención propuesta de forma autónoma cada minuto por el Maestro de Ceremonias. */
+export interface McAutonomousSuggestion {
+  title: string;
+  reason: string;
+  speech_text: string;
+  provider: McAiProvider;
+  model: string;
+}
+
+/** Identificador de playlist del DJ Virtual Autónomo. */
+export type DjPlaylistId = 'chill_jazz' | 'groove_funk' | 'melodic_house' | 'upbeat_party';
+
+/** Resultado musical embebible devuelto por YouTube Data API v3. */
+export interface DjYoutubeTrack {
+  video_id: string;
+  title: string;
+  channel: string;
+  thumbnail: string;
+}
+
+/** Transición musical y frase de micrófono generadas por el DJ Autónomo. */
+export interface DjTransitionSuggestion {
+  recommended_playlist_id: DjPlaylistId;
+  recommended_genre: string;
+  recommended_bpm: string;
+  youtube_search_query?: string | null;
+  youtube_tracks?: DjYoutubeTrack[];
+  reason: string;
+  dj_shoutout: string;
+  provider: McAiProvider;
+  model: string;
+}

@@ -14,10 +14,14 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription, interval } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LiveService } from '../../../core/services/live.service';
+import { LiveTelemetryService } from '../../../core/services/live-telemetry.service';
+import { ExperienceService } from '../../../core/services/experience.service';
 import { LiveMetrics } from '../../../core/models/live.model';
 import { LiveEngagementWidgetComponent } from './components/live-engagement-widget.component';
 import { GdprConsentDialogComponent } from './components/gdpr-consent-dialog.component';
 import { LiveTelemetryConsoleComponent } from '../live-telemetry-console/live-telemetry-console.component';
+import { McAiChatComponent } from '../live-telemetry-console/mc-ai-chat/mc-ai-chat.component';
+import { DjMcAssistantComponent } from '../dj-mc-assistant/dj-mc-assistant.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 
@@ -34,10 +38,13 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     TranslatePipe,
     LiveEngagementWidgetComponent,
     GdprConsentDialogComponent,
     LiveTelemetryConsoleComponent,
+    McAiChatComponent,
+    DjMcAssistantComponent,
     IconComponent,
   ],
   templateUrl: './live-host-dashboard.component.html',
@@ -46,18 +53,40 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 export class LiveHostDashboardComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly liveService = inject(LiveService);
+  private readonly telemetryService = inject(LiveTelemetryService);
+  private readonly experienceService = inject(ExperienceService);
   private readonly destroyRef = inject(DestroyRef);
 
   @ViewChild('videoElement') videoElementRef?: ElementRef<HTMLVideoElement>;
   @ViewChild('canvasElement') canvasElementRef?: ElementRef<HTMLCanvasElement>;
 
   readonly sessionId = signal<string>('');
+  readonly eventId = signal<string>('');
+  readonly eventTitle = signal<string | null>(null);
+  readonly eventStatus = signal<string | null>(null);
+  readonly checkingStatus = signal<boolean>(true);
+  readonly actionBusy = signal<boolean>(false);
   readonly isCameraActive = signal<boolean>(false);
   readonly isSocketConnected = signal<boolean>(false);
   readonly hasConsented = signal<boolean>(false);
   readonly showConsentBanner = signal<boolean>(true);
   readonly currentMetrics = signal<LiveMetrics | null>(null);
   readonly errorMessage = signal<string | null>(null);
+
+  readonly isEventLive = computed(() => {
+    const st = this.eventStatus();
+    return st === 'LIVE' || st === null;
+  });
+
+  readonly isEventNotStarted = computed(() => {
+    const st = this.eventStatus();
+    return st === 'OPEN' || st === 'CONFIRMED' || st === 'DRAFT';
+  });
+
+  readonly isEventEnded = computed(() => {
+    const st = this.eventStatus();
+    return st === 'FINISHED' || st === 'CANCELLED';
+  });
 
   private mediaStream: MediaStream | null = null;
   private samplingSubscription?: Subscription;
@@ -75,11 +104,70 @@ export class LiveHostDashboardComponent implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('sessionId') || 'session-demo';
     this.sessionId.set(id);
-    this.connectWebSocket(id);
+    this.eventId.set(id);
+    this.loadEventState(id);
 
     this.destroyRef.onDestroy(() => {
       this.stopCamera();
       this.socketSubscription?.unsubscribe();
+    });
+  }
+
+  private loadEventState(routeId: string): void {
+    this.checkingStatus.set(true);
+    this.telemetryService.getMcChatHistory(routeId).subscribe({
+      next: (meta) => {
+        this.eventId.set(meta.event_key || routeId);
+        this.eventTitle.set(meta.event_title);
+        this.eventStatus.set(meta.event_status ?? null);
+        const activeSessionId = meta.live_session_id || routeId;
+        this.sessionId.set(activeSessionId);
+        this.checkingStatus.set(false);
+        if (!meta.event_status || meta.event_status === 'LIVE') {
+          this.connectWebSocket(activeSessionId);
+        }
+      },
+      error: () => {
+        this.checkingStatus.set(false);
+        this.connectWebSocket(routeId);
+      },
+    });
+  }
+
+  startEventNow(): void {
+    const targetId = this.eventId() || this.sessionId();
+    if (!targetId || this.actionBusy()) return;
+    this.actionBusy.set(true);
+    this.errorMessage.set(null);
+    this.experienceService.startExperience(targetId).subscribe({
+      next: () => {
+        this.actionBusy.set(false);
+        this.loadEventState(targetId);
+      },
+      error: (err) => {
+        this.actionBusy.set(false);
+        this.errorMessage.set(err.error?.detail ?? 'No se pudo iniciar el evento.');
+      },
+    });
+  }
+
+  finishEventNow(): void {
+    const targetId = this.eventId() || this.sessionId();
+    if (!targetId || this.actionBusy()) return;
+    this.actionBusy.set(true);
+    this.errorMessage.set(null);
+    this.stopCamera();
+    this.socketSubscription?.unsubscribe();
+    this.isSocketConnected.set(false);
+    this.experienceService.finishExperience(targetId).subscribe({
+      next: (updated) => {
+        this.eventStatus.set(updated.status);
+        this.actionBusy.set(false);
+      },
+      error: (err) => {
+        this.actionBusy.set(false);
+        this.errorMessage.set(err.error?.detail ?? 'No se pudo finalizar el evento.');
+      },
     });
   }
 

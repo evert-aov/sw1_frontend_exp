@@ -1,5 +1,77 @@
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-  <!-- Barra Superior de Navegación y Estado Estilo Magazine -->
+<div class="w-full py-2">
+  @if (checkingStatus()) {
+    <div class="max-w-xl mx-auto my-12 p-8 rounded-2xl bg-[var(--ui-surface)] border border-[var(--ui-border)] text-center text-sm text-[var(--ui-muted)]">
+      {{ 'ui.loading' | translate }}
+    </div>
+  } @else if (isEventNotStarted()) {
+    <div class="max-w-xl mx-auto my-12 p-8 rounded-2xl bg-[var(--ui-surface)] border border-[var(--ui-border)] shadow-xs space-y-5 text-center">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-[var(--ui-accent-soft)] text-[var(--ui-accent)] flex items-center justify-center">
+        <app-icon name="clock" sizeClass="w-7 h-7" />
+      </div>
+      <div class="space-y-2">
+        <h1 class="font-editorial text-2xl font-bold text-[var(--ui-text)]">
+          {{ 'live.notStartedTitle' | translate }}
+        </h1>
+        @if (eventTitle()) {
+          <p class="text-sm font-semibold text-[var(--ui-accent)]">{{ eventTitle() }}</p>
+        }
+        <p class="text-sm text-[var(--ui-muted)] leading-relaxed">
+          {{ 'live.notStartedHint' | translate }}
+        </p>
+      </div>
+      @if (errorMessage()) {
+        <p class="text-xs text-rose-500">{{ errorMessage() }}</p>
+      }
+      <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+        <button
+          type="button"
+          [disabled]="actionBusy()"
+          (click)="startEventNow()"
+          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-60"
+        >
+          <app-icon name="bolt" sizeClass="w-4 h-4" />
+          <span>{{ 'live.startNow' | translate }}</span>
+        </button>
+        <a
+          routerLink="/host"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-soft)] text-[var(--ui-text)] text-xs font-semibold hover:border-[var(--ui-accent)] transition-colors"
+        >
+          <app-icon name="arrow-left" sizeClass="w-4 h-4" />
+          <span>{{ 'live.backToHost' | translate }}</span>
+        </a>
+      </div>
+    </div>
+  } @else if (isEventEnded()) {
+    <div class="max-w-xl mx-auto my-12 p-8 rounded-2xl bg-[var(--ui-surface)] border border-[var(--ui-border)] shadow-xs space-y-5 text-center">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+        <app-icon name="check-circle" sizeClass="w-7 h-7" />
+      </div>
+      <div class="space-y-2">
+        <h1 class="font-editorial text-2xl font-bold text-[var(--ui-text)]">
+          {{ 'live.endedTitle' | translate }}
+        </h1>
+        @if (eventTitle()) {
+          <p class="text-sm font-semibold text-[var(--ui-accent)]">{{ eventTitle() }}</p>
+        }
+        <p class="text-sm text-[var(--ui-muted)] leading-relaxed">
+          {{ 'live.endedHint' | translate }}
+        </p>
+      </div>
+      <div class="pt-2">
+        <a
+          routerLink="/host"
+          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-soft)] text-[var(--ui-text)] text-xs font-semibold hover:border-[var(--ui-accent)] transition-colors"
+        >
+          <app-icon name="arrow-left" sizeClass="w-4 h-4" />
+          <span>{{ 'live.backToHost' | translate }}</span>
+        </a>
+      </div>
+    </div>
+  } @else {
+  <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_480px] 2xl:grid-cols-[minmax(0,1fr)_540px] gap-7 items-start">
+    <!-- Columna Izquierda: Monitoreo, Cámara y Consola en Vivo -->
+    <div class="min-w-0 space-y-8">
+      <!-- Barra Superior de Navegación y Estado Estilo Magazine -->
   <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[var(--ui-border)]">
     <div>
       <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--ui-accent)] mb-1.5">
@@ -10,9 +82,11 @@
       <h1 class="font-editorial text-3xl sm:text-4xl font-bold text-[var(--ui-text)] tracking-tight">
         {{ 'live.title' | translate }}
       </h1>
-      <p class="text-xs text-[var(--ui-muted)] mt-1.5 flex items-center gap-1.5">
+      <p class="text-xs text-[var(--ui-muted)] mt-1.5 flex items-center gap-2">
         <span>{{ 'live.event' | translate }}:</span>
-        <code class="px-2.5 py-0.5 rounded-md bg-[var(--ui-surface-soft)] border border-[var(--ui-border)] font-mono text-xs text-[var(--ui-accent)] font-semibold">{{ sessionId() }}</code>
+        <span class="px-2.5 py-0.5 rounded-md bg-[var(--ui-surface-soft)] border border-[var(--ui-border)] text-xs text-[var(--ui-accent)] font-semibold">
+          {{ eventTitle() || sessionId() }}
+        </span>
       </p>
     </div>
 
@@ -38,6 +112,18 @@
         <span>{{ 'live.assistant' | translate }}</span>
         <app-icon name="bolt" sizeClass="w-3.5 h-3.5 text-[var(--ui-accent)]" />
       </button>
+
+      @if (eventStatus() === 'LIVE') {
+        <button
+          type="button"
+          [disabled]="actionBusy()"
+          (click)="finishEventNow()"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold transition-all cursor-pointer disabled:opacity-60"
+        >
+          <app-icon name="check-circle" sizeClass="w-3.5 h-3.5" />
+          <span>{{ 'live.finishEvent' | translate }}</span>
+        </button>
+      }
     </div>
   </div>
 
@@ -164,6 +250,44 @@
 
   <!-- Consola de Telemetría en Vivo & Asistente MC (HU-17, HU-18, HU-19) -->
   <section id="telemetry-console" class="pt-8 border-t border-[var(--ui-border)] space-y-6">
-    <app-live-telemetry-console [sessionId]="sessionId()" />
+    <app-live-telemetry-console
+      #telemetryConsole
+      [sessionId]="sessionId()"
+      [liveMetrics]="currentMetrics()"
+      [showChat]="false"
+    />
+
+    <!-- DJ Virtual Autónomo (Playlists + BPM + Locución con Edge TTS) -->
+    <app-dj-mc-assistant
+      #djPanel
+      [sessionId]="sessionId()"
+      [snapshot]="telemetryConsole.snapshot()"
+      [liveMetrics]="currentMetrics()"
+      [provider]="mcChat.selectedProvider()"
+    />
   </section>
+    </div>
+
+    <!-- Columna Lateral Derecha: Chat del Asistente MC con IA (Sticky en escritorio) -->
+    <aside id="mc-ai-chat-section" class="xl:sticky xl:top-4 min-w-0">
+      <app-mc-ai-chat
+        #mcChat
+        [sessionId]="sessionId()"
+        [snapshot]="telemetryConsole.snapshot()"
+        [liveMetrics]="currentMetrics()"
+        [activeAlert]="telemetryConsole.mcAlert()"
+        [alertBusy]="telemetryConsole.mcBusy()"
+        [alertError]="telemetryConsole.mcError()"
+        [djSuggestion]="djPanel.pendingTransition()"
+        [djSpeaking]="djPanel.djSpeaking()"
+        [djLoading]="djPanel.loadingMix()"
+        (respondAlert)="telemetryConsole.respondMcAlert($event)"
+        (breakFinished)="telemetryConsole.onMcBreakFinished()"
+        (eventTitleResolved)="eventTitle.set($event)"
+        (applyDjTransition)="djPanel.applyTransition($event)"
+        (dismissDjTransition)="djPanel.dismissTransition()"
+      />
+    </aside>
+  </div>
+  }
 </div>

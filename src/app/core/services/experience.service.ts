@@ -64,6 +64,12 @@ export class ExperienceService {
   deleteExperience(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/experiences/${id}`);
   }
+  startExperience(id: string): Observable<Experience> {
+    return this.http.patch<Experience>(`${this.apiUrl}/experiences/${id}/start`, {});
+  }
+  finishExperience(id: string): Observable<Experience> {
+    return this.http.patch<Experience>(`${this.apiUrl}/experiences/${id}/finish`, {});
+  }
   getMyVenues(): Observable<Venue[]> {
     return this.http.get<Venue[]>(`${this.apiUrl}/venues/me/owned`);
   }

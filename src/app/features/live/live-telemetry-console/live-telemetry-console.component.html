@@ -1,5 +1,7 @@
 <section
-  class="console max-w-6xl mx-auto"
+  class="console"
+  [class.max-w-7xl]="showChat()"
+  [class.mx-auto]="showChat()"
   [class.is-focus]="focusMode()"
   aria-labelledby="telemetry-title"
 >
@@ -17,16 +19,15 @@
     </div>
 
     <div class="ui-actions">
-      @if (!denial() && !hasActiveMcAlert()) {
+      @if (!denial() || embedded()) {
         <button
           type="button"
           class="focus-toggle"
           [title]="'mc.requestHint' | translate"
-          [disabled]="mcBusy()"
-          (click)="requestMcDynamic()"
+          (click)="scrollToChat()"
         >
-          <app-icon name="light-bulb" sizeClass="w-4 h-4" />
-          {{ 'mc.request' | translate }}
+          <app-icon name="sparkles" sizeClass="w-4 h-4" />
+          {{ 'mc.chat.open' | translate }}
         </button>
       }
       <span class="ui-badge" [attr.data-tone]="statusTone()" role="status">
@@ -163,14 +164,19 @@
       </footer>
     }
 
-    @if (mcAlert(); as alert) {
-      <app-mc-alert-card
-        [alert]="alert"
-        [busy]="mcBusy()"
-        [error]="mcError()"
-        (respond)="respondMcAlert($event)"
-        (breakFinished)="onMcBreakFinished()"
-      />
+    @if (showChat()) {
+      <div id="mc-ai-chat-section">
+        <app-mc-ai-chat
+          [sessionId]="sessionId()"
+          [snapshot]="snapshot()"
+          [liveMetrics]="liveMetrics()"
+          [activeAlert]="mcAlert()"
+          [alertBusy]="mcBusy()"
+          [alertError]="mcError()"
+          (respondAlert)="respondMcAlert($event)"
+          (breakFinished)="onMcBreakFinished()"
+        />
+      </div>
     }
   }
 </section>

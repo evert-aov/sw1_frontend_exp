@@ -1,0 +1,370 @@
+<section class="ui-surface mc-chat-shell" aria-labelledby="mc-chat-title">
+  <!-- Cabecera del Chat + Selector de Modelo IA (Gemini 3.8 Flash / Qwen 3.8) -->
+  <header class="mc-chat-header">
+    <div class="flex items-center gap-3 min-w-0">
+      <span class="mc-chat-avatar" aria-hidden="true">
+        <app-icon name="sparkles" sizeClass="w-5 h-5" />
+      </span>
+      <div class="min-w-0">
+        <h2 id="mc-chat-title" class="ui-section-title">{{ 'mc.chat.title' | translate }}</h2>
+        <p class="ui-muted text-xs truncate">{{ 'mc.chat.subtitle' | translate }}</p>
+      </div>
+    </div>
+
+    <div class="mc-chat-controls">
+      <div class="mc-model-switcher" role="group" [attr.aria-label]="'mc.chat.model' | translate">
+        @for (item of models(); track item.provider) {
+          <button
+            type="button"
+            class="mc-model-pill"
+            [class.is-active]="selectedProvider() === item.provider"
+            [title]="item.id"
+            (click)="selectProvider(item.provider)"
+          >
+            <span
+              class="mc-model-dot"
+              [class.is-online]="item.available"
+              [class.is-offline]="!item.available"
+              aria-hidden="true"
+            ></span>
+            <span>{{ item.provider === 'vertex' ? 'Gemini 3.8 Flash' : 'Qwen 3.8' }}</span>
+          </button>
+        }
+      </div>
+
+      <button
+        type="button"
+        class="mc-clear-btn"
+        [title]="'mc.chat.clear' | translate"
+        (click)="clearChat()"
+      >
+        <app-icon name="x-mark" sizeClass="w-4 h-4" />
+      </button>
+    </div>
+  </header>
+
+  <!-- Barra de Control del Maestro de Ceremonias (Bienvenida + Modo Autónomo 1 min) -->
+  <div class="mc-voice-bar">
+    <button
+      type="button"
+      class="mc-voice-pill"
+      [class.is-active]="autonomousMode()"
+      (click)="toggleAutonomousMode()"
+    >
+      <span class="mc-auto-dot" [class.is-on]="autonomousMode()" aria-hidden="true"></span>
+      <span>{{ (autonomousMode() ? 'mc.voice.autoOn' : 'mc.voice.autoOff') | translate }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="mc-voice-pill"
+      [disabled]="loadingWelcome()"
+      (click)="requestWelcomeSpeeches()"
+    >
+      <app-icon name="sparkles" sizeClass="w-3.5 h-3.5" />
+      <span>{{ 'mc.voice.welcomeBtn' | translate }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="mc-voice-pill"
+      [disabled]="loadingAutonomous() || sending()"
+      (click)="requestAutonomousSuggestion()"
+    >
+      <app-icon name="bolt" sizeClass="w-3.5 h-3.5" />
+      <span>{{ 'mc.voice.checkNow' | translate }}</span>
+    </button>
+  </div>
+
+  <!-- Indicador en vivo mientras el Maestro de Ceremonias está hablando (Edge TTS) -->
+  @if (isSpeaking() || synthesizingVoice()) {
+    <div class="mc-speaking-banner" role="status">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="mc-wave-dot"></span>
+        <span class="text-xs font-semibold truncate">
+          {{ (synthesizingVoice() ? 'mc.voice.synthesizing' : 'mc.voice.speaking') | translate }}
+        </span>
+      </div>
+      @if (isSpeaking()) {
+        <button type="button" class="mc-stop-btn" (click)="stopSpeaking()">
+          <app-icon name="x-mark" sizeClass="w-3.5 h-3.5" />
+          <span>{{ 'mc.voice.stop' | translate }}</span>
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Contexto en vivo inyectado a la IA -->
+  @if (liveSummary(); as ctx) {
+    <div class="mc-context-strip">
+      <span class="mc-context-dot" [attr.data-light]="ctx.light"></span>
+      <span>{{ 'telemetry.attention' | translate }}: <strong>{{ ctx.attention ?? '-' }}%</strong></span>
+      <span>·</span>
+      <span>{{ 'telemetry.joy' | translate }}: <strong>{{ ctx.joy ?? '-' }}%</strong></span>
+      <span>·</span>
+      <span>{{ 'telemetry.faces' | translate }}: <strong>{{ ctx.faces ?? 0 }}</strong></span>
+    </div>
+  }
+
+  <!-- Historial de mensajes + discursos de bienvenida + sugerencias autónomas -->
+  <div #messagesContainer class="mc-chat-messages" role="log" aria-live="polite">
+    @for (turn of messages(); track turn.id) {
+      <div class="mc-msg-row" [class.is-user]="turn.role === 'user'">
+        <div class="mc-bubble" [class.is-user]="turn.role === 'user'">
+          @if (turn.role === 'user') {
+            <p class="mc-bubble-text">{{ turn.content }}</p>
+          } @else {
+            <div class="mc-md" [innerHTML]="formatMarkdown(turn.content)"></div>
+            @if (turn.speechText) {
+              <div class="mc-speech-quote mt-2">
+                "{{ turn.speechText }}"
+              </div>
+            }
+          }
+          <footer class="mc-bubble-meta">
+            @if (turn.role === 'assistant' && turn.id !== 'welcome') {
+              <button
+                type="button"
+                class="mc-listen-btn"
+                [disabled]="synthesizingVoice()"
+                (click)="speakText(turn.speechText || turn.content, false, turn.model)"
+              >
+                <app-icon name="bell" sizeClass="w-3 h-3" />
+                <span>{{ (turn.speechText ? 'mc.voice.approveSpeak' : 'mc.voice.listen') | translate }}</span>
+              </button>
+            }
+            @if (turn.model) {
+              <span class="mc-model-tag">{{ turn.model }}</span>
+            }
+            <span>{{ turn.createdAt | date: 'shortTime' }}</span>
+          </footer>
+        </div>
+      </div>
+    }
+
+    <!-- Cargando las 2 propuestas de discurso de bienvenida -->
+    @if (loadingWelcome()) {
+      <div class="mc-welcome-box">
+        <div class="mc-typing">
+          <span class="mc-typing-dot"></span>
+          <span class="mc-typing-dot"></span>
+          <span class="mc-typing-dot"></span>
+          <span class="text-xs ui-muted">{{ 'mc.voice.welcomeLoading' | translate }}</span>
+        </div>
+      </div>
+    }
+
+    <!-- 2 Propuestas de Discurso de Bienvenida para elegir -->
+    @if (welcomeOptions().length > 0) {
+      <div class="mc-welcome-box">
+        <div class="mc-alert-inline-head">
+          <app-icon name="sparkles" sizeClass="w-4 h-4" />
+          <span>{{ 'mc.voice.welcomeTitle' | translate }}</span>
+        </div>
+
+        <div class="mc-welcome-grid">
+          @for (opt of welcomeOptions(); track opt.id) {
+            <article class="mc-speech-card">
+              <span class="mc-speech-style">{{ opt.style }}</span>
+              <h3 class="mc-speech-title">{{ opt.title }}</h3>
+              <p class="mc-speech-body">{{ opt.speech_text }}</p>
+              <button
+                type="button"
+                class="mc-inline-btn is-primary w-full justify-center"
+                [disabled]="synthesizingVoice()"
+                (click)="acceptWelcomeSpeech(opt)"
+              >
+                <app-icon name="bolt" sizeClass="w-3.5 h-3.5" />
+                <span>{{ 'mc.voice.acceptSpeak' | translate }}</span>
+              </button>
+            </article>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Sugerencia Autónoma cada minuto (esperando aprobación del anfitrión para hablar) -->
+    @if (pendingSuggestion(); as sug) {
+      <div class="mc-alert-inline mc-auto-card">
+        <div class="mc-alert-inline-head">
+          <app-icon name="bolt" sizeClass="w-4 h-4" />
+          <span>{{ 'mc.voice.autoSuggestionBadge' | translate }}</span>
+        </div>
+        <h3 class="mc-alert-inline-title">{{ sug.title }}</h3>
+        <p class="mc-auto-reason">{{ sug.reason }}</p>
+        <p class="mc-speech-quote">"{{ sug.speech_text }}"</p>
+        <div class="mc-alert-inline-actions">
+          <button
+            type="button"
+            class="mc-inline-btn is-primary"
+            [disabled]="synthesizingVoice()"
+            (click)="approveAutonomousSuggestion()"
+          >
+            <app-icon name="check" sizeClass="w-3.5 h-3.5" />
+            <span>{{ 'mc.voice.approveSpeak' | translate }}</span>
+          </button>
+          <button
+            type="button"
+            class="mc-inline-btn is-ghost"
+            (click)="dismissAutonomousSuggestion()"
+          >
+            <span>{{ 'mc.voice.skip' | translate }}</span>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Transición del DJ Virtual Autónomo integrada directamente en el chat -->
+    @if (djSuggestion(); as dj) {
+      <div class="mc-alert-inline mc-auto-card">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="mc-alert-inline-head">
+            <app-icon name="sparkles" sizeClass="w-4 h-4" />
+            <span>{{ 'dj.suggestionBadge' | translate }}</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="mc-model-tag">{{ dj.model }}</span>
+            <span class="mc-model-tag">{{ dj.recommended_genre }} · {{ dj.recommended_bpm }}</span>
+          </div>
+        </div>
+        <p class="mc-auto-reason">{{ dj.reason }}</p>
+        <p class="mc-speech-quote">"{{ dj.dj_shoutout }}"</p>
+        <div class="mc-alert-inline-actions">
+          <button
+            type="button"
+            class="mc-inline-btn is-primary"
+            [disabled]="djSpeaking() || synthesizingVoice()"
+            (click)="onApplyDjTransition(true)"
+          >
+            <app-icon name="check" sizeClass="w-3.5 h-3.5" />
+            <span>{{ 'dj.applyAndSpeak' | translate }}</span>
+          </button>
+          <button
+            type="button"
+            class="mc-inline-btn"
+            (click)="onApplyDjTransition(false)"
+          >
+            <span>{{ 'dj.applyOnly' | translate }}</span>
+          </button>
+          <button
+            type="button"
+            class="mc-inline-btn is-ghost"
+            (click)="onDismissDjTransition()"
+          >
+            <span>{{ 'dj.skip' | translate }}</span>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Alerta automática del motor MC integrada dentro del flujo del chat -->
+    @if (activeAlert(); as alert) {
+      <div class="mc-alert-inline" [attr.data-status]="alert.status">
+        @if (alert.status === 'ACTIVE' && alert.dynamic; as dynamic) {
+          <div class="mc-alert-inline-head">
+            <app-icon name="light-bulb" sizeClass="w-4 h-4" />
+            <span>
+              {{
+                (alert.trigger === 'MANUAL_REQUEST' ? 'mc.manualTitle' : 'mc.alertTitle')
+                  | translate
+              }}
+            </span>
+          </div>
+          <h3 class="mc-alert-inline-title">{{ alertDynamicTitle() }}</h3>
+          <p class="mc-alert-inline-body">{{ alertDynamicInstructions() }}</p>
+          @if (alertError()) {
+            <p class="mc-chat-error-text">{{ 'mc.error' | translate }}</p>
+          }
+          <div class="mc-alert-inline-actions">
+            <button
+              type="button"
+              class="mc-inline-btn is-primary"
+              [disabled]="alertBusy()"
+              (click)="chooseAlertAction('apply')"
+            >
+              <app-icon name="check" sizeClass="w-3.5 h-3.5" />
+              {{ 'mc.action.' + dynamic.dynamic_type | translate }}
+            </button>
+            <button
+              type="button"
+              class="mc-inline-btn"
+              [disabled]="alertBusy()"
+              (click)="chooseAlertAction('next')"
+            >
+              <app-icon name="sparkles" sizeClass="w-3.5 h-3.5" />
+              {{ 'mc.another' | translate }}
+            </button>
+            <button
+              type="button"
+              class="mc-inline-btn is-ghost"
+              [disabled]="alertBusy()"
+              (click)="chooseAlertAction('dismiss')"
+            >
+              {{ 'mc.dismiss' | translate }}
+            </button>
+          </div>
+        } @else if (breakRemainingMs() > 0) {
+          <div class="mc-alert-inline-head">
+            <app-icon name="clock" sizeClass="w-4 h-4" />
+            <span>{{ 'mc.breakRunning' | translate }} · {{ breakCountdown() }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    @if (sending() || loadingAutonomous() || djLoading()) {
+      <div class="mc-msg-row">
+        <div class="mc-bubble mc-typing">
+          <span class="mc-typing-dot"></span>
+          <span class="mc-typing-dot"></span>
+          <span class="mc-typing-dot"></span>
+          <span class="text-xs ui-muted">{{ 'mc.chat.thinking' | translate }}</span>
+        </div>
+      </div>
+    }
+
+    @if (errorMessage(); as err) {
+      <div class="mc-chat-error" role="alert">
+        <app-icon name="exclamation-triangle" sizeClass="w-4 h-4" />
+        <span>{{ err }}</span>
+      </div>
+    }
+  </div>
+
+  <!-- Sugerencias rápidas -->
+  <div class="mc-quick-chips">
+    @for (key of quickPromptKeys; track key) {
+      <button
+        type="button"
+        class="mc-chip"
+        [disabled]="sending()"
+        (click)="sendQuickPrompt(key)"
+      >
+        {{ key | translate }}
+      </button>
+    }
+  </div>
+
+  <!-- Barra de escritura -->
+  <form class="mc-chat-composer" (ngSubmit)="sendMessage()">
+    <textarea
+      rows="1"
+      class="mc-chat-input"
+      name="mcDraft"
+      [ngModel]="draft()"
+      (ngModelChange)="draft.set($event)"
+      (keydown)="onKeydown($event)"
+      [placeholder]="'mc.chat.placeholder' | translate"
+      [disabled]="sending()"
+    ></textarea>
+    <button
+      type="submit"
+      class="mc-send-btn"
+      [disabled]="sending() || !draft().trim()"
+      [attr.aria-label]="'mc.chat.send' | translate"
+    >
+      <app-icon name="arrow-right" sizeClass="w-4 h-4" />
+      <span>{{ 'mc.chat.send' | translate }}</span>
+    </button>
+  </form>
+</section>

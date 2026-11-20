@@ -16,7 +16,8 @@
       <main
         id="main-content"
         tabindex="-1"
-        class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10"
+        class="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8"
+        [class]="isWidePage() ? 'max-w-[1920px] py-3 sm:py-5' : 'max-w-7xl py-6 sm:py-10'"
       >
         <router-outlet />
       </main>

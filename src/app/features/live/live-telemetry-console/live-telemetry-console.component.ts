@@ -11,6 +11,7 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
+import { LiveMetrics } from '../../../core/models/live.model';
 import {
   LiveTelemetrySnapshot,
   McAlert,
@@ -27,7 +28,8 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { AlertComponent } from '../../../shared/ui/feedback';
 import { EnergyTrafficLightComponent } from './energy-traffic-light/energy-traffic-light.component';
-import { McAlertAction, McAlertCardComponent } from './mc-alert-card/mc-alert-card.component';
+import { McAiChatComponent } from './mc-ai-chat/mc-ai-chat.component';
+import { McAlertAction } from './mc-alert-card/mc-alert-card.component';
 import { PulseChartComponent } from './pulse-chart/pulse-chart.component';
 
 /** Tiempo que permanece visible el resultado de una alerta ya resuelta. */
@@ -56,7 +58,7 @@ const FOCUS_MODE_STORAGE_KEY = 'experiencia_telemetry_focus';
     TranslatePipe,
     AlertComponent,
     EnergyTrafficLightComponent,
-    McAlertCardComponent,
+    McAiChatComponent,
     PulseChartComponent,
   ],
   templateUrl: './live-telemetry-console.component.html',
@@ -69,6 +71,10 @@ export class LiveTelemetryConsoleComponent {
 
   /** Identificador de la sesión recibido como Input o tomado de la ruta (UUID). */
   readonly sessionIdInput = input<string>('', { alias: 'sessionId' });
+  /** Métricas directas de cámara opcionales desde el panel anfitrión para contexto del chat IA. */
+  readonly liveMetrics = input<LiveMetrics | null>(null);
+  /** Controla si el chat se muestra dentro de la consola (true en vista standalone, false si el padre lo ubica en sidebar). */
+  readonly showChat = input<boolean>(true);
   private readonly routeSessionId = toSignal(
     this.route.paramMap.pipe(map((params) => params.get('sessionId') ?? '')),
     { initialValue: this.route.snapshot.paramMap.get('sessionId') ?? '' },
@@ -336,6 +342,16 @@ export class LiveTelemetryConsoleComponent {
    */
   onMcBreakFinished(): void {
     this.mcAlert.set(null);
+  }
+
+  /**
+   * Desplaza suavemente la vista hacia el chat del Asistente MC.
+   */
+  scrollToChat(): void {
+    document.getElementById('mc-ai-chat-section')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
   }
 
   /**

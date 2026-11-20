@@ -268,56 +268,70 @@
             </div>
           </div>
 
-          <!-- Selector de cantidad e interactividad -->
-          <div class="space-y-4">
-            <app-field controlId="reservation-quantity" [label]="'detail.quantity' | translate">
-              <input
-                appInput
-                type="number"
-                min="1"
-                max="20"
-                step="1"
-                [(ngModel)]="quantity"
+          <!-- Selector de cantidad e interactividad (solo para clientes cuando el evento está abierto) -->
+          @if (!auth.isHost() && (exp.status === 'OPEN' || exp.status === 'CONFIRMED')) {
+            <div class="space-y-4">
+              <app-field controlId="reservation-quantity" [label]="'detail.quantity' | translate">
+                <input
+                  appInput
+                  type="number"
+                  min="1"
+                  max="20"
+                  step="1"
+                  [(ngModel)]="quantity"
+                  [disabled]="reserving()"
+                  class="rounded-xl bg-[var(--ui-surface-soft)] border-[var(--ui-border)] text-center font-bold text-lg"
+                />
+              </app-field>
+
+              <!-- Botón principal de Reserva -->
+              <button
+                type="button"
+                (click)="onReserveClick()"
                 [disabled]="reserving()"
-                class="rounded-xl bg-[var(--ui-surface-soft)] border-[var(--ui-border)] text-center font-bold text-lg"
-              />
-            </app-field>
+                class="w-full py-3.5 px-6 rounded-xl bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] text-white text-xs uppercase tracking-widest font-semibold inline-flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+              >
+                <app-icon name="ticket" sizeClass="w-4 h-4" />
+                <span>{{ (reserving() ? 'detail.reserving' : 'catalog.reserveBtn') | translate }}</span>
+              </button>
 
-            <!-- Botón principal de Reserva -->
-            <button
-              type="button"
-              (click)="onReserveClick()"
-              [disabled]="reserving()"
-              class="w-full py-3.5 px-6 rounded-xl bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] text-white text-xs uppercase tracking-widest font-semibold inline-flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
-            >
-              <app-icon name="ticket" sizeClass="w-4 h-4" />
-              <span>{{ (reserving() ? 'detail.reserving' : 'catalog.reserveBtn') | translate }}</span>
-            </button>
-
-            <!-- Botón de Matching Grupal -->
-            <button
-              type="button"
-              (click)="onJoinMatchingClick()"
-              class="w-full py-3 px-6 rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-soft)] hover:border-[var(--ui-accent)] text-[var(--ui-text)] text-xs uppercase tracking-widest font-semibold inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
-            >
-              <app-icon name="users" sizeClass="w-4 h-4 text-[var(--ui-accent)]" />
-              <span>{{ 'nav.matching' | translate }}</span>
-            </button>
-          </div>
+              <!-- Botón de Matching Grupal -->
+              <button
+                type="button"
+                (click)="onJoinMatchingClick()"
+                class="w-full py-3 px-6 rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-soft)] hover:border-[var(--ui-accent)] text-[var(--ui-text)] text-xs uppercase tracking-widest font-semibold inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <app-icon name="users" sizeClass="w-4 h-4 text-[var(--ui-accent)]" />
+                <span>{{ 'nav.matching' | translate }}</span>
+              </button>
+            </div>
+          }
 
           <!-- Panel del Anfitrión (si aplica) -->
           @if (auth.isHost()) {
-            <div class="pt-4 border-t border-[var(--ui-border)] space-y-2">
+            <div class="space-y-3">
               <span class="text-[10px] uppercase tracking-widest text-[var(--ui-muted)] font-semibold block">
                 Gestión del Anfitrión
               </span>
-              <a
-                [routerLink]="['/live', exp.id]"
-                class="w-full py-2.5 px-4 rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-soft)] hover:border-[var(--ui-accent)] text-[var(--ui-accent)] text-xs uppercase tracking-wider font-semibold inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
-              >
-                <app-icon name="video-camera" sizeClass="w-4 h-4 text-emerald-500" />
-                <span>Monitoreo de Audiencia</span>
-              </a>
+              @if (exp.status === 'OPEN' || exp.status === 'CONFIRMED') {
+                <button
+                  type="button"
+                  [disabled]="startingEvent()"
+                  (click)="onStartEvent()"
+                  class="w-full py-3 px-4 rounded-xl bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] text-white text-xs uppercase tracking-wider font-semibold inline-flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-60"
+                >
+                  <app-icon name="bolt" sizeClass="w-4 h-4" />
+                  <span>{{ 'host.startEvent' | translate }}</span>
+                </button>
+              } @else if (exp.status === 'LIVE') {
+                <a
+                  [routerLink]="['/live', exp.id]"
+                  class="w-full py-3 px-4 rounded-xl border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-xs uppercase tracking-wider font-semibold inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <app-icon name="video-camera" sizeClass="w-4 h-4 text-emerald-500" />
+                  <span>Monitoreo de Audiencia</span>
+                </a>
+              }
             </div>
           }
         </div>
